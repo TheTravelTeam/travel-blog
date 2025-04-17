@@ -1,26 +1,24 @@
 {
-  "name": "frontend",
-  "version": "0.0.0",
+  "name": "repo-travel-blog",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve -o",
+    "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "prepare": "husky install",
     "lint": "ng lint",
-    "format": "prettier --write \"src/**/*.{ts,js,json,scss,html,md}\"",
     "lint:fix": "eslint . --ext .ts,.html --fix",
-    "lint:all": "npm run lint:fix && npm run format"
+    "format": "prettier --write ."
   },
-  "private": true,
-    "lint-staged": {
-      "**/*.{ts,js,json,scss,html,md}": [
-        "eslint --fix",
-        "prettier --write"
-      ]
-    },
+  "lint-staged": {
+    "**/*.{ts,js,json,scss,html,md}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  },
   "dependencies": {
     "@angular/animations": "^18.2.0",
     "@angular/common": "^18.2.0",
