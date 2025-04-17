@@ -4,23 +4,23 @@
   "type": "module",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve -o",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "prepare": "husky install",
     "lint": "ng lint",
-    "lint:fix": "eslint . --ext .ts,.html --fix"
+    "format": "prettier --write \"src/**/*.{ts,js,json,scss,html,md}\"",
+    "lint:fix": "eslint . --ext .ts,.html --fix",
+    "lint:all": "npm run lint:fix && npm run format"
   },
   "private": true,
-  "lint-staged": {
-    "**/*.{ts,html}": [
-      "eslint --fix"
-    ],
-    "**/*.{ts,js,json,scss,html,md}": [
-      "prettier --write"
-    ]
-  },
+    "lint-staged": {
+      "**/*.{ts,js,json,scss,html,md}": [
+        "eslint --fix",
+        "prettier --write"
+      ]
+    },
   "dependencies": {
     "@angular/animations": "^18.2.0",
     "@angular/common": "^18.2.0",
