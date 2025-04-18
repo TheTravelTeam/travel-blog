@@ -11,7 +11,8 @@
     "prepare": "husky install",
     "lint": "ng lint",
     "lint:fix": "eslint . --ext .ts,.html --fix",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "db": "json-server --watch db.json"
   },
   "lint-staged": {
     "**/*.{ts,js,json,scss,html,md}": [
