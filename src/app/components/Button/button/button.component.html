@@ -1,1 +1,14 @@
-<button type="button" (click)="onClick()">click</button>
+<!-- <button type="button" (click)="onClick()">click</button> -->
+<button
+  [ngClass]="[
+    'btn',
+    'btn--' + color,
+    'btn--' + size,
+    'btn--' + radius,
+    isDisabled ? 'btn--disabled' : '',
+  ]"
+  [disabled]="isDisabled"
+  (click)="onClick()"
+>
+  <ng-content></ng-content>
+</button>
