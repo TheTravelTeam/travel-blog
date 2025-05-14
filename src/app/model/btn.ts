@@ -1,5 +1,5 @@
 import { IconName } from './icon';
-import { Color, Radius, Size } from './variant';
+import { Color, Radius, RadiusButton, Size } from './variant';
 
 export const btnDefault: Btn = {
   color: 'primary',
@@ -17,7 +17,7 @@ export const btnDefault: Btn = {
 export interface Btn {
   color: Color;
   type: 'standard' | 'like' | 'comment';
-  radius: Radius;
+  radius: RadiusButton;
   size: Size;
   text: string;
   isDisabled: boolean;
