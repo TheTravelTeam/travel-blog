@@ -44,6 +44,7 @@ export default [
         },
       ],
       'prettier/prettier': 'warn',
+      '@typescript-eslint/consistent-type-definitions': 'off',
     },
   },
   {

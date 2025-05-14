@@ -1,0 +1,61 @@
+.chip {
+  &__content {
+    position: relative;
+    display: flex;
+    width: fit-content;
+    padding-right: 1rem;
+    border-radius: 8px;
+    &.green {
+      background-color: #075b5d;
+      &:hover {
+        background-color: #075d5f80;
+      }
+    }
+    &.red {
+      background-color: #a10e13;
+      &:hover {
+        background-color: #a10e1380;
+      }
+    }
+    &.yellow {
+      background-color: #cccc0b;
+      &:hover {
+        background-color: #cbcb0b80;
+      }
+    }
+  }
+  &__text {
+    color: cornsilk;
+    padding: 0.4rem;
+    margin: 0;
+  }
+  &__button {
+    cursor: pointer;
+    &--click {
+      background: transparent;
+      height: fit-content;
+    }
+    &--remove {
+      position: absolute;
+      right: 0;
+      border: none;
+      top: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 15px;
+      height: 15px;
+      border-radius: 100%;
+      background: rgba(255, 248, 220, 0.401);
+      color: cornsilk;
+      &:hover {
+        outline: solid 1px cornsilk;
+      }
+    }
+    &--click,
+    &--remove {
+      cursor: pointer;
+      border: none;
+    }
+  }
+}

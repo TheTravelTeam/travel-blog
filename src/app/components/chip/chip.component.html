@@ -1,0 +1,20 @@
+<div attr.id="chip-{{ id }}" [class]="color" class="chip__content" (click)="preventClick($event)">
+  @if (isClickable) {
+    <button class="chip__button--click" type="button" (click)="handleClick($event)">
+      <p class="chip__text">{{ text }}</p>
+    </button>
+  } @else {
+    <span>
+      <p class="chip__text">{{ text }}</p>
+    </span>
+  }
+
+  <button
+    class="chip__button--remove"
+    type="button"
+    id="chip-button-remove-{{ id }}"
+    (click)="handleRemove($event)"
+  >
+    x
+  </button>
+</div>

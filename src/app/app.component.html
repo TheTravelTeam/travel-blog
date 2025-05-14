@@ -1,1 +1,11 @@
-<app-button></app-button>
+<div class="app-content">
+  @for (chip of chips; track $index) {
+    <app-chip
+      [id]="chip.id"
+      [text]="chip.text"
+      [color]="chip.color"
+      [isClickable]="true"
+      (removeEvent)="removeChip(chip.id)"
+    ></app-chip>
+  }
+</div>
