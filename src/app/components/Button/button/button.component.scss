@@ -1,20 +1,87 @@
 @use '../../../../styles/variables' as *;
+//Nommage BEM (block Element Modifier)
+// Forme générale
+// .block { }
+// .block__element { }
+// .block--modifier { }
+// .block__element--modifier { }
 
 .btn {
   font-weight: bold;
   border: none;
-  border-radius: 4px;
   cursor: pointer;
   transition: 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  &--standar {
+    width: 10.25rem;
+    height: 2.5rem;
+  }
+
+  &__icon {
+    font-size: 1rem;
+    background-size: contain;
+    background-repeat: no-repeat;
+    // color: inherit;
+  }
+
+  &--icon-only {
+    max-width: 2.5rem;
+    max-width: 2.5rem;
+    padding: 10px 10px !important;
+    justify-content: center;
+    gap: 0;
+  }
 
   &--primary {
     background-color: $primaryColor;
-    color: white;
+    color: $secondaryTextColor;
+
+    &:hover:not(:disabled) {
+      background-color: $secondaryTextColor;
+      color: $primaryColor;
+      border: $primaryColor 1px solid;
+
+      .btn__icon {
+        color: inherit;
+      }
+    }
+
+    &:disabled {
+      background-color: $commentTextColor;
+      color: $secondaryTextColor;
+      opacity: 0.5;
+      cursor: not-allowed;
+      filter: blur(1px);
+      pointer-events: none;
+    }
   }
 
   &--secondary {
     background-color: $secondaryColor;
-    color: black;
+    color: $secondaryTextColor;
+
+    &:hover:not(:disabled) {
+      background-color: $secondaryTextColor;
+      color: $secondaryColor;
+      border: $secondaryColor 1px solid;
+
+      .btn__icon {
+        color: inherit;
+      }
+    }
+
+    &:disabled {
+      background-color: $commentTextColor;
+      color: $secondaryTextColor;
+      opacity: 0.5;
+      cursor: not-allowed;
+      filter: blur(1px);
+      pointer-events: none;
+    }
   }
 
   &--danger {
@@ -24,25 +91,70 @@
 
   &--sm {
     font-size: 12px;
-    padding: 4px 8px;
+    padding: 0.5rem 1rem;
   }
 
   &--md {
     font-size: 14px;
-    padding: 6px 12px;
+    padding: 0.75rem 1rem;
   }
 
   &--lg {
     font-size: 16px;
-    padding: 8px 16px;
+    padding: 1.125rem 1rem;
   }
 
-  &--disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  &--border_lg {
+    border-radius: 1.125rem;
   }
 
-  &--big {
-    border-radius: 50%;
+  &--border_sm {
+    border-radius: 0.5rem;
   }
+
+  &--border_md {
+    border-radius: 1rem;
+  }
+
+  &--like,
+  &--comment {
+    &--primary {
+      width: fit-content;
+      height: fit-content;
+      padding: 0.25rem 1rem;
+      background-color: $secondaryTextColor;
+      color: $primaryColor;
+      border: $primaryColor 1px solid;
+
+      &:hover:not(:disabled) {
+        background-color: $primaryColor;
+        color: $secondaryTextColor;
+        border: $secondaryTextColor 1px solid;
+      }
+    }
+
+    &--secondary {
+      width: fit-content;
+      height: fit-content;
+      padding: 0.25rem 1rem;
+      background-color: $secondaryTextColor;
+      color: $secondaryColor;
+      border: $secondaryColor 1px solid;
+
+      &:hover:not(:disabled) {
+        background-color: $secondaryColor;
+        color: $secondaryTextColor;
+        border: $secondaryTextColor 1px solid;
+
+        // .btn__icon {
+        //   color: inherit;
+        // }
+      }
+    }
+  }
+}
+
+.material-icons {
+  vertical-align: middle;
+  line-height: 1;
 }
