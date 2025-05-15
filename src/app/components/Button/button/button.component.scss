@@ -145,16 +145,12 @@
         background-color: $secondaryColor;
         color: $secondaryTextColor;
         border: $secondaryTextColor 1px solid;
-
-        // .btn__icon {
-        //   color: inherit;
-        // }
       }
     }
   }
 }
 
-.material-icons {
+.material-symbols-outlined {
   vertical-align: middle;
   line-height: 1;
 }
