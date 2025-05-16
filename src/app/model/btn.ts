@@ -2,7 +2,7 @@ import { Color, Radius, Size } from './variant';
 
 export const btnDefault: Btn = {
   color: 'primary',
-  type: 'standar',
+  type: 'standard',
   radius: 'border_lg',
   size: 'sm',
   text: '',
@@ -15,7 +15,7 @@ export const btnDefault: Btn = {
 
 export interface Btn {
   color: Color;
-  type: 'standar' | 'like' | 'comment';
+  type: 'standard' | 'like' | 'comment';
   radius: Radius;
   size: Size;
   text: string;

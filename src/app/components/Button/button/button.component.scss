@@ -1,4 +1,4 @@
-@use '../../../../styles/variables' as *;
+@use 'variables' as *;
 //Nommage BEM (block Element Modifier)
 // Forme générale
 // .block { }
@@ -15,8 +15,9 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  font-family: $font-text;
 
-  &--standar {
+  &--standard {
     width: 10.25rem;
     height: 2.5rem;
   }
