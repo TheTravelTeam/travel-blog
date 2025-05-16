@@ -1,11 +1,11 @@
-export const checkboxDefault: Checkbox = {
-  checkboxName: 'firstChoice',
+export const checkboxDefault: Required<Omit<Checkbox, 'checkboxName' | 'label'>> = {
   icon: 'check',
   isDisabled: false,
 };
 
-export interface Checkbox {
+export type Checkbox = {
   checkboxName: string;
-  icon: 'check' | 'remove' | '';
+  label?: string;
+  icon?: 'check' | 'remove' | '';
   isDisabled?: boolean;
-}
+};
