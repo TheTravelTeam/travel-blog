@@ -17,7 +17,9 @@ export class DividerService {
       `divider--${params.orientation}`,
       `divider--${params.color}`,
       `divider--${params.thickness}`,
-      `divider--margin-${params.margin}`,
+      params.orientation === 'horizontal'
+        ? `divider--horizontal--margin-${params.margin}`
+        : `divider--vertical--margin-${params.margin}`,
       params.radius ? `divider--radius-${params.radius}` : '',
       params.isOpenMobile ? `divider--mobile` : '',
     ];

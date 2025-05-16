@@ -39,16 +39,28 @@
     }
   }
 
-  &--margin-sm {
+  &--horizontal--margin-sm {
     margin: 0.25rem 0;
   }
 
-  &--margin-md {
+  &--horizontal--margin-md {
     margin: 1rem 0;
   }
 
-  &--margin-lg {
+  &--horizontal--margin-lg {
     margin: 2rem 0;
+  }
+
+  &--vertical--margin-sm {
+    margin: 0 0.25rem;
+  }
+
+  &--vertical--margin-md {
+    margin: 0 1rem;
+  }
+
+  &--vertical--margin-lg {
+    margin: 0 2rem;
   }
 
   &--primary {
