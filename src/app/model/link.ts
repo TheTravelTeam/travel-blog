@@ -3,8 +3,8 @@ import { Color } from './variant';
 export type Link = {
   label: string;
   route: string;
-  color: Color;
-  icon:
+  color?: Color;
+  icon?:
     | 'add'
     | 'close'
     | 'arrow_back'
@@ -23,9 +23,7 @@ export type Link = {
     | 'chat_bubble';
 };
 
-export const linkDefault: Link = {
-  label: 'home',
-  route: '/',
+export const linkDefault: Required<Omit<Link, 'label' | 'route'>> = {
   color: 'white',
   icon: 'hiking',
 };
