@@ -12,16 +12,15 @@
   [disabled]="isDisabled"
   (click)="onClick()"
 >
-  @if (startIcon) {
-    <span class="btn__icon material-symbols-outlined">{{ icon }}</span>
-  }
   @if (isActionBtn) {
     <span class="btn__icon material-symbols-outlined">{{ icon }}</span>
-  }
-  @if (!isActionBtn) {
+  } @else {
+    @if (startIcon) {
+      <span class="btn__icon material-symbols-outlined">{{ icon }}</span>
+    }
     {{ text }}
-  }
-  @if (endIcon) {
-    <span class="btn__icon material-symbols-outlined">{{ icon }}</span>
+    @if (endIcon) {
+      <span class="btn__icon material-symbols-outlined">{{ icon }}</span>
+    }
   }
 </button>
