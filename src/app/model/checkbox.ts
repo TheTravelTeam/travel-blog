@@ -7,5 +7,5 @@ export const checkboxDefault: Checkbox = {
 export interface Checkbox {
   checkboxName: string;
   icon: 'check' | 'remove' | '';
-  isDisabled: boolean;
+  isDisabled?: boolean;
 }
