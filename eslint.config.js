@@ -29,6 +29,7 @@ export default [
       ...tsEslintPlugin.configs.recommended.rules,
       ...tsEslintPlugin.configs.stylistic.rules,
       ...angularEslintPlugin.configs.recommended.rules,
+      '@typescript-eslint/consistent-type-definitions': 'off',
       '@angular-eslint/directive-selector': [
         'error',
         { type: 'attribute', prefix: 'app', style: 'camelCase' },
