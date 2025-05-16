@@ -1,17 +1,5 @@
 @use '../../../../styles/variables' as *;
 
-.material-symbols-outlined {
-  font-family: 'Material Symbols Outlined';
-  font-style: normal;
-  font-weight: normal;
-  font-size: 24px;
-  display: inline-block;
-  line-height: 1;
-  text-transform: none;
-  letter-spacing: normal;
-  white-space: nowrap;
-  direction: ltr;
-}
 .link {
   display: flex;
   flex-direction: column;
@@ -58,7 +46,7 @@
     color: $backgroundWithOpacity;
 
     &:hover {
-      color: $primaryColor;
+      color: darken($backgroundWithOpacity, 50%);
     }
   }
 }

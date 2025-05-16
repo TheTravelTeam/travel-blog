@@ -11,8 +11,8 @@ import { RouterModule } from '@angular/router';
   styleUrl: './link.component.scss',
 })
 export class LinkComponent {
-  @Input() label!: Link['label'];
-  @Input() route!: Link['route'];
+  @Input({ required: true }) label!: Link['label'];
+  @Input({ required: true }) route!: Link['route'];
   @Input() color: Link['color'] = linkDefault['color'];
   @Input() icon: Link['icon'] = linkDefault['icon'];
 }
