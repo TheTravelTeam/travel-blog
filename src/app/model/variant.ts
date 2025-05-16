@@ -2,6 +2,9 @@
 export type Color = 'primary' | 'secondary' | 'danger' | 'white';
 export type RadiusButton = 'border_sm' | 'border_md' | 'border_lg';
 export type Size = 'sm' | 'md' | 'lg';
+export type CardSize = '';
+export type JustifyContent = 'start' | 'end' | 'center' | 'between' | 'around' | 'evenly';
+export type AlignItems = 'start' | 'end' | 'center';
 
 // Icon
 export type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';

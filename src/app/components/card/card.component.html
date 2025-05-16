@@ -1,0 +1,18 @@
+<div
+  class="card"
+  [ngClass]="[
+    'card--' + layout,
+    'card--' + color,
+    'card--radius-' + radius,
+    isHoverable && !isDisabled ? 'card--hoverable' : '',
+    isDisabled ? 'card--disabled' : '',
+    isClickable && !isDisabled ? 'card--clickable' : '',
+    'justify-' + justifyContent,
+    'card--align-' + alignItems,
+  ]"
+  (click)="handleClick()"
+>
+  <ng-content select="app-card-header"></ng-content>
+  <ng-content select="app-card-body"></ng-content>
+  <ng-content select="app-card-footer"></ng-content>
+</div>

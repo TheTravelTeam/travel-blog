@@ -1,0 +1,129 @@
+.card {
+  display: flex;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  cursor: default;
+  outline: none;
+  width: 50%;
+  height: 500px;
+
+  /* ===========================================
+  🎯 LAYOUT VARIANTS
+=========================================== */
+
+  &--column {
+    flex-direction: column;
+  }
+
+  &--row {
+    flex-direction: row;
+  }
+
+  /* ===========================================
+  🎯 COLOR
+=========================================== */
+
+  &--primary {
+    border: 1px solid #007bff;
+  }
+
+  &--secondary {
+    border: 1px solid #6c757d;
+  }
+
+  &--danger {
+    border: 1px solid #dc3545;
+  }
+
+  &--success {
+    border: 1px solid #28a745;
+  }
+
+  /* ===========================================
+  🎯 RADIUS
+=========================================== */
+
+  &--radius-sm {
+    border-radius: 4px;
+  }
+
+  &--radius-md {
+    border-radius: 8px;
+  }
+
+  &--radius-lg {
+    border-radius: 12px;
+  }
+
+  &--radius-none {
+    border-radius: 0;
+  }
+
+  /* ===========================================
+  🎯 ACTIONS
+=========================================== */
+
+  &--hoverable:hover:not(.card--disabled) {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  &--clickable {
+    cursor: pointer;
+  }
+
+  &--disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  //   /* ===========================================
+  //   📦 SPACING - JUSTIFY CONTENT
+  // =========================================== */
+
+  //   &--justify-start {
+  //     justify-content: flex-start;
+  //     gap: 1rem;
+  //   }
+  //   &--justify-end {
+  //     justify-content: flex-end;
+  //     gap: 1rem;
+  //   }
+
+  //   &--justify-center {
+  //     justify-content: center;
+  //   }
+
+  //   &--justify-between {
+  //     justify-content: space-between;
+  //   }
+
+  //   &--justify-around {
+  //     justify-content: space-around;
+  //   }
+
+  //   &--justify-evenly {
+  //     justify-content: space-evenly;
+  //   }
+
+  /* ===========================================
+  🎯 ALIGN ITEMS
+=========================================== */
+
+  &--align-start {
+    align-items: flex-start;
+  }
+
+  &--align-center {
+    align-items: center;
+  }
+
+  &--align-end {
+    align-items: flex-end;
+  }
+
+  &--align-stretch {
+    align-items: stretch;
+  }
+}
