@@ -10,7 +10,7 @@ export const iconDefault: Icon = {
   customClass: '',
 };
 
-export interface Icon {
+export type Icon = {
   name: IconName;
   size: IconSize;
   color: IconColor | null;
@@ -18,10 +18,11 @@ export interface Icon {
   fill: boolean;
   grade: IconGrade;
   customClass: string;
-}
+};
 
 export type IconName =
   | 'add'
+  | 'add_box'
   | 'close'
   | 'arrow_back'
   | 'remove'
@@ -41,9 +42,20 @@ export type IconName =
   | 'check_circle'
   | 'star'
   | 'delete'
+  | 'edit_square'
   | 'edit'
   | 'visibility'
-  | 'visibility_off';
+  | 'visibility_off'
+  | 'import_contacts'
+  | 'globe_location_pin'
+  | 'language'
+  | 'travel_explore'
+  | 'map_search'
+  | 'calendar_today'
+  | 'location_on'
+  | 'check_box_outline_blank'
+  | 'disabled_by_default'
+  | 'account_circle';
 
 export type IconWeight = 100 | 200 | 300 | 400 | 500 | 600 | 700;
 export type IconGrade = -25 | 0 | 200;

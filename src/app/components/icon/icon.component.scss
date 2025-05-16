@@ -2,11 +2,14 @@
 
 .icon {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: inherit;
   user-select: none;
   font-style: normal;
+  vertical-align: middle;
+  line-height: 1;
 
-  // Tailles des icônes (Material Symbols utilise des tailles variables)
   &--xs {
     font-size: 0.75rem; // 12px
   }
@@ -57,9 +60,7 @@
   }
 }
 
-// Garantir que Material Symbols fonctionne correctement
 .material-symbols-outlined {
-  //font-family: 'Material Symbols Outlined', sans-serif;
   font-family: 'Material Symbols Outlined', 'Material Icons', monospace, sans-serif;
   font-style: normal;
   direction: ltr;
