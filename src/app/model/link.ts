@@ -1,6 +1,6 @@
 import { Color } from './variant';
 
-export interface Link {
+export type Link = {
   label: string;
   route: string;
   color: Color;
@@ -21,7 +21,7 @@ export interface Link {
     | 'map_search'
     | 'travel_explore'
     | 'chat_bubble';
-}
+};
 
 export const linkDefault: Link = {
   label: 'home',
