@@ -1,5 +1,12 @@
 <div class="toggle-btn__wrapper">
-  <p [ngClass]="['toggle-btn__label--' + color, 'toggle-btn__label']">{{ label }}</p>
+  <p
+    [ngClass]="[
+      'toggle-btn__label',
+      isDisabled ? 'toggle-btn--disabled' : 'toggle-btn__label--' + color,
+    ]"
+  >
+    {{ label }}
+  </p>
   <button [disabled]="isDisabled" [ngClass]="classes" (click)="toggle()">
     <span class="toggle-btn__indicator"></span>
   </button>
