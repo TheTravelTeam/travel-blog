@@ -10,8 +10,8 @@ import { CommonModule } from '@angular/common';
   styleUrl: './checkbox.component.scss',
 })
 export class CheckboxComponent {
-  @Input() checkboxName!: Checkbox['checkboxName'];
-  @Input() label!: Checkbox['label'];
+  @Input({ required: true }) checkboxName!: Checkbox['checkboxName'];
+  @Input() label?: Checkbox['label'];
   @Input() icon: Checkbox['icon'] = checkboxDefault['icon'];
   @Input() isDisabled: Checkbox['isDisabled'] = checkboxDefault['isDisabled'];
 }
