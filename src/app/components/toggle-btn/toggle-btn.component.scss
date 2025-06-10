@@ -62,7 +62,7 @@
   &--off-primary,
   &--off-secondary,
   &--off-white {
-    background-color: lighten($commentTextColor, 10%);
+    background-color: lighten($commentTextColor, 20%);
   }
 
   &--disabled {
@@ -71,6 +71,8 @@
   }
 
   &__label {
+    margin: 0;
+    padding: 0;
     &--primary {
       color: $primaryColor;
     }
