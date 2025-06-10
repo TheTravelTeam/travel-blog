@@ -1,7 +1,7 @@
 // Colors variants
 // Background color
 $backgroundColor: #f5f5f5;
-$backgroundWithOpacity: rgba(245, 245, 245, 0.95);
+$backgroundWithOpacity: #f5f5f5f2;
 $primaryColor: #075b5d;
 $secondaryColor: #a10e13;
 
@@ -15,3 +15,55 @@ $textColor: #1c1c1c;
 // Colors forms
 $placeHolderColor: #b3b3b3;
 $inputBackgroundColor: #fafafa;
+
+// Font family
+// Title
+$font-title: 'Poppins', sans-serif;
+// Text
+$font-text: 'Inter', sans-serif;
+
+/* ****************AVATAR COLOR VARIANTS************ */
+
+$avatar-colors: (
+  // Soft Mint
+  'mint': (
+      bg: #2c7a67,
+      border: #a0d6bf,
+      text: #d5f5e3,
+    ),
+
+  // Lavender
+  'lavender': (
+      bg: #6c63a5,
+      border: #c1c1e0,
+      text: #e6e6fa,
+    ),
+
+  // Peach
+  'peach': (
+      bg: #b85c38,
+      border: #f2c49d,
+      text: #ffe5b4,
+    ),
+
+  // Sweet lemon
+  'sweetLemon': (
+      bg: #797100,
+      border: #e7e171,
+      text: #fcf7cd,
+    ),
+
+  // Pink
+  'pink': (
+      bg: #b04b5c,
+      border: #e1a6ac,
+      text: #fadadd,
+    ),
+
+  // Sky blue
+  'skyBlue': (
+      bg: #2e5984,
+      border: #a5cfef,
+      text: #d6ebff,
+    )
+);

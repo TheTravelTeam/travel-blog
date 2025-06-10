@@ -1,4 +1,4 @@
-export type Color = 'primary' | 'secondary' | 'danger';
+export type Color = 'primary' | 'secondary' | 'danger' | 'white';
 export type Radius = 'border_sm' | 'border_md' | 'border_lg';
 export type Size = 'sm' | 'md' | 'lg';
 
