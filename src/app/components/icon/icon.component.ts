@@ -10,7 +10,7 @@ import { CommonModule } from '@angular/common';
   styleUrl: './icon.component.scss',
 })
 export class IconComponent {
-  @Input() name: Icon['name'] = iconDefault['name'];
+  @Input({ required: true }) name!: Icon['name'];
   @Input() size: Icon['size'] = iconDefault['size'];
   @Input() color: Icon['color'] = iconDefault['color'];
   @Input() weight: Icon['weight'] = iconDefault['weight'];
@@ -27,7 +27,8 @@ export class IconComponent {
     `;
   }
 
-  private getOpticalSize(): number {
+  private getOpticalSize(): number | undefined {
+    if (!this.size) return;
     const sizeMap = {
       xs: 20,
       sm: 24,

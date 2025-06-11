@@ -1,7 +1,6 @@
 import { IconColor, IconSize } from './variant';
 
-export const iconDefault: Icon = {
-  name: 'help',
+export const iconDefault: Required<Omit<Icon, 'name'>> = {
   size: 'sm',
   color: null,
   weight: 400,
@@ -12,12 +11,12 @@ export const iconDefault: Icon = {
 
 export type Icon = {
   name: IconName;
-  size: IconSize;
-  color: IconColor | null;
-  weight: IconWeight;
-  fill: boolean;
-  grade: IconGrade;
-  customClass: string;
+  size?: IconSize;
+  color?: IconColor | null;
+  weight?: IconWeight;
+  fill?: boolean;
+  grade?: IconGrade;
+  customClass?: string;
 };
 
 export type IconName =
