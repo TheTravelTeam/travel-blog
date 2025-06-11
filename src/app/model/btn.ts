@@ -1,3 +1,4 @@
+import { IconName } from './icon';
 import { Color, Radius, Size } from './variant';
 
 export const btnDefault: Btn = {
@@ -23,17 +24,5 @@ export interface Btn {
   startIcon: boolean;
   endIcon: boolean;
   isActionBtn: boolean;
-  icon:
-    | 'add'
-    | 'close'
-    | 'arrow_back'
-    | 'remove'
-    | 'chevron_right'
-    | 'chevron_left'
-    | 'keyboard_arrow_down'
-    | 'keyboard_arrow_up'
-    | 'search'
-    | 'hiking'
-    | 'favorite'
-    | 'chat_bubble';
+  icon: IconName;
 }
