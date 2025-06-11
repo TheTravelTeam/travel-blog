@@ -1,14 +1,20 @@
 <div
   class="card"
+  [style.width]="width"
+  [style.height]="height"
   [ngClass]="[
     'card--' + layout,
-    'card--' + color,
-    'card--radius-' + radius,
+    'radius-' + radius,
     isHoverable && !isDisabled ? 'card--hoverable' : '',
     isDisabled ? 'card--disabled' : '',
     isClickable && !isDisabled ? 'card--clickable' : '',
     'justify-' + justifyContent,
-    'card--align-' + alignItems,
+    'bg-' + backgroundColor,
+    'border-' + borderColor,
+    'border-' + borderWeight,
+    'shadow-' + shadow,
+    'margin-' + margin,
+    'padding-' + padding,
   ]"
   (click)="handleClick()"
 >

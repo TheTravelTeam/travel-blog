@@ -1,18 +1,41 @@
-import { AlignItems, Color, JustifyContent, Radius } from './variant';
+import { AppColor, BorderWeight, JustifyContent, Radius, Shadow, Spacing } from './variant';
 
-export const cardDefault: Card = {
-  color: 'primary',
+export const cardDefault: Required<
+  Omit<
+    Card,
+    | 'textColor'
+    | 'shadow'
+    | 'backgroundColor'
+    | 'isDisabled'
+    | 'isHoverable'
+    | 'isClickable'
+    | 'width'
+    | 'height'
+    | 'margin'
+    | 'padding'
+  >
+> = {
+  layout: 'column',
   radius: 'sm',
-  isDisabled: false,
+  justifyContent: 'center',
+  borderColor: 'primary',
+  borderWeight: 'thin',
 };
 
 export interface Card {
+  width: string;
+  height: string;
+  margin?: Spacing;
+  padding?: Spacing;
   layout?: 'column' | 'row';
-  color: Color;
   radius?: Radius;
   isDisabled?: boolean;
   isHoverable?: boolean;
   isClickable?: boolean;
   justifyContent?: JustifyContent;
-  alignItems?: AlignItems;
+  backgroundColor?: AppColor;
+  borderColor?: AppColor;
+  borderWeight?: BorderWeight;
+  textColor?: AppColor;
+  shadow?: Shadow;
 }

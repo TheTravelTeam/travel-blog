@@ -5,6 +5,26 @@ export type Size = 'sm' | 'md' | 'lg';
 export type CardSize = '';
 export type JustifyContent = 'start' | 'end' | 'center' | 'between' | 'around' | 'evenly';
 export type AlignItems = 'start' | 'end' | 'center';
+export type AppColor =
+  | 'primary'
+  | 'secondary'
+  | 'accent'
+  | 'background'
+  | 'background-opacity'
+  | 'background-article'
+  | 'background-input'
+  | 'text'
+  | 'text-secondary'
+  | 'text-comment'
+  | 'text-placeholder'
+  | 'bs-primary'
+  | 'bs-secondary';
+
+export type BorderWeight = 'none' | 'thin' | 'medium' | 'thick' | 'xl';
+
+export type Shadow = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+
+export type Spacing = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 // Icon
 export type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';

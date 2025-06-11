@@ -1,5 +1,12 @@
-.card-header {
-  font-weight: 600;
-  font-size: 1.25rem;
-  margin-bottom: 0.75rem;
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+:host > div {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
 }
