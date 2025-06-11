@@ -1,4 +1,4 @@
-import { Component, ContentChild, EventEmitter, Input, Output } from '@angular/core';
+import { Component, ContentChild, EventEmitter, HostBinding, Input, Output } from '@angular/core';
 import { Card, cardDefault } from '../../model/card';
 import { CommonModule } from '@angular/common';
 import { CardBodyComponent } from './card-body/card-body.component';
@@ -34,7 +34,43 @@ export class CardComponent {
   @ContentChild(CardBodyComponent) body?: CardBodyComponent;
   @ContentChild(CardFooterComponent) footer?: CardFooterComponent;
 
-  handleClick(): void {
+  // Host bindings
+
+  @HostBinding('style.width') get styleWidth() {
+    return this.width;
+  }
+
+  @HostBinding('style.height') get styleHeight() {
+    return this.height;
+  }
+
+  @HostBinding('class') get classList(): string {
+    return [
+      'card',
+      'card--' + this.layout,
+      'radius-' + this.radius,
+      this.isHoverable && !this.isDisabled ? 'card--hoverable' : '',
+      this.isDisabled ? 'card--disabled' : '',
+      this.isClickable && !this.isDisabled ? 'card--clickable' : '',
+      'justify-' + this.justifyContent,
+      'bg-' + this.backgroundColor,
+      'border-' + this.borderColor,
+      'border-' + this.borderWeight,
+      'shadow-' + this.shadow,
+      'margin-' + this.margin,
+      'padding-' + this.padding,
+    ]
+      .filter(Boolean)
+      .join(' ');
+  }
+
+  @HostBinding('attr.role') role = 'region'; // Optionnel pour accessibilité
+
+  @HostBinding('style.cursor') get cursor() {
+    return this.isClickable && !this.isDisabled ? 'pointer' : 'default';
+  }
+
+  @HostBinding('click') onClick() {
     if (!this.isDisabled) {
       this.cardClick.emit();
     }
