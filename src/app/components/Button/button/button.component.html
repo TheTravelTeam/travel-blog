@@ -13,14 +13,14 @@
   (click)="onClick()"
 >
   @if (isActionBtn) {
-    <span class="btn__icon material-symbols-outlined">{{ icon }}</span>
+    <app-icon class="btn__icon" [name]="icon"></app-icon>
   } @else {
     @if (startIcon) {
-      <span class="btn__icon material-symbols-outlined">{{ icon }}</span>
+      <app-icon class="btn__icon" [name]="icon"></app-icon>
     }
     {{ text }}
     @if (endIcon) {
-      <span class="btn__icon material-symbols-outlined">{{ icon }}</span>
+      <app-icon class="btn__icon" [name]="icon"></app-icon>
     }
   }
 </button>
