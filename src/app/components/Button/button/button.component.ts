@@ -5,7 +5,6 @@ import { Btn, btnDefault } from '../../../model/btn';
 import { IconComponent } from '../../icon/icon.component';
 @Component({
   selector: 'app-button',
-  standalone: true,
   imports: [CommonModule, IconComponent],
   templateUrl: './button.component.html',
   styleUrl: './button.component.scss',

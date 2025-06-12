@@ -4,7 +4,6 @@ import { ToggleButton, toggleButtonDefault } from '../../model/toggle-btn';
 
 @Component({
   selector: 'app-toggle-btn',
-  standalone: true,
   imports: [CommonModule],
   templateUrl: './toggle-btn.component.html',
   styleUrl: './toggle-btn.component.scss',
