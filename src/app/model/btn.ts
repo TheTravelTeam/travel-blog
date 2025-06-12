@@ -1,4 +1,5 @@
-import { Color, Radius, Size } from './variant';
+import { IconName } from './icon';
+import { Color, Radius, RadiusButton, Size } from './variant';
 
 export const btnDefault: Btn = {
   color: 'primary',
@@ -16,24 +17,12 @@ export const btnDefault: Btn = {
 export interface Btn {
   color: Color;
   type: 'standard' | 'like' | 'comment';
-  radius: Radius;
+  radius: RadiusButton;
   size: Size;
   text: string;
   isDisabled: boolean;
   startIcon: boolean;
   endIcon: boolean;
   isActionBtn: boolean;
-  icon:
-    | 'add'
-    | 'close'
-    | 'arrow_back'
-    | 'remove'
-    | 'chevron_right'
-    | 'chevron_left'
-    | 'keyboard_arrow_down'
-    | 'keyboard_arrow_up'
-    | 'search'
-    | 'hiking'
-    | 'favorite'
-    | 'chat_bubble';
+  icon: IconName;
 }

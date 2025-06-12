@@ -1,0 +1,126 @@
+// ===========================================
+//     📦 COLORS
+// =========================================== */
+
+$colors: (
+  primary: #075b5d,
+  secondary: #a10e13,
+  accent: #025582,
+  background: #f5f5f5,
+  background-opacity: rgba(245, 245, 245, 0.95),
+  background-article: #96cac4,
+  background-input: #fafafa,
+
+  text: #1c1c1c,
+  text-secondary: #f2f2f2,
+  text-comment: #696969,
+  text-placeholder: #b3b3b3,
+);
+
+@each $key, $value in $colors {
+  .bg-#{$key} {
+    background-color: #{$value};
+  }
+
+  .text-#{$key} {
+    color: #{$value};
+  }
+
+  .border-#{$key} {
+    border: solid;
+    border-color: #{$value};
+  }
+}
+
+// ===========================================
+//     📦 SPACING - JUSTIFY CONTENT - RADIUS
+// =========================================== */
+
+$justify-values: (
+  start: flex-start,
+  center: center,
+  end: flex-end,
+  between: space-between,
+  around: space-around,
+  evenly: space-evenly,
+);
+
+$radius-values: (
+  'sm': 4px,
+  'md': 8px,
+  'lg': 12px,
+);
+
+$spacing-values: (
+  'xs': 4px,
+  'sm': 8px,
+  'md': 16px,
+  'lg': 24px,
+  'xl': 32px,
+);
+
+@each $key, $value in $radius-values {
+  .radius-#{$key} {
+    border-radius: #{$value};
+  }
+}
+
+@each $key, $value in $justify-values {
+  .justify-#{$key} {
+    justify-content: #{$value};
+  }
+}
+
+@each $key, $value in $spacing-values {
+  .margin-#{$key} {
+    margin: #{$value};
+  }
+}
+
+@each $key, $value in $spacing-values {
+  .padding-#{$key} {
+    padding: #{$value};
+  }
+}
+
+// ===========================================
+//     📦 BORDERS
+// =========================================== */
+
+$border-weights: (
+  none: 0,
+  thin: 1px,
+  medium: 2px,
+  thick: 4px,
+  xl: 6px,
+);
+
+@mixin border-weight($size) {
+  border-width: map-get($border-weights, $size);
+}
+
+@each $name, $value in $border-weights {
+  .border-#{$name} {
+    border-width: $value;
+  }
+}
+
+// ===========================================
+//     📦 SHADOW
+// =========================================== */
+
+$shadows: (
+  none: none,
+  xs: 0 1px 2px rgba(0, 0, 0, 0.05),
+  sm: 0 2px 4px rgba(0, 0, 0, 0.08),
+  md: 0 4px 6px rgba(0, 0, 0, 0.1),
+  lg: 0 10px 15px rgba(0, 0, 0, 0.15),
+  xl: 0 20px 25px rgba(0, 0, 0, 0.2),
+);
+
+@each $name, $value in $shadows {
+  .shadow-#{$name} {
+    box-shadow: #{$value};
+    transition: box-shadow 0.3s ease-in-out;
+  }
+}
