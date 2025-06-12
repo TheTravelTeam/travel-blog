@@ -5,7 +5,6 @@ import { AvatarService } from './avatar.service';
 
 @Component({
   selector: 'app-avatar',
-  standalone: true,
   imports: [CommonModule],
   templateUrl: './avatar.component.html',
   styleUrl: './avatar.component.scss',
