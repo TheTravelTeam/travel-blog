@@ -5,7 +5,6 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-divider',
-  standalone: true,
   imports: [CommonModule],
   templateUrl: './divider.component.html',
   styleUrl: './divider.component.scss',

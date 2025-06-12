@@ -4,7 +4,6 @@ import { CommonModule } from '@angular/common';
 import { Btn, btnDefault } from '../../../model/btn';
 @Component({
   selector: 'app-button',
-  standalone: true,
   imports: [CommonModule],
   templateUrl: './button.component.html',
   styleUrl: './button.component.scss',
