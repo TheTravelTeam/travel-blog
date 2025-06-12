@@ -13,3 +13,9 @@ body {
   min-height: 100%;
   font-family: $font-text;
 }
+
+a {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer; // si tu veux garder le curseur de lien
+}
