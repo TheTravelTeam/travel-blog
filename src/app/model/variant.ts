@@ -37,3 +37,4 @@ export type IconColor =
   | 'light'
   | 'comment';
 export type Radius = 'sm' | 'md' | 'lg';
+export type LogoSrc = '/icon/logo.svg' | '/icon/logo_dark.svg';
