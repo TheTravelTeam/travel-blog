@@ -24,7 +24,7 @@ export type BorderWeight = 'none' | 'thin' | 'medium' | 'thick' | 'xl';
 
 export type Shadow = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
-export type Spacing = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type Spacing = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl';
 
 // Icon
 export type IconSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
