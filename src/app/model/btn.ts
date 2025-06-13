@@ -1,11 +1,11 @@
 import { IconName } from './icon';
-import { Color, Radius, RadiusButton, Size } from './variant';
+import { Color, RadiusButton, Size } from './variant';
 
 export const btnDefault: Btn = {
   color: 'primary',
   type: 'standard',
   radius: 'border_lg',
-  size: 'sm',
+  size: 'md',
   text: '',
   isDisabled: false,
   startIcon: false,

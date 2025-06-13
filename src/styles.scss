@@ -66,3 +66,9 @@ a {
   border-radius: 50%; /* si tu veux un rond, optionnel */
   border: 2px solid $backgroundColor;
 }
+
+a {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer; // si tu veux garder le curseur de lien
+}
