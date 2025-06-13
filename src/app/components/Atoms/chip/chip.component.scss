@@ -1,0 +1,42 @@
+@use 'variables' as *;
+@use 'utilities' as *;
+
+:host {
+  display: inline-flex;
+  text-align: center;
+  background-color: map-get($colors, primary);
+
+  &.hoverable:hover:not(.chip--disabled) {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  &.clickable {
+    cursor: pointer;
+  }
+
+  &.disabled {
+    cursor: not-allowed;
+    filter: grayscale(100%) brightness(0.85);
+    opacity: 0.8;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 4px;
+      background-color: rgba(220, 220, 220, 0.4);
+      z-index: 5;
+    }
+  }
+
+  button {
+    background: map-get($colors, primary);
+    border: none;
+    color: inherit;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin-left: 10px;
+  }
+}
