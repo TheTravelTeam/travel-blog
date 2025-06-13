@@ -1,0 +1,52 @@
+<div class="select">
+  <label>{{ label }}</label>
+  @if (withMutipleSelect && itemsSelected.length > 0) {
+    <div class="select__top-section">
+      @for (item of itemsSelected; track item.id) {
+        <span class="chip">
+          {{ item.label }}
+          <button type="button" (click)="removeChip(item.id, $event)">
+            <app-icon name="close"></app-icon>
+          </button>
+        </span>
+      }
+    </div>
+  }
+
+  @if (errorMessage) {
+    <div class="error-message">
+      <small> ⁕{{ errorMessage }} </small>
+    </div>
+  }
+  <div [class]="['select__container', isOpen ? 'open' : '', disabled ? 'disabled' : '']">
+    <button (click)="toggleDropdown()">
+      <div class="select__container--input">
+        <input
+          [(ngModel)]="modelValue"
+          type="text"
+          [placeholder]="!itemSelected ? `${placeholder}` : ''"
+          [value]="!withMutipleSelect && itemSelected ? itemSelected.label : modelValue"
+          (input)="(filteredItems)"
+        />
+
+        <app-icon
+          size="lg"
+          color="primary"
+          [name]="!isOpen ? 'keyboard_arrow_down' : 'keyboard_arrow_up'"
+        ></app-icon>
+      </div>
+    </button>
+
+    @if (isOpen) {
+      <ul class="select__dropdown animate-dropdown">
+        <div class="select__dropdown--scroll">
+          @for (item of itemsList; track item.id) {
+            <li (click)="toggleItem(item)" [class.selected]="isSelected(item)">
+              {{ item.label }}
+            </li>
+          }
+        </div>
+      </ul>
+    }
+  </div>
+</div>
