@@ -1,0 +1,14 @@
+<span
+  [ngClass]="[
+    'icon',
+    'material-symbols-outlined',
+    'icon--' + size,
+    color ? 'icon--' + color : '',
+    customClass,
+  ]"
+  [ngStyle]="{
+    'font-weight': weight,
+    'font-variation-settings': getFontVariationSettings(),
+  }"
+  >{{ name }}</span
+>
