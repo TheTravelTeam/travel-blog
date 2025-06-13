@@ -1,0 +1,69 @@
+<div [ngClass]="containerClasses">
+  <!-- Label -->
+  @if (label) {
+    <label
+      [for]="inputId"
+      [ngClass]="labelClasses">
+      {{ label }}
+      @if (isRequired) {
+        <span class="text-input__required-indicator">*</span>
+      }
+    </label>
+  }
+
+  <!-- Conteneur -->
+  <div class="text-input__container">
+    <!-- Leading Icon -->
+    @if (icon && iconPosition === 'left') {
+      <span class="text-input__icon text-input__icon--left">
+        <app-icon [name]="icon"></app-icon>
+      </span>
+    }
+
+    <!-- Champs -->
+    <input
+      [id]="inputId"
+      [type]="type"
+      [placeholder]="placeholder"
+      [disabled]="isDisabled || false"
+      [attr.maxlength]="maxLength"
+      [(ngModel)]="value"
+      [ngClass]="inputClasses"
+      (focus)="onInputFocus($event)"
+      (blur)="onInputBlur($event)"
+    />
+
+    <!-- Icon à droite -->
+    @if (icon && iconPosition === 'right') {
+      <span class="text-input__icon text-input__icon--right">
+        <app-icon [name]="icon"></app-icon>
+      </span>
+    }
+  </div>
+
+  <!-- Message d'erreur -->
+  @if (helperText || errorMessage || shouldShowCharCount) {
+    <div class="text-input__footer">
+      <div class="text-input__help">
+        @if (errorMessage) {
+          <span class="text-input__error-message">
+            {{ errorMessage }}
+          </span>
+        }
+        @if (helperText && !errorMessage) {
+          <span class="text-input__helper-text">
+            {{ helperText }}
+          </span>
+        }
+      </div>
+
+      @if (shouldShowCharCount) {
+        <span
+          class="text-input__char-count"
+          [ngClass]="{'text-input__char-count--max': characterCount === maxLength}">
+          {{ characterCount }}/{{ maxLength }}
+        </span>
+      }
+    </div>
+  }
+</div>
