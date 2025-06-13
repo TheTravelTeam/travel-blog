@@ -5,6 +5,7 @@
   display: inline-flex;
   text-align: center;
   background-color: map-get($colors, primary);
+  align-items: center;
 
   &.hoverable:hover:not(.chip--disabled) {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
