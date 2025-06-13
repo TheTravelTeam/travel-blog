@@ -1,0 +1,20 @@
+<nav class="breadcrumb" [ngClass]="'breadcrumb--' + color" aria-label="breadcrumb">
+  <ul class="breadcrumb__list">
+    <li class="breadcrumb__item">
+      <a href="/" class="breadcrumb__item-home" [ngClass]="'breadcrumb__icon-' + color">
+        <app-icon name="home" size="md"></app-icon
+      ></a>
+    </li>
+    @for (item of breadcrumbItems; track $index; let last = $last) {
+      <li
+        class="breadcrumb__item"
+        [ngClass]="[
+          item.isDisabled ? 'breadcrumb__item-disabled' : '',
+          last ? 'breadcrumb__item-last breadcrumb__item-disabled' : ' ',
+        ]"
+      >
+        <a [attr.href]="!last ? item.href : null" class="breadcrumb__link"> {{ item.label }}</a>
+      </li>
+    }
+  </ul>
+</nav>

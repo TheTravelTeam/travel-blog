@@ -1,5 +1,5 @@
 import { Component, inject, Input } from '@angular/core';
-import { avatarDefaultProps, AvatarProps } from '../../../model/Avatar';
+import { avatarDefaultProps, AvatarProps } from '../../../model/avatar.model';
 import { CommonModule } from '@angular/common';
 import { AvatarService } from './avatar.service';
 

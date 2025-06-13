@@ -54,6 +54,7 @@ export type IconName =
   | 'location_on'
   | 'check_box_outline_blank'
   | 'disabled_by_default'
+  | 'home'
   | 'account_circle';
 
 export type IconWeight = 100 | 200 | 300 | 400 | 500 | 600 | 700;
