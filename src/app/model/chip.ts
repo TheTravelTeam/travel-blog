@@ -30,9 +30,10 @@ export const chipDefault: Required<
     | 'borderWeight'
     | 'endIconColor'
     | 'startIconColor'
+    | 'radius'
+    | 'customClass'
   >
 > = {
-  radius: 'sm',
   justifyContent: 'center',
   gap: 'xs',
 };
@@ -57,4 +58,5 @@ export interface Chip {
   endIcon?: IconName;
   closeButton: boolean;
   children: string;
+  customClass: string;
 }
