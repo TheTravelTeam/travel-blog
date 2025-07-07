@@ -121,11 +121,11 @@ $border-weights: (
 
 $shadows: (
   none: none,
-  xs: 0 1px 2px rgba(0, 0, 0, 0.05),
-  sm: 0 2px 4px rgba(0, 0, 0, 0.08),
-  md: 0 4px 6px rgba(0, 0, 0, 0.1),
-  lg: 0 10px 15px rgba(0, 0, 0, 0.15),
-  xl: 0 20px 25px rgba(0, 0, 0, 0.2),
+  xs: 0 4px 6px rgba(0, 0, 0, 0.2),
+  sm: 0 8px 12px rgba(0, 0, 0, 0.3),
+  md: 0 12px 24px rgba(0, 0, 0, 0.45),
+  lg: 0 20px 40px rgba(0, 0, 0, 0.6),
+  xl: 0 30px 60px rgba(0, 0, 0, 0.75),
 );
 
 @each $name, $value in $shadows {
