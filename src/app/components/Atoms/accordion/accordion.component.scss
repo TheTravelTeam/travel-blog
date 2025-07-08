@@ -1,0 +1,113 @@
+@use 'variables' as *;
+
+.accordion {
+  &__container {
+    background-color: $backgroundColor;
+    border-radius: 16px;
+    padding-block: 0.5rem;
+    width: 100%;
+    max-width: 800px;
+    cursor: pointer;
+  }
+
+  &__title {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem;
+    padding-left: 1rem;
+    color: $primaryColor;
+
+    &--button {
+      width: 40px;
+      height: 40px;
+      border: none;
+      color: $primaryColor;
+      background: transparent;
+      border-radius: 50%;
+      position: relative;
+      z-index: 0;
+      cursor: pointer;
+      transition: all 0.4s ease;
+
+      &:focus {
+        outline: none;
+      }
+
+      &.rotate {
+        transform: rotate(180deg);
+      }
+
+      &::before {
+        content: '';
+        background: radial-gradient(circle, $backgroundArticleColor 0%, transparent 100%);
+        opacity: 0;
+        display: inline-block;
+        position: absolute;
+        border-radius: 50%;
+        width: 0;
+        box-sizing: border-box;
+        z-index: -1;
+        left: 50%;
+        top: 50%;
+        height: 0;
+        transition: all 0.4s ease;
+      }
+
+      &:hover::before,
+      &:focus-visible::before {
+        background: radial-gradient(circle, $backgroundArticleColor 0%, transparent 100%);
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        opacity: 1;
+      }
+    }
+  }
+  &__content {
+    padding: 1rem;
+  }
+  &__description {
+    display: flex;
+    font-style: italic;
+    font-size: smaller;
+    p {
+      position: relative;
+      color: $textColor;
+      padding-left: 2rem;
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0.9rem;
+        top: 40%;
+        padding: 0.15rem;
+        border-radius: 50%;
+        background-color: $textColor;
+      }
+    }
+  }
+}
+
+.filter {
+  background-color: $primaryColor;
+
+  .accordion {
+    &__title,
+    &__content,
+    &__description p {
+      color: $secondaryTextColor;
+    }
+
+    &__description p::before {
+      background-color: $backgroundColor;
+    }
+
+    &__title--button {
+      color: $secondaryTextColor;
+    }
+  }
+
+  .description {
+    color: $secondaryTextColor;
+  }
+}

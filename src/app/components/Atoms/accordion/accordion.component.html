@@ -1,0 +1,24 @@
+<div [class]="['accordion__container', isFilter && 'filter']">
+  <div class="accordion__title" (click)="onToggleOpen()">
+    <div>
+      <h3>{{ title }}</h3>
+      <div class="accordion__description">
+        <span>{{ subTitle }}</span>
+        @if (date) {
+          <p>{{ date }}</p>
+        }
+      </div>
+    </div>
+    <button
+      [class]="['accordion__title--button', isOpen ? 'rotate' : '']"
+      [attr.aria-label]="(isOpen ? `Masquer` : `Afficher`) + ' les détails'"
+    >
+      <app-icon name="keyboard_arrow_down" size="xl"></app-icon>
+    </button>
+  </div>
+  <div [@verticalSlide]="isOpen ? 'open' : 'close'">
+    <div class="accordion__content">
+      <ng-content></ng-content>
+    </div>
+  </div>
+</div>
