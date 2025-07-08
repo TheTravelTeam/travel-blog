@@ -1,0 +1,25 @@
+<app-card
+  width="200px"
+  height="250px"
+  [borderColor]="undefined"
+  layout="column"
+  shadow="sm"
+  margin="md"
+  [isHoverable]="true"
+  [isClickable]="true"
+  (click)="onCardClick()"
+>
+  <app-card-body><img [src]="image" /></app-card-body>
+  <app-card-footer>
+    <app-chip [customClass]="'title-chip chip-overlay'" [children]="title" shadow="xl"></app-chip>
+    <span class="description">{{ description }}</span>
+    <div class="informations">
+      <app-chip
+        [children]="author"
+        startIcon="account_circle"
+        startIconColor="secondary"
+      ></app-chip>
+      <p>Crée le {{ dateCreation }}</p>
+    </div>
+  </app-card-footer>
+</app-card>
