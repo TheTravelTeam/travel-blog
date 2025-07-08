@@ -5,6 +5,7 @@
   box-sizing: border-box;
   height: 100%;
   width: 100%;
+  overflow: hidden;
 
   /* ===========================================
   🎯 LAYOUT VARIANTS
@@ -13,24 +14,7 @@
   &.card--column {
     flex-direction: column;
 
-    ::ng-deep app-card-header,
-    ::ng-deep app-card-footer {
-      flex: 0 0 auto;
-    }
-
-    ::ng-deep app-card-footer {
-      padding: 8px;
-      padding-top: 16px;
-      font-size: 0.7rem;
-      text-align: center;
-      position: relative;
-
-      p {
-        margin: 4px;
-      }
-    }
-
-    ::ng-deep app-card-body {
+    > app-card-body {
       flex: 1 1 0;
       min-width: 0;
       min-height: 0;
@@ -39,11 +23,6 @@
 
   &.card--row {
     flex-direction: row;
-    > app-card-header,
-    > app-card-footer {
-      flex: 0 0 auto;
-    }
-
     > app-card-body {
       flex: 1 1 auto;
       min-width: 0;
@@ -55,8 +34,13 @@
   🎯 ACTIONS
 =========================================== */
 
-  &--hoverable:hover:not(.card--disabled) {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  &.card--hoverable {
+    transition: transform 0.3s ease;
+
+    &:hover:not(.card--disabled) {
+      transform: scale(1.03);
+      z-index: 1;
+    }
   }
 
   &--clickable {
@@ -64,7 +48,17 @@
   }
 
   &--disabled {
-    opacity: 0.6;
-    pointer-events: none;
+    cursor: none;
+    filter: grayscale(100%) brightness(0.85);
+    opacity: 0.8;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 4px;
+      background-color: rgba(220, 220, 220, 0.4);
+      z-index: 5;
+    }
   }
 }

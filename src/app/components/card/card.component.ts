@@ -1,4 +1,12 @@
-import { Component, ContentChild, EventEmitter, HostBinding, Input, Output } from '@angular/core';
+import {
+  Component,
+  ContentChild,
+  EventEmitter,
+  HostBinding,
+  HostListener,
+  Input,
+  Output,
+} from '@angular/core';
 import { Card, cardDefault } from '../../model/card';
 import { CommonModule } from '@angular/common';
 import { CardBodyComponent } from './card-body/card-body.component';
@@ -70,7 +78,7 @@ export class CardComponent {
     return this.isClickable && !this.isDisabled ? 'pointer' : 'default';
   }
 
-  @HostBinding('click') onClick() {
+  @HostListener('click') onClick() {
     if (!this.isDisabled) {
       this.cardClick.emit();
     }
