@@ -1,0 +1,34 @@
+<app-card
+  width="712px"
+  height="218px"
+  layout="column"
+  padding="xl"
+  shadow="xs"
+  radius="lg"
+  margin="lg"
+  [isHoverable]="true"
+  [isClickable]="true"
+  (click)="onCardClick()"
+>
+  <app-card-body>
+    <app-card width="36%" height="100%" radius="lg">
+      <img src="Images/thailand.jpg" alt="" />
+    </app-card>
+    <div class="informations">
+      <div class="title">
+        <h3>{{ title }}</h3>
+        <div>
+          <button (click)="onEdit()">
+            <app-icon name="edit" color="primary" size="lg"></app-icon>
+          </button>
+          <button (click)="onDelete()">
+            <app-icon name="delete" color="secondary" size="lg"></app-icon>
+          </button>
+        </div>
+      </div>
+      <div class="description">
+        {{ description }}
+      </div>
+    </div>
+  </app-card-body>
+</app-card>

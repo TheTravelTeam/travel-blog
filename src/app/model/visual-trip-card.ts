@@ -1,8 +1,9 @@
-export interface VisualTripCard {
+export interface VariantTripCard {
   id: number;
   title: string;
   image: string;
-  description: string;
+  shortdescription: string;
+  longDescription?: string;
   author: string;
   dateCreation: string;
 }
