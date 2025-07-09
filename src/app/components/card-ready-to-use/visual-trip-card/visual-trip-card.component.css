@@ -1,0 +1,43 @@
+.title-chip {
+  padding-left: 24px;
+  padding-right: 24px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+img {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+
+.description {
+  font-size: 0.8rem;
+}
+
+::ng-deep app-card-footer {
+  font-size: 0.7rem;
+  position: relative;
+  padding-top: 16px !important;
+}
+::ng-deep app-card-footer .informations {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+::ng-deep app-card-footer .chip-overlay {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  z-index: 10;
+}
+::ng-deep app-card-footer p {
+  margin: 4px;
+}/*# sourceMappingURL=visual-trip-card.component.css.map */

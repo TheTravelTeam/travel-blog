@@ -35,6 +35,7 @@ export class CardComponent {
   @Input() shadow: Card['shadow'];
   @Input() margin: Card['margin'];
   @Input() padding: Card['padding'];
+  @Input() customClass?: Card['customClass'];
 
   @Output() cardClick = new EventEmitter<void>();
 
@@ -67,6 +68,7 @@ export class CardComponent {
       'shadow-' + this.shadow,
       'margin-' + this.margin,
       'padding-' + this.padding,
+      this.customClass,
     ]
       .filter(Boolean)
       .join(' ');

@@ -14,6 +14,7 @@ export const cardDefault: Required<
     | 'margin'
     | 'padding'
     | 'borderColor'
+    | 'customClass'
   >
 > = {
   layout: 'column',
@@ -38,4 +39,5 @@ export interface Card {
   borderWeight?: BorderWeight;
   textColor?: AppColor;
   shadow?: Shadow;
+  customClass?: string;
 }
