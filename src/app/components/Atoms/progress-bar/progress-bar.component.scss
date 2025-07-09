@@ -1,0 +1,92 @@
+@use 'variables' as *;
+
+.progressBar {
+  &__container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 2.2rem 0 0.4rem 0;
+  }
+
+  &__content {
+    width: 630px;
+    height: 4px;
+    background-image: repeating-linear-gradient(
+      to right,
+      $placeHolderColor 0,
+      $placeHolderColor 8px,
+      transparent 8px,
+      transparent 16px
+    );
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 4px;
+      background-image: repeating-linear-gradient(
+        to right,
+        $primaryColor 0,
+        $primaryColor 8px,
+        transparent 8px,
+        transparent 16px
+      );
+      width: var(--progress, 0%);
+      transition: all 0.5s ease-in-out;
+    }
+  }
+
+  &__icon {
+    position: absolute;
+    transform: translateX(-50%);
+    top: -32px;
+    left: 0;
+    transition: all 0.5s ease-in-out;
+  }
+
+  &__diamond {
+    &--left,
+    &--right {
+      width: 8px;
+      height: 8px;
+      transform: rotate(45deg);
+      background: $primaryColor;
+      transition: all 0.5s ease-in-out;
+    }
+    &--right {
+      background-color: $placeHolderColor;
+
+      &.completed {
+        background: $primaryColor;
+        animation: pulse 0.6s ease-in-out 0.5s;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 680px) {
+  .progressBar__content {
+    width: 420px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .progressBar__content {
+    width: 300px;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: rotate(45deg) scale(1);
+  }
+  50% {
+    transform: rotate(45deg) scale(1.5);
+  }
+  100% {
+    transform: rotate(45deg) scale(1);
+  }
+}
