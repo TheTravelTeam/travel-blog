@@ -1,0 +1,72 @@
+/* ****************AVATAR COLOR VARIANTS************ */
+.divider--horizontal {
+  width: 100%;
+  height: 1px;
+}
+.divider--horizontal.divider--mobile {
+  width: 8.5rem;
+}
+.divider--horizontal.divider--thin {
+  height: 1px;
+}
+.divider--horizontal.divider--medium {
+  height: 2px;
+}
+.divider--horizontal.divider--thick {
+  height: 4px;
+}
+.divider--vertical {
+  height: 100%;
+  align-self: stretch;
+}
+.divider--vertical.divider--thin {
+  width: 1px;
+}
+.divider--vertical.divider--medium {
+  width: 2px;
+}
+.divider--vertical.divider--thick {
+  width: 4px;
+}
+.divider--horizontal--margin-sm {
+  margin: 0.25rem 0;
+}
+.divider--horizontal--margin-md {
+  margin: 1rem 0;
+}
+.divider--horizontal--margin-lg {
+  margin: 2rem 0;
+}
+.divider--vertical--margin-sm {
+  margin: 0 0.25rem;
+}
+.divider--vertical--margin-md {
+  margin: 0 1rem;
+}
+.divider--vertical--margin-lg {
+  margin: 0 2rem;
+}
+.divider--primary {
+  background-color: #075b5d;
+}
+.divider--secondary {
+  background-color: #a10e13;
+}
+.divider--danger {
+  background-color: red;
+}
+.divider--default {
+  background-color: #696969;
+}
+.divider--white {
+  background-color: #f5f5f5;
+}
+.divider--radius-5 {
+  border-radius: 5px;
+}
+.divider--radius-10 {
+  border-radius: 10px;
+}
+.divider--radius-15 {
+  border-radius: 15px;
+}/*# sourceMappingURL=divider.component.css.map */

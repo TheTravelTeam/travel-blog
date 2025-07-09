@@ -1,0 +1,33 @@
+<app-card
+  width="712px"
+  height="218px"
+  layout="column"
+  padding="xl"
+  shadow="xs"
+  radius="lg"
+  margin="lg"
+  [isHoverable]="true"
+  [isClickable]="true"
+  (click)="onCardClick()"
+>
+  <app-card-body>
+    <app-card width="36%" height="100%" radius="lg">
+      <img src="Images/thailand.jpg" alt="" />
+    </app-card>
+    <div class="informations">
+      <div class="title">
+        <h3>Voyages</h3>
+        <div>
+          <app-button [startIcon]="true" icon="edit" color="white"></app-button>
+          <app-icon name="edit" color="primary" size="lg" (click)="onEdit()"></app-icon>
+          <app-icon name="delete" color="secondary" size="lg" (click)="onDelete()"></app-icon>
+        </div>
+      </div>
+      <div class="description">
+        Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has
+        been the industry's standard dummy text ever since the 1500s, when an unknown printer took a
+        galley of type and scrambled it to make a type specimen book.
+      </div>
+    </div>
+  </app-card-body>
+</app-card>
