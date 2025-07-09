@@ -1,4 +1,5 @@
 :host {
+  display: flex;
   text-align: center;
   flex: 0 0 auto;
-}/*# sourceMappingURL=card-header.component.css.map */
+} /*# sourceMappingURL=card-header.component.css.map */

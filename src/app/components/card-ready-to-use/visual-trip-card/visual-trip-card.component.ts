@@ -13,9 +13,9 @@ import { VariantTripCard } from '../../../model/visual-trip-card';
 })
 export class VisualTripCardComponent {
   @Input({ required: true }) id!: VariantTripCard['id'];
-  @Input({ required: true }) title!: VariantTripCard['title'];
+  @Input({ required: true }) title!: VariantTripCard['country'];
   @Input({ required: true }) image!: VariantTripCard['image'];
-  @Input({ required: true }) description!: VariantTripCard['shortdescription'];
+  @Input({ required: true }) description!: VariantTripCard['title'];
   @Input({ required: true }) author!: VariantTripCard['author'];
   @Input({ required: true }) dateCreation!: VariantTripCard['dateCreation'];
 
