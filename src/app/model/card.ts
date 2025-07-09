@@ -13,12 +13,12 @@ export const cardDefault: Required<
     | 'height'
     | 'margin'
     | 'padding'
+    | 'borderColor'
   >
 > = {
   layout: 'column',
   radius: 'sm',
   justifyContent: 'center',
-  borderColor: 'primary',
   borderWeight: 'thin',
 };
 

@@ -29,7 +29,7 @@ export class CardComponent {
   @Input() isHoverable: Card['isHoverable'];
   @Input() isClickable: Card['isClickable'];
   @Input() justifyContent: Card['justifyContent'] = cardDefault['justifyContent'];
-  @Input() borderColor: Card['borderColor'] = cardDefault['borderColor'];
+  @Input() borderColor: Card['borderColor'];
   @Input() borderWeight: Card['borderWeight'] = cardDefault['borderWeight'];
   @Input() backgroundColor: Card['backgroundColor'];
   @Input() shadow: Card['shadow'];

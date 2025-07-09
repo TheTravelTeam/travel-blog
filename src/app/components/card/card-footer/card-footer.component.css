@@ -1,0 +1,9 @@
+:host {
+  padding: 8px;
+  font-size: 0.7rem;
+  text-align: center;
+  flex: 0 0 auto;
+}
+:host p {
+  margin: 4px;
+}/*# sourceMappingURL=card-footer.component.css.map */

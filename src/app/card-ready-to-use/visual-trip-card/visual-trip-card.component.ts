@@ -23,6 +23,5 @@ export class VisualTripCardComponent {
     // if (this.route) {
     //   this.router.navigate([this.route]);
     // }
-    alert(`Redirection vers le carnet avec ${this.id}`);
   }
 }
