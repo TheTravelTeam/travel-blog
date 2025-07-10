@@ -23,21 +23,33 @@
     <!-- Champs -->
     <input
       [id]="inputId"
-      [type]="type"
+      [type]="currentInputType"
       [placeholder]="placeholder"
       [disabled]="isDisabled || false"
       [attr.maxlength]="maxLength"
-      [(ngModel)]="value"
+      [value]="value"
+      (input)="onInputChange($event)"
       [ngClass]="inputClasses"
       (focus)="onInputFocus($event)"
       (blur)="onInputBlur($event)"
     />
 
     <!-- Icon à droite -->
-    @if (icon && iconPosition === 'right') {
+    @if (icon && iconPosition === 'right' && !shouldShowPasswordToggle) {
       <span class="text-input__icon text-input__icon--right">
         <app-icon [name]="icon"></app-icon>
       </span>
+    }
+
+    <!-- Password toggle icon -->
+    @if (shouldShowPasswordToggle) {
+      <button
+        type="button"
+        class="text-input__icon text-input__icon--right text-input__password-toggle"
+        (click)="togglePasswordVisibility()"
+        [disabled]="isDisabled">
+        <app-icon [name]="passwordToggleIcon"></app-icon>
+      </button>
     }
   </div>
 

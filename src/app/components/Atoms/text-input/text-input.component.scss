@@ -97,6 +97,35 @@
     }
   }
 
+  .text-input__password-toggle {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    pointer-events: auto;
+    color: $placeHolderColor;
+    transition: color 0.2s ease-in-out;
+    border-radius: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover:not(:disabled) {
+      color: $primaryColor;
+    }
+
+    &:focus {
+      outline: none;
+    }
+
+    &:disabled {
+      color: #adb5bd;
+      cursor: not-allowed;
+    }
+  }
+
   &__footer {
     display: flex;
     justify-content: space-between;
@@ -162,6 +191,11 @@
         right: 10px;
       }
     }
+
+    .text-input__password-toggle {
+      width: 18px;
+      height: 18px;
+    }
   }
 
   &--medium {
@@ -190,6 +224,11 @@
         right: 10px;
       }
     }
+
+    .text-input__password-toggle {
+      width: 18px;
+      height: 18px;
+    }
   }
 
   &--large {
@@ -217,6 +256,11 @@
       &--right {
         right: 14px;
       }
+    }
+
+    .text-input__password-toggle {
+      width: 22px;
+      height: 22px;
     }
   }
 
@@ -256,16 +300,28 @@
     .text-input__icon {
       color: $secondaryColor;
     }
+
+    .text-input__password-toggle {
+      color: $secondaryColor;
+    }
   }
 
   &--focused {
     .text-input__icon {
       color: $primaryColor;
     }
+
+    .text-input__password-toggle {
+      color: $primaryColor;
+    }
   }
 
   &--has-value {
     .text-input__icon {
+      color: $textColor;
+    }
+
+    .text-input__password-toggle {
       color: $textColor;
     }
   }
@@ -276,6 +332,10 @@
     }
 
     .text-input__icon {
+      color: #adb5bd;
+    }
+
+    .text-input__password-toggle {
       color: #adb5bd;
     }
   }

@@ -20,7 +20,7 @@ export interface TextInput {
 }
 
 export const textInputDefault: Required<
-  Omit<TextInput, 'label' | 'placeholder' | 'helperText' | 'errorMessage' | 'maxLength' | 'icon'>
+  Omit<TextInput, 'label' | 'placeholder' | 'errorMessage' | 'maxLength' | 'icon'>
 > = {
   type: 'text',
   size: 'medium',
@@ -29,4 +29,5 @@ export const textInputDefault: Required<
   isRequired: false,
   showCharCount: false,
   iconPosition: 'left',
+  helperText: '',
 };
