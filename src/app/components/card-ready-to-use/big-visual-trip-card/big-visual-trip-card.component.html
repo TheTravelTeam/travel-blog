@@ -1,12 +1,4 @@
-<app-card
-  width="510px"
-  height="439px"
-  layout="column"
-  padding="xl"
-  shadow="sm"
-  margin="xl"
-  radius="lg"
->
+<app-card width="510px" height="439px" layout="column" padding="xl" shadow="sm" radius="lg">
   <app-card-header>
     <div>
       <h2 class="inColor">{{ title }}</h2>
@@ -17,11 +9,7 @@
     </div>
     <div>
       <p class="inColor">Destination : {{ continent }}</p>
-      <app-chip
-        [children]="author"
-        startIcon="account_circle"
-        startIconColor="secondary"
-      ></app-chip>
+      <app-chip children="author" startIcon="account_circle" startIconColor="secondary"></app-chip>
     </div>
   </app-card-header>
   <app-card-body>
