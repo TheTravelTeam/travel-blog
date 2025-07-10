@@ -1,0 +1,36 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
+import { CreateStepDto } from '../dto/createStepDto';
+import { TravelDiary } from '../model/travelDiary';
+import { CreateDiaryDto } from '../dto/createDiaryDto';
+
+@Injectable({ providedIn: 'root' })
+export class StepService {
+  private apiUrl = 'http://localhost:8080/api/travels-diaries';
+
+  constructor(private http: HttpClient) {}
+
+  getTravelWithSteps(travelId: number): Observable<TravelDiary> {
+    return this.http.get<TravelDiary>(`${this.apiUrl}/${travelId}`).pipe(
+      map((travels) => {
+        return travels;
+      })
+    );
+  }
+
+  addStepToTravel(travelId: number, newStep: CreateStepDto): Observable<TravelDiary> {
+    return this.http.post<TravelDiary>(
+      `http://localhost:8080/api/travels-diaries/${travelId}/steps`,
+      newStep
+    );
+  }
+
+  getAllDiaries(): Observable<TravelDiary[]> {
+    return this.http.get<TravelDiary[]>(this.apiUrl);
+  }
+
+  addDiary(newDiary: CreateDiaryDto): Observable<TravelDiary> {
+    return this.http.post<TravelDiary>('http://localhost:8080/api/travels-diaries', newDiary);
+  }
+}
