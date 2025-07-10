@@ -9,6 +9,34 @@
         }
       </div>
     </div>
+    @if (role !== 'reader' && !isFilter) {
+      <div class="accordion__title--actions">
+        @if (!isEditing) {
+          <button
+            (click)="onToggleEdit($event)"
+            class="accordion__title--button"
+            [attr.aria-label]="`modifier ${title}`"
+          >
+            <app-icon name="edit" size="md" color="primary"></app-icon>
+          </button>
+          <button
+            (click)="onDelete($event)"
+            class="accordion__title--button danger"
+            [attr.aria-label]="`supprimer ${title}`"
+          >
+            <app-icon name="delete" size="md" color="danger"></app-icon>
+          </button>
+        } @else {
+          <button
+            (click)="onToggleEdit($event)"
+            class="accordion__title--button"
+            [attr.aria-label]="`annuler la modification`"
+          >
+            <app-icon name="close" size="md" color="primary" [weight]="600"></app-icon>
+          </button>
+        }
+      </div>
+    }
     <button
       [class]="['accordion__title--button', isOpen ? 'rotate' : '']"
       [attr.aria-label]="(isOpen ? `Masquer` : `Afficher`) + ' les détails'"

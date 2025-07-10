@@ -62,6 +62,22 @@
         top: 0;
         opacity: 1;
       }
+      &.danger {
+        &::before {
+          background: radial-gradient(circle, rgb(245, 162, 162) 0%, transparent 100%);
+        }
+        &:hover::before,
+        &:focus-visible::before {
+          background: radial-gradient(circle, rgb(245, 162, 162) 0%, transparent 100%);
+        }
+      }
+    }
+    &--actions {
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+      gap: 0.5rem;
+      padding-right: 2rem;
     }
   }
   &__content {
@@ -106,8 +122,10 @@
       color: $secondaryTextColor;
     }
   }
-
-  .description {
-    color: $secondaryTextColor;
+}
+@media screen and (max-width: 480px) {
+  .accordion__title--actions {
+    padding-right: 0.4rem;
+    gap: 0.2rem;
   }
 }

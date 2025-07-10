@@ -1,13 +1,19 @@
 export type AccordionProps = {
   title: string;
   date?: Date;
-  isFilter: boolean;
+  id?: number | string;
+  isEditing: boolean;
+  isFilter?: boolean;
   isOpen?: boolean;
+  role: 'admin' | 'owner' | 'reader';
   subTitle?: string;
 };
 
-export const accordionDefaultProps: Required<Omit<AccordionProps, 'title' | 'subTitle' | 'date'>> =
-  {
-    isFilter: false,
-    isOpen: false,
-  };
+export const accordionDefaultProps: Required<
+  Omit<AccordionProps, 'id' | 'title' | 'subTitle' | 'date'>
+> = {
+  isEditing: false,
+  isFilter: false,
+  isOpen: false,
+  role: 'reader',
+};
