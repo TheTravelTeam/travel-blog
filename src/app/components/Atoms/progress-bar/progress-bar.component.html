@@ -1,0 +1,13 @@
+<div class="progressBar__container">
+  <div class="progressBar__diamond--left"></div>
+  <div class="progressBar__content" [style.--progress.%]="progress">
+    <app-icon
+      class="progressBar__icon"
+      name="hiking"
+      size="lg"
+      color="primary"
+      [style.left.%]="progress"
+    ></app-icon>
+  </div>
+  <div class="progressBar__diamond--right" [class.completed]="isCompleted"></div>
+</div>
