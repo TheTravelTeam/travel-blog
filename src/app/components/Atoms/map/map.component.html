@@ -1,0 +1,9 @@
+<div class="container">
+  <div class="map-container">
+    @if (currentDiaryId) {
+      <button (click)="backToDiaries()" class="back-button">⬅ Retour aux diaries</button>
+    }
+    <div id="map"></div>
+  </div>
+</div>
+<ng-template #markerContainer></ng-template>

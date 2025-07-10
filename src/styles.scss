@@ -72,3 +72,18 @@ a {
   color: inherit;
   cursor: pointer; // si tu veux garder le curseur de lien
 }
+
+.white-circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #333;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+.size-md {
+  width: 3rem !important;
+  height: auto !important; /* si tu veux garder la proportion */
+  border-radius: 50%; /* si tu veux un rond, optionnel */
+}
