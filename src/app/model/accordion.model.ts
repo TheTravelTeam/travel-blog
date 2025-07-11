@@ -1,16 +1,16 @@
 export type AccordionProps = {
   title: string;
-  date?: Date;
+  startDate?: Date;
   id?: number;
   isEditing: boolean;
   isFilter?: boolean;
   isOpen?: boolean;
   role: 'admin' | 'owner' | 'reader';
-  subTitle?: string;
+  country?: string;
 };
 
 export const accordionDefaultProps: Required<
-  Omit<AccordionProps, 'id' | 'title' | 'subTitle' | 'date'>
+  Omit<AccordionProps, 'id' | 'title' | 'country' | 'startDate'>
 > = {
   isEditing: false,
   isFilter: false,
