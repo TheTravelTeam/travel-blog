@@ -18,6 +18,10 @@
 }
 
 header {
+<<<<<<< HEAD
+=======
+  width: 100vw;
+>>>>>>> da51415 (feat(KAN-209):missing some icons and some image effects)
   height: 100vh;
   position: relative;
   display: flex;
@@ -59,6 +63,7 @@ section {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+<<<<<<< HEAD
   h2 {
     text-align: center;
     margin-top: 26px;
@@ -66,6 +71,14 @@ section {
   }
   &:nth-of-type(odd) {
     h2 {
+=======
+  h1 {
+    text-align: center;
+    padding: 58px;
+  }
+  &:nth-of-type(odd) {
+    h1 {
+>>>>>>> da51415 (feat(KAN-209):missing some icons and some image effects)
       color: map-get($colors, primary);
     }
 
@@ -80,7 +93,11 @@ section {
   }
 
   &:nth-of-type(even) {
+<<<<<<< HEAD
     h2 {
+=======
+    h1 {
+>>>>>>> da51415 (feat(KAN-209):missing some icons and some image effects)
       color: map-get($colors, secondary);
     }
     .subSection {
