@@ -1,7 +1,7 @@
 export type AccordionProps = {
   title: string;
   date?: Date;
-  id?: number | string;
+  id?: number;
   isEditing: boolean;
   isFilter?: boolean;
   isOpen?: boolean;

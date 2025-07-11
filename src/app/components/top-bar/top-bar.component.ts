@@ -16,14 +16,14 @@ import { BreakpointService } from '../../services/breakpoint.service';
 })
 export class TopBarComponent {
   @Input() isConnected = true;
-  @Input() isHomeOrArticlePage = true;
+  @Input() isHomeOrArticlePage = false;
 
   constructor(public bp: BreakpointService) {}
 
   // 💡 IconSize adapté automatiquement au device
   public iconSize = computed<IconSize>(() => {
     if (this.bp.isMobile() || this.bp.isTablet()) return 'lg';
-    return 'xl';
+    return 'lg';
   });
 
   public btnSize = computed<Size>(() => {

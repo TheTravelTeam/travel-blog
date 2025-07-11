@@ -1,0 +1,33 @@
+<div class="worldMap">
+  <div class="worldMap__detail-panel">
+    <div
+      class="worldMap__detail-panel__header"
+      style="background-image: url(Images/nosy-iranja.jpg)"
+    >
+      <h1 class="worldMap__detail-panel__header--title">Vamos à la Playa !</h1>
+    </div>
+    <div class="worldMap__detail-panel__body">
+      <div class="worldMap__detail-panel__body--progress-bar">
+        <app-progress-bar [completedSteps]="completedSteps" [totalSteps]="totalStepCount" />
+      </div>
+      <div class="worldMap__detail-panel__body--steps-container">
+        @for (step of steps; track $index) {
+          <app-accordion
+            [id]="step.id"
+            [title]="step.title"
+            [subTitle]="step.subTitle"
+            [date]="step.date"
+            (toggleOpen)="onAccordionToggle(step.id, $event)"
+          >
+            <div>
+              <p>{{ step.content }}</p>
+            </div>
+          </app-accordion>
+        }
+      </div>
+    </div>
+  </div>
+  <div class="worldMap__map-area">
+    <app-map [viewMode]="false" [isStep]="true"></app-map>
+  </div>
+</div>
