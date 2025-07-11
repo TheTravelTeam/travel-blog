@@ -18,7 +18,7 @@
 }
 
 header {
-  width: 100vw;
+  // width: 100vw;
   height: 100vh;
   position: relative;
   display: flex;
@@ -67,6 +67,7 @@ section {
   &:nth-of-type(odd) {
     h1 {
       color: map-get($colors, primary);
+      margin-top: 26px;
     }
 
     .tripCardsList {

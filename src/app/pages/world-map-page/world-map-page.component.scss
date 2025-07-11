@@ -1,7 +1,8 @@
 @use 'variables' as *;
+
 .worldMap {
   display: flex;
-  height: 100vh;
+  // height: 100vh;
   overflow: hidden;
 
   &__detail-panel {
@@ -54,6 +55,6 @@
 
   &__map-area {
     flex: 11;
-    height: 100%;
+    height: calc(100vh - 70px);
   }
 }

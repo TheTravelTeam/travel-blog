@@ -2,7 +2,7 @@
   <div class="worldMap__detail-panel">
     <div
       class="worldMap__detail-panel__header"
-      style="background-image: url(Images/nosy-iranja.jpg)"
+      [style]="`background-image: url(${currentDiary?.coverMedia?.fileUrl})`"
     >
       <h1 class="worldMap__detail-panel__header--title">Vamos à la Playa !</h1>
     </div>
@@ -21,10 +21,6 @@
               <app-checkbox
                 checkboxName="Je reste chez c'est triste"
                 label="Je reste chez c'est triste"
-              ></app-checkbox>
-              <app-checkbox
-                checkboxName="Je reste chez c'est triste 111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
-                label=" 111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
               ></app-checkbox>
               <app-checkbox checkboxName="La plage" label="la plage"></app-checkbox>
             </div>

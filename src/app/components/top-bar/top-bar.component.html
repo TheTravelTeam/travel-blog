@@ -4,7 +4,7 @@
     bp.isMobile() ? 'is-mobile' : '',
     bp.isTablet() ? 'is-tablet' : '',
     bp.isDesktop() ? 'is-desktop' : '',
-    (bp.isDesktop() || bp.isTablet()) && isHomeOrArticlePage ? 'topbar--desktop-home' : '',
+    (bp.isDesktop() || bp.isTablet()) && isHomePage ? 'topbar--desktop-home' : '',
   ]"
 >
   <div class="topbar__left">
@@ -30,9 +30,9 @@
       @if (bp.isDesktop() || bp.isTablet()) {
         @if (!isConnected && isHomeOrArticlePage) {
           <app-button [type]="'standard'" text="Connexion" routerLink="/me" color="secondary" />
-          <app-button [type]="'standard'" text="Mappemonde" routerLink="/map" color="primary" />
+          <app-button [type]="'standard'" text="Mappemonde" routerLink="/travels" color="primary" />
         } @else if (!isConnected && !isHomeOrArticlePage) {
-          <a routerLink="/map" class="topbar__link">
+          <a routerLink="/travels" class="topbar__link">
             <app-icon name="language" [size]="iconSize()" />
             MappeMonde
           </a>
@@ -48,7 +48,7 @@
             [size]="btnSize()"
           />
         } @else {
-          <a routerLink="/map" class="topbar__link">
+          <a routerLink="/travels" class="topbar__link">
             <app-icon name="language" [size]="iconSize()" />
             Mappemonde
           </a>
