@@ -1,1 +1,87 @@
+<header>
+  <app-top-bar></app-top-bar>
+  <div class="imageContainer">
+    <img src="Images/paysage.jpg" />
+  </div>
+  <div class="titleContainer">
+    <h1>Un site de voyage unique pour toutes vos aventures</h1>
+  </div>
+  <div class="iconContainer arrow">
+    <img src="Images/arrow.svg" />
+  </div>
+</header>
+<main>
+  <section>
+    <h1>Découvrez votre future destination</h1>
+    <div class="iconContainer">
+      <img src="Images/arrow.svg" />
+    </div>
+    <div class="tripCardsList">
+      <app-visual-trip-card
+        [id]="1"
+        title="Thailande"
+        description="Circuit à Kho Tao"
+        image="Images/paysage.jpg"
+        author="autor"
+        dateCreation="22/03/2025"
+      ></app-visual-trip-card>
+      <app-visual-trip-card
+        [id]="1"
+        title="Thailande"
+        description="Circuit à Kho Tao"
+        image="Images/paysage.jpg"
+        author="autor"
+        dateCreation="22/03/2025"
+      ></app-visual-trip-card>
+      <app-visual-trip-card
+        [id]="1"
+        title="Thailande"
+        description="Circuit à Kho Tao"
+        image="Images/paysage.jpg"
+        author="autor"
+        dateCreation="22/03/2025"
+      ></app-visual-trip-card>
+      <app-visual-trip-card
+        [id]="1"
+        title="Thailande"
+        description="Circuit à Kho Tao"
+        image="Images/paysage.jpg"
+        author="autor"
+        dateCreation="22/03/2025"
+      ></app-visual-trip-card>
+    </div>
+  </section>
+  <section>
+    <h1>Lieux à explorer</h1>
+    <div class="subSection">
+      <div class="destinationsList">
+        <app-card class="imageDestinationContainer" width="312px" height="220px" radius="lg">
+          <img src="Images/paysage.jpg" />
+          <app-chip children="Thailand" backgroundColor="whiteOpacity" padding="xs"></app-chip>
+        </app-card>
+        <app-card class="imageDestinationContainer" width="312px" height="220px" radius="lg">
+          <img src="Images/paysage.jpg" />
+          <app-chip children="Thailand" backgroundColor="whiteOpacity" padding="xs"></app-chip>
+        </app-card>
+        <app-card class="imageDestinationContainer" width="312px" height="220px" radius="lg">
+          <img src="Images/paysage.jpg" />
+          <app-chip children="Thailand" backgroundColor="whiteOpacity" padding="xs"></app-chip>
+        </app-card>
+        <app-card class="imageDestinationContainer" width="312px" height="220px" radius="lg">
+          <img src="Images/paysage.jpg" />
+          <app-chip children="Thailand" backgroundColor="whiteOpacity" padding="xs"></app-chip>
+        </app-card>
+        <app-card class="imageDestinationContainer" width="312px" height="220px" radius="lg">
+          <img src="Images/paysage.jpg" />
+          <app-chip children="Thailand" backgroundColor="whiteOpacity" padding="xs"></app-chip>
+        </app-card>
+        <app-card class="imageDestinationContainer" width="312px" height="220px" radius="lg">
+          <img src="Images/paysage.jpg" />
+          <app-chip children="Thailand" backgroundColor="whiteOpacity" padding="xs"></app-chip>
+        </app-card>
+      </div>
+      <app-button text="Découvrez nos articles" color="secondary" size="lg"></app-button>
+    </div>
+  </section>
+</main>
 <app-footer></app-footer>
