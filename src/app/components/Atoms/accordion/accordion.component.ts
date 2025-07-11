@@ -26,10 +26,19 @@ export class AccordionComponent implements OnChanges {
   /**region Output */
   @Output() isEditingChange = new EventEmitter<boolean>();
   @Output() remove = new EventEmitter<void>();
+  @Output() toggleOpen = new EventEmitter<boolean>();
   /**region Output */
 
+  get formattedDate(): string | undefined {
+    if (!this.date) return undefined;
+    const month = this.date.toLocaleString('en-US', { month: 'short' });
+    const day = this.date.getDate();
+    const year = this.date.getFullYear();
+    return `${month} ${day} ${year}`;
+  }
   onToggleOpen() {
     this.isOpen = !this.isOpen;
+    this.toggleOpen.emit(this.isOpen);
   }
 
   onToggleEdit(e: Event) {
