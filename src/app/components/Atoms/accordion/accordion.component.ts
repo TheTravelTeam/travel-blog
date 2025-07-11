@@ -14,13 +14,13 @@ import { accordionDefaultProps, AccordionProps } from '../../../model/accordion.
 export class AccordionComponent implements OnChanges {
   /**region Input */
   @Input({ required: true }) title!: AccordionProps['title'];
-  @Input() date: AccordionProps['date'];
+  @Input() startDate: AccordionProps['startDate'];
   @Input() id: AccordionProps['id'];
   @Input() isEditing: AccordionProps['isEditing'] = accordionDefaultProps['isEditing'];
   @Input() isFilter: AccordionProps['isFilter'] = accordionDefaultProps['isFilter'];
   @Input() isOpen: AccordionProps['isOpen'] = accordionDefaultProps['isOpen'];
   @Input() role: AccordionProps['role'] = accordionDefaultProps['role'];
-  @Input() subTitle: AccordionProps['subTitle'];
+  @Input() subTitle: AccordionProps['country'];
   /**endregion Input */
 
   /**region Output */
@@ -30,10 +30,10 @@ export class AccordionComponent implements OnChanges {
   /**region Output */
 
   get formattedDate(): string | undefined {
-    if (!this.date) return undefined;
-    const month = this.date.toLocaleString('en-US', { month: 'short' });
-    const day = this.date.getDate();
-    const year = this.date.getFullYear();
+    if (!this.startDate) return undefined;
+    const month = this.startDate.toLocaleString('en-US', { month: 'short' });
+    const day = this.startDate.getDate();
+    const year = this.startDate.getFullYear();
     return `${month} ${day} ${year}`;
   }
   onToggleOpen() {

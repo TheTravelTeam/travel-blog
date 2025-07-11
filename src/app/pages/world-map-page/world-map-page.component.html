@@ -8,19 +8,48 @@
     </div>
     <div class="worldMap__detail-panel__body">
       <div class="worldMap__detail-panel__body--progress-bar">
-        <app-progress-bar [completedSteps]="completedSteps" [totalSteps]="totalStepCount" />
+        @if (currentDiary) {
+          <app-progress-bar [completedSteps]="completedSteps" [totalSteps]="totalStepCount" />
+        }
       </div>
+      @if (!currentDiary) {
+        <div style="padding: 1rem">
+          <app-accordion [isFilter]="true" title="Themes">
+            <div style="display: flex; flex-direction: column; gap: 0.5rem">
+              <app-checkbox checkboxName="Farniente" label="Farniente" color></app-checkbox>
+              <app-checkbox checkboxName="A la dur" label="A la dur"></app-checkbox>
+              <app-checkbox
+                checkboxName="Je reste chez c'est triste"
+                label="Je reste chez c'est triste"
+              ></app-checkbox>
+              <app-checkbox
+                checkboxName="Je reste chez c'est triste 111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+                label=" 111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+              ></app-checkbox>
+              <app-checkbox checkboxName="La plage" label="la plage"></app-checkbox>
+            </div>
+          </app-accordion>
+        </div>
+      }
       <div class="worldMap__detail-panel__body--steps-container">
         @for (step of steps; track $index) {
           <app-accordion
             [id]="step.id"
             [title]="step.title"
-            [subTitle]="step.subTitle"
-            [date]="step.date"
+            [subTitle]="step.country"
+            [startDate]="step.startDate"
             (toggleOpen)="onAccordionToggle(step.id, $event)"
+            (remove)="onDeleteSteps(step.id)"
+            role="admin"
+            [(isEditing)]="step.isEditing"
           >
             <div>
               <p>{{ step.content }}</p>
+              <div style="display: flex; gap: 1rem; padding: 0.5rem">
+                @for (media of step.medias; track $index) {
+                  <img [src]="media.fileUrl" style="width: 200px; height: auto" />
+                }
+              </div>
             </div>
           </app-accordion>
         }
@@ -28,6 +57,12 @@
     </div>
   </div>
   <div class="worldMap__map-area">
-    <app-map [viewMode]="false" [isStep]="true"></app-map>
+    <app-map
+      [viewMode]="true"
+      [isDiary]="false"
+      (mapInitialized)="onMapInitialized($event)"
+      (diarySelected)="onDiarySelected($event)"
+      (stepSelected)="onStepSelected($event)"
+    ></app-map>
   </div>
 </div>

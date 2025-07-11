@@ -51,8 +51,8 @@
 
   //  Afficher l'icône uniquement quand coché
   .checkbox__input:checked + .checkbox__label::before {
-    background-color: $primaryColor;
-    border-color: $primaryColor;
+    background-color: $backgroundArticleColor;
+    border-color: $backgroundColor;
   }
 
   .checkbox__input:checked + .checkbox__label .checkbox__icon {

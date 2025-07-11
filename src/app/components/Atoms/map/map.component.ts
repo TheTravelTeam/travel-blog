@@ -4,6 +4,8 @@ import {
   AfterViewInit,
   inject,
   Input,
+  Output,
+  EventEmitter,
   ViewChild,
   ViewContainerRef,
   EnvironmentInjector,
@@ -29,6 +31,21 @@ import { CreateDiaryDto } from '../../../dto/createDiaryDto';
 import { Media } from '../../../model/media';
 import { CreateStepDto } from '../../../dto/createStepDto';
 
+// Interface pour les événements
+export interface MapDiarySelectedEvent {
+  diary: TravelDiary;
+  steps: Step[];
+}
+
+export interface MapStepSelectedEvent {
+  step: Step;
+  stepIndex: number;
+}
+
+export interface MapInitializedEvent {
+  diaries: TravelDiary[];
+}
+
 @Component({
   selector: 'app-map',
   templateUrl: './map.component.html',
@@ -43,17 +60,23 @@ export class MapComponent implements AfterViewInit {
   private stepService = inject(StepService);
 
   private map!: L.Map;
-  public currentDiaryId: number | null = null; // id du diary actif
+  public currentDiaryId: number | null = null;
   public currentUser: User | null = null;
   public userLoc: L.LatLng | null = null;
   public isFirstCall = true;
+  private currentSteps: Step[] = [];
 
-  @Input() viewMode: MapConfig['modeView'] = mapConfigDefault['modeView']; // true = view, false = selection
+  @Input() viewMode: MapConfig['modeView'] = mapConfigDefault['modeView'];
   @Input() isDiary: MapConfig['isDiary'] = mapConfigDefault['isDiary'];
   @Input() isStep: MapConfig['isStep'] = mapConfigDefault['isStep'];
   @Input() zoomLevel: MapConfig['zoomLevel'] = mapConfigDefault['zoomLevel'];
   @Input() centerLat: MapConfig['centerLat'] = mapConfigDefault['centerLat'];
   @Input() centerLng: MapConfig['centerLng'] = mapConfigDefault['centerLng'];
+
+  // Événements à émettre vers le parent
+  @Output() mapInitialized = new EventEmitter<MapInitializedEvent>();
+  @Output() diarySelected = new EventEmitter<MapDiarySelectedEvent>();
+  @Output() stepSelected = new EventEmitter<MapStepSelectedEvent>();
 
   private lastPoint: L.LatLng | null = null;
 
@@ -93,7 +116,7 @@ export class MapComponent implements AfterViewInit {
 
   /**
    * Gère la géolocalisation
-   * */
+   */
   private getGeolocalisation() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -106,12 +129,11 @@ export class MapComponent implements AfterViewInit {
 
           const customIcon = L.divIcon({
             html: `<div class="white-circle"></div>`,
-            className: '', // on enlève les classes par défaut Leaflet
-            iconSize: [30, 30], // taille du container
-            iconAnchor: [15, 15], // point central (pour que ça pointe bien)
+            className: '',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15],
           });
 
-          // Ajoute une marqueur en fonction de la géolocalisation si elle existe
           L.marker(this.userLoc, { icon: customIcon })
             .addTo(this.map)
             .bindPopup('Vous êtes ici')
@@ -128,10 +150,9 @@ export class MapComponent implements AfterViewInit {
   private handleCreateOnMapClick(e: L.LeafletMouseEvent): void {
     const { lat, lng } = e.latlng;
 
-    if (this.viewMode) return; // Pas de création en viewMode
+    if (this.viewMode) return;
 
     if (this.isDiary) {
-      // Rentrer les informations provenant d'un formulaire normalement ICI pour la création
       const newDiary: CreateDiaryDto = {
         title: `Diary ${Date.now()}`,
         description: 'Diary ajouté depuis la carte',
@@ -143,20 +164,16 @@ export class MapComponent implements AfterViewInit {
           mediaType: 'PHOTO',
         },
       };
-      // Appelle API pour créer un diary
+
       this.stepService.addDiary(newDiary).subscribe((diary) => {
         L.marker([lat, lng]).addTo(this.map).bindPopup(diary.title).openPopup();
-
         this.currentDiaryId = diary.id;
-        // Charge les steps du diary en updatant la propriété currentDiaryId
         this.loadStepsForCurrentDiary();
-        // update de isStep pour rentrer en mode éditions des étapes (a voir si on le laisse)
         this.isStep = true;
         this.isDiary = false;
       });
     }
 
-    // Ajout des steps sur la map au clique
     if (this.isStep && this.currentDiaryId) {
       if (this.lastPoint) {
         const newLatLng = L.latLng(lat, lng);
@@ -182,19 +199,19 @@ export class MapComponent implements AfterViewInit {
    */
   private loadAllDiaries(): void {
     this.stepService.getAllDiaries().subscribe((diaries: TravelDiary[]) => {
+      // Émettre l'événement d'initialisation
+      this.mapInitialized.emit({ diaries });
+
       diaries.forEach((diary: TravelDiary) => {
-        // Crée un HTML personnalisé pour le marker
-
         const html = `
-        <div class="custom-marker">
-          <img src="${diary.coverMedia.fileUrl}" class="size-md" alt="avatar" />
-        </div>
-      `;
+          <div class="custom-marker">
+            <img src="${diary.coverMedia.fileUrl}" class="size-md" alt="avatar" />
+          </div>
+        `;
 
-        // Crée l'icône personnalisée basée sur un marker personnalisée
         const icon = L.divIcon({
           html,
-          className: '', // pas de classe Leaflet par défaut
+          className: '',
           iconSize: [50, 50],
           iconAnchor: [50, 50],
         });
@@ -207,7 +224,6 @@ export class MapComponent implements AfterViewInit {
               this.map.removeLayer(layer);
             }
           });
-          // Charder les steps du carnet
           this.loadStepsForCurrentDiary();
         });
       });
@@ -220,26 +236,34 @@ export class MapComponent implements AfterViewInit {
   private loadStepsForCurrentDiary(): void {
     if (!this.currentDiaryId) return;
 
-    // Récupère un diary avec toutes ses étapes et user pour le moment
     this.stepService.getTravelWithSteps(this.currentDiaryId).subscribe((diary: TravelDiary) => {
       const steps: Step[] = diary.steps;
       const currentUser: User = diary.user;
-      // Pour chaque étape créé un marquer en utilisant le composant avatar
-      steps.forEach((step) => {
-        this.addMarkerWithComponent(step.latitude, step.longitude, step.medias, currentUser);
+      this.currentSteps = steps;
+
+      // Émettre l'événement de sélection de diary
+      console.log('emission du diary');
+      this.diarySelected.emit({ diary, steps });
+
+      steps.forEach((step, index) => {
+        this.addMarkerWithComponent(
+          step.latitude,
+          step.longitude,
+          step.medias,
+          currentUser,
+          step,
+          index
+        );
       });
 
-      // Définir la liste des coordonnées des étapes pour faire le tracé
       if (steps.length > 0) {
         const latlngs = steps.map((s) => L.latLng(s.latitude, s.longitude));
 
-        // Déplacer la vue sur l'étape 1 du carnet
         this.map.flyTo([steps[0].latitude, steps[0].longitude], 10, {
           animate: true,
           duration: 1.5,
         });
 
-        // Tracé des ligne entre chaque étape
         L.polyline(latlngs, {
           color: 'deepskyblue',
           weight: 4,
@@ -265,14 +289,13 @@ export class MapComponent implements AfterViewInit {
     lat: number,
     lng: number,
     medias: Media[],
-    currentUser: User
+    currentUser: User,
+    step?: Step,
+    stepIndex?: number
   ): void {
-    //  Crée une div temporaire
     const container = document.createElement('div');
-    // Ajouter la class à cette div
     container.classList.add('custom-marker');
 
-    // Crée dynamiquement le composant --> markContainer définit dans le html sert de template pour générer le composant à la volée
     const compRef: ComponentRef<AvatarComponent> = this.markerContainer.createComponent(
       AvatarComponent,
       {
@@ -280,7 +303,6 @@ export class MapComponent implements AfterViewInit {
       }
     );
 
-    // Passer les inputs du composant ici
     if (medias && medias.length > 0) {
       compRef.setInput('picture', medias[0].fileUrl);
     } else if (currentUser?.username && currentUser?.username.length > 0) {
@@ -289,15 +311,11 @@ export class MapComponent implements AfterViewInit {
       compRef.setInput('label', '');
     }
 
-    compRef.setInput('color', 'mint'); // ou ce que tu veux, par exemple "blue", "red", etc.
-
-    // Charger le composant en détectant les changements
+    compRef.setInput('color', 'mint');
     compRef.changeDetectorRef.detectChanges();
 
-    // Récupère le HTML final créé sur le compRef (composant référence)
     const html = compRef.location.nativeElement.outerHTML;
 
-    // Crée l'icon Leaflet personnalisée qui prend le html en propriété
     const icon = L.divIcon({
       html,
       className: '',
@@ -305,10 +323,15 @@ export class MapComponent implements AfterViewInit {
       iconAnchor: [25, 25],
     });
 
-    // Ajoute le marker
-    L.marker([lat, lng], { icon }).addTo(this.map);
+    const marker = L.marker([lat, lng], { icon }).addTo(this.map);
 
-    // Libère le composant du container pour éviter accumulation
+    // Ajouter l'événement de clic sur le marker si c'est un step
+    if (step && stepIndex !== undefined) {
+      marker.on('click', () => {
+        this.stepSelected.emit({ step, stepIndex });
+      });
+    }
+
     compRef.destroy();
   }
 
@@ -327,7 +350,6 @@ export class MapComponent implements AfterViewInit {
    * Sauver step
    */
   private saveStep(lat: number, lng: number): void {
-    // Mettre ici les infos du formulaires / et du clique sur la map pour les envoyer en BDD
     const newStep: CreateStepDto = {
       name: `Step ${Date.now()}`,
       description: 'Ajouté depuis carte',
@@ -340,15 +362,15 @@ export class MapComponent implements AfterViewInit {
     });
   }
 
-  // Retour sur les journaux
-  // ClearmapLayers --> clean toute la map des markers
-  // Repasse en view mode (pas d'ajout en bdd au clique)
-  // Recharge tous les diaries
+  /**
+   * Retour sur les journaux
+   */
   public backToDiaries(): void {
     this.clearMapLayers();
     this.viewMode = true;
     this.currentDiaryId = null;
     this.lastPoint = null;
+    this.currentSteps = [];
     this.loadAllDiaries();
     if (navigator.geolocation) {
       this.getGeolocalisation();
@@ -361,7 +383,9 @@ export class MapComponent implements AfterViewInit {
     }
   }
 
-  // Clean tous les marqueurs et tous les tracés
+  /**
+   * Clean tous les marqueurs et tous les tracés
+   */
   private clearMapLayers(): void {
     this.map.eachLayer((layer) => {
       if (layer instanceof L.Marker || layer instanceof L.Polyline) {
@@ -369,7 +393,6 @@ export class MapComponent implements AfterViewInit {
       }
     });
 
-    // Garder les tuiles
     L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       { attribution: 'Tiles © Esri' }
