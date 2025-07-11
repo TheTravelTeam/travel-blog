@@ -18,7 +18,8 @@ export type AppColor =
   | 'text-comment'
   | 'text-placeholder'
   | 'bs-primary'
-  | 'bs-secondary';
+  | 'bs-secondary'
+  | 'whiteOpacity';
 
 export type BorderWeight = 'none' | 'thin' | 'medium' | 'thick' | 'xl';
 
