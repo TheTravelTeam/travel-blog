@@ -1,4 +1,12 @@
-import { Component, ContentChild, EventEmitter, HostBinding, Input, Output } from '@angular/core';
+import {
+  Component,
+  ContentChild,
+  EventEmitter,
+  HostBinding,
+  HostListener,
+  Input,
+  Output,
+} from '@angular/core';
 import { Card, cardDefault } from '../../model/card';
 import { CommonModule } from '@angular/common';
 import { CardBodyComponent } from './card-body/card-body.component';
@@ -21,12 +29,13 @@ export class CardComponent {
   @Input() isHoverable: Card['isHoverable'];
   @Input() isClickable: Card['isClickable'];
   @Input() justifyContent: Card['justifyContent'] = cardDefault['justifyContent'];
-  @Input() borderColor: Card['borderColor'] = cardDefault['borderColor'];
+  @Input() borderColor: Card['borderColor'];
   @Input() borderWeight: Card['borderWeight'] = cardDefault['borderWeight'];
   @Input() backgroundColor: Card['backgroundColor'];
   @Input() shadow: Card['shadow'];
   @Input() margin: Card['margin'];
   @Input() padding: Card['padding'];
+  @Input() customClass?: Card['customClass'];
 
   @Output() cardClick = new EventEmitter<void>();
 
@@ -59,6 +68,7 @@ export class CardComponent {
       'shadow-' + this.shadow,
       'margin-' + this.margin,
       'padding-' + this.padding,
+      this.customClass,
     ]
       .filter(Boolean)
       .join(' ');
@@ -70,7 +80,7 @@ export class CardComponent {
     return this.isClickable && !this.isDisabled ? 'pointer' : 'default';
   }
 
-  @HostBinding('click') onClick() {
+  @HostListener('click') onClick() {
     if (!this.isDisabled) {
       this.cardClick.emit();
     }

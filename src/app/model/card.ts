@@ -13,12 +13,13 @@ export const cardDefault: Required<
     | 'height'
     | 'margin'
     | 'padding'
+    | 'borderColor'
+    | 'customClass'
   >
 > = {
   layout: 'column',
   radius: 'sm',
   justifyContent: 'center',
-  borderColor: 'primary',
   borderWeight: 'thin',
 };
 
@@ -38,4 +39,5 @@ export interface Card {
   borderWeight?: BorderWeight;
   textColor?: AppColor;
   shadow?: Shadow;
+  customClass?: string;
 }

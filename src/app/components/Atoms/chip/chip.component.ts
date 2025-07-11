@@ -1,11 +1,12 @@
 import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
 import { Chip, chipDefault } from '../../../model/chip';
 import { IconComponent } from '../../icon/icon.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-chip',
   standalone: true,
-  imports: [IconComponent],
+  imports: [IconComponent, CommonModule],
   templateUrl: './chip.component.html',
   styleUrl: './chip.component.scss',
 })
@@ -18,7 +19,7 @@ export class ChipComponent {
   @Input() textColor?: Chip['textColor'];
   @Input() children?: Chip['children'];
   @Input() gap: Chip['gap'] = chipDefault['gap'];
-  @Input() radius: Chip['radius'] = chipDefault['radius'];
+  @Input() radius: Chip['radius'];
   @Input() isDisabled: Chip['isDisabled'];
   @Input() isHoverable: Chip['isHoverable'];
   @Input() isClickable: Chip['isClickable'];
@@ -29,6 +30,7 @@ export class ChipComponent {
   @Input() shadow: Chip['shadow'];
   @Input() margin: Chip['margin'];
   @Input() padding: Chip['padding'];
+  @Input() customClass?: Chip['customClass'];
   @Output() closeChip = new EventEmitter<void>();
   @Output() chipClick = new EventEmitter<void>();
 
@@ -53,6 +55,7 @@ export class ChipComponent {
       this.isHoverable && !this.isDisabled ? 'hoverable' : '',
       this.isDisabled ? 'disabled' : '',
       this.isClickable && !this.isDisabled ? 'clickable' : '',
+      this.customClass,
     ]
       .filter(Boolean)
       .join(' ');

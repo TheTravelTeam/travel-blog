@@ -4,7 +4,6 @@
 :host {
   display: inline-flex;
   text-align: center;
-  background-color: map-get($colors, primary);
   align-items: center;
 
   &.hoverable:hover:not(.chip--disabled) {
