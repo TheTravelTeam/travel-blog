@@ -10,6 +10,8 @@ import {
   ViewContainerRef,
   EnvironmentInjector,
   ComponentRef,
+  OnChanges,
+  SimpleChanges,
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
@@ -30,6 +32,7 @@ import { User } from '../../../model/user';
 import { CreateDiaryDto } from '../../../dto/createDiaryDto';
 import { Media } from '../../../model/media';
 import { CreateStepDto } from '../../../dto/createStepDto';
+import { BreakpointService } from '../../../services/breakpoint.service';
 
 // Interface pour les événements
 export interface MapDiarySelectedEvent {
@@ -52,12 +55,13 @@ export interface MapInitializedEvent {
   imports: [CommonModule],
   styleUrl: './map.component.scss',
 })
-export class MapComponent implements AfterViewInit {
+export class MapComponent implements AfterViewInit, OnChanges {
   @ViewChild('markerContainer', { read: ViewContainerRef }) markerContainer!: ViewContainerRef;
   constructor(private injector: EnvironmentInjector) {}
 
   private http = inject(HttpClient);
   private stepService = inject(StepService);
+  private breakpointService = inject(BreakpointService);
 
   private map!: L.Map;
   public currentDiaryId: number | null = null;
@@ -72,13 +76,17 @@ export class MapComponent implements AfterViewInit {
   @Input() zoomLevel: MapConfig['zoomLevel'] = mapConfigDefault['zoomLevel'];
   @Input() centerLat: MapConfig['centerLat'] = mapConfigDefault['centerLat'];
   @Input() centerLng: MapConfig['centerLng'] = mapConfigDefault['centerLng'];
+  @Input() centerOnStep: { lat: number; lng: number } | null = null;
 
   // Événements à émettre vers le parent
   @Output() mapInitialized = new EventEmitter<MapInitializedEvent>();
   @Output() diarySelected = new EventEmitter<MapDiarySelectedEvent>();
   @Output() stepSelected = new EventEmitter<MapStepSelectedEvent>();
+  @Output() renitializedDiaries = new EventEmitter();
 
   private lastPoint: L.LatLng | null = null;
+  isTabletOrMobile = this.breakpointService.isMobileOrTablet;
+  isMobile = this.breakpointService.isMobile;
 
   ngAfterViewInit(): void {
     this.initMap();
@@ -87,6 +95,30 @@ export class MapComponent implements AfterViewInit {
       this.loadAllDiaries();
     } else if (this.isStep && this.currentDiaryId) {
       this.loadStepsForCurrentDiary();
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['centerOnStep'] && this.centerOnStep) {
+      const { lat, lng } = this.centerOnStep;
+      if (this.isTabletOrMobile()) {
+        const zoom = this.map.getZoom();
+        const point = this.map.project([lat, lng], zoom);
+
+        // Décalage vers le haut (en pixels). 150px est un bon point de départ
+        const offsetPoint = L.point(point.x, point.y + 250);
+        const offsetLatLng = this.map.unproject(offsetPoint, zoom);
+
+        this.map.flyTo(offsetLatLng, zoom, {
+          animate: true,
+          duration: 1.5,
+        });
+      } else {
+        this.map.flyTo([this.centerOnStep.lat, this.centerOnStep.lng], 12, {
+          animate: true,
+          duration: 1.5,
+        });
+      }
     }
   }
 
@@ -259,10 +291,24 @@ export class MapComponent implements AfterViewInit {
       if (steps.length > 0) {
         const latlngs = steps.map((s) => L.latLng(s.latitude, s.longitude));
 
-        this.map.flyTo([steps[0].latitude, steps[0].longitude], 10, {
-          animate: true,
-          duration: 1.5,
-        });
+        if (this.isTabletOrMobile()) {
+          const zoom = this.map.getZoom();
+          const point = this.map.project([steps[0].latitude, steps[0].longitude], zoom);
+
+          // Décalage vers le haut (en pixels). 150px est un bon point de départ
+          const offsetPoint = L.point(point.x, point.y + 250);
+          const offsetLatLng = this.map.unproject(offsetPoint, zoom);
+
+          this.map.flyTo(offsetLatLng, zoom, {
+            animate: true,
+            duration: 1.5,
+          });
+        } else {
+          this.map.flyTo([steps[0].latitude, steps[0].longitude], 10, {
+            animate: true,
+            duration: 1.5,
+          });
+        }
 
         L.polyline(latlngs, {
           color: 'deepskyblue',
@@ -381,6 +427,7 @@ export class MapComponent implements AfterViewInit {
         });
       }
     }
+    this.renitializedDiaries.emit();
   }
 
   /**

@@ -3,7 +3,7 @@ import { IconComponent } from '../icon/icon.component';
 import { ButtonComponent } from '../Button/button/button.component';
 import { CommonModule } from '@angular/common';
 import { AvatarComponent } from '../Atoms/avatar/avatar.component';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { IconSize, Size } from '../../model/variant';
 import { BreakpointService } from '../../services/breakpoint.service';
 
@@ -16,19 +16,24 @@ import { BreakpointService } from '../../services/breakpoint.service';
 })
 export class TopBarComponent {
   @Input() isConnected = true;
-  @Input() isHomeOrArticlePage = false;
 
-  constructor(public bp: BreakpointService) {}
+  constructor(
+    public bp: BreakpointService,
+    private router: Router
+  ) {}
 
   // 💡 IconSize adapté automatiquement au device
   public iconSize = computed<IconSize>(() => {
-    if (this.bp.isMobile() || this.bp.isTablet()) return 'lg';
+    if (this.bp.isMobile() || this.bp.isTablet()) return 'md';
     return 'lg';
   });
 
   public btnSize = computed<Size>(() => {
-    if (this.bp.isMobile()) return 'sm';
-    if (this.bp.isTablet()) return 'md';
+    if (this.bp.isMobileOrTablet()) return 'sm';
     return 'lg';
   });
+
+  get isHomeOrArticlePage(): boolean {
+    return this.router.url === '/';
+  }
 }

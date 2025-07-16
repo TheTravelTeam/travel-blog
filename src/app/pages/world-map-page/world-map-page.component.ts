@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import {
   MapComponent,
   MapDiarySelectedEvent,
@@ -7,64 +7,69 @@ import {
 } from '../../components/Atoms/map/map.component';
 import { ProgressBarComponent } from '../../components/Atoms/progress-bar/progress-bar.component';
 import { AccordionComponent } from '../../components/Atoms/accordion/accordion.component';
-import { AccordionProps } from '../../model/accordion.model';
 import { FormsModule } from '@angular/forms';
 import { TravelDiary } from '../../model/travelDiary';
 import { Step } from '../../model/step';
-import { Media } from '../../model/media';
 import { CheckboxComponent } from '../../components/checkbox/checkbox.component';
+import { IconComponent } from '../../components/icon/icon.component';
+import { ButtonComponent } from '../../components/Button/button/button.component';
+import { CommonModule } from '@angular/common';
+import { DividerComponent } from '../../components/divider/divider.component';
+import { BreakpointService } from '../../services/breakpoint.service';
 
 @Component({
   selector: 'app-world-map-page',
-  imports: [MapComponent, ProgressBarComponent, AccordionComponent, FormsModule, CheckboxComponent],
+  imports: [
+    MapComponent,
+    ProgressBarComponent,
+    AccordionComponent,
+    FormsModule,
+    CheckboxComponent,
+    IconComponent,
+    ButtonComponent,
+    CommonModule,
+    DividerComponent,
+  ],
   templateUrl: './world-map-page.component.html',
   styleUrl: './world-map-page.component.scss',
 })
 export class WorldMapPageComponent {
   // Données dynamiques qui seront mises à jour par la map
-  steps: (Pick<AccordionProps, 'id' | 'title' | 'startDate' | 'country' | 'isEditing'> & {
-    content: string;
-    medias: Media[];
-  })[] = [];
-  staticSteps: (Pick<AccordionProps, 'id' | 'title' | 'startDate' | 'country'> & {
-    content: string;
-  })[] = [
-    {
-      id: 1,
-      title: 'Arrivé à Madagascar',
-      content: 'Me voilà arrivé sur cette Grande et magnifique île...',
-      country: 'Aéroport de Nosy Be',
-      startDate: new Date('2018-11-08'),
-    },
-    {
-      id: 2,
-      title: 'Visite de Hell-ville',
-      content: 'Il me fallait visiter cette visite atypique, avec sa triste réputation...',
-      country: 'Hell-Ville',
-      startDate: new Date('2018-11-12'),
-    },
-    {
-      id: 3,
-      title: 'Tour des îles autour de Nosy Be',
-      content:
-        'Journée mémorable en découvrant les merveilles que la nature nous offre sur cette terre...',
-      country: 'Nosy Iranja',
-      startDate: new Date('2018-11-15'),
-    },
-    {
-      id: 4,
-      title: 'Soirée malgache',
-      content:
-        "On peut dire que la musique malgache est très festive et entrainante, difficile de tenir le rytme jusqu'au bout de la nuit!",
-      country: 'Andilana Beach',
-      startDate: new Date('2018-11-06'),
-    },
-  ];
-
-  openedStepIds: number[] = [];
-  completedSteps = 0;
+  steps: Step[] = [];
   currentDiary: TravelDiary | null = null;
   allDiaries: TravelDiary[] = [];
+  openedCommentStepId: number | null = null;
+  openedStepId: number | null = null;
+  completedSteps = 0;
+  mapCenterCoords: { lat: number; lng: number } | null = null;
+  panelHeight: 'collapsed' | 'expanded' | 'collapsedDiary' = 'collapsed';
+
+  private breakpointService = inject(BreakpointService);
+  isTabletOrMobile = this.breakpointService.isMobileOrTablet;
+
+  togglePanel() {
+    if (!this.currentDiary) {
+      // Si pas de diary, toggle simple entre collapsed/expanded
+      this.panelHeight = this.panelHeight === 'collapsed' ? 'expanded' : 'collapsed';
+      return;
+    }
+
+    // Si diary présent, logique spéciale à 3 états
+    switch (this.panelHeight) {
+      case 'collapsed':
+        this.panelHeight = 'expanded';
+        break;
+      case 'expanded':
+        this.panelHeight = 'collapsedDiary';
+        break;
+      case 'collapsedDiary':
+        this.panelHeight = 'expanded';
+        break;
+      default:
+        this.panelHeight = 'collapsed';
+        break;
+    }
+  }
 
   get totalStepCount(): number {
     return this.steps.length;
@@ -85,29 +90,33 @@ export class WorldMapPageComponent {
    * Événement déclenché quand un diary est sélectionné sur la map
    */
   onDiarySelected(event: MapDiarySelectedEvent): void {
-    console.log('Diary sélectionné:', event.diary.title);
-    console.log('Steps du diary:', event.steps);
-
     this.currentDiary = event.diary;
     this.updateStepsFromDiarySteps(event.steps);
 
-    // Réinitialiser l'état de l'accordion
-    this.openedStepIds = [];
-    this.completedSteps = 0;
+    // Réinitialiser progression
+    this.completedSteps = this.getProgressFromOpenedSteps();
+
+    if (this.isTabletOrMobile()) {
+      this.panelHeight = 'collapsedDiary';
+    } else {
+      this.panelHeight = 'expanded'; // Optionnel : comportement desktop
+    }
   }
 
   /**
    * Événement déclenché quand un step est cliqué sur la map
    */
   onStepSelected(event: MapStepSelectedEvent): void {
-    console.log('Step sélectionné:', event.step.name, "à l'index", event.stepIndex);
-
-    // Ouvrir automatiquement l'accordion du step sélectionné
+    console.log('Step sélectionné:', event.step.title, "à l'index", event.stepIndex);
     const stepId = event.step.id;
-    if (stepId && !this.openedStepIds.includes(stepId)) {
-      this.openedStepIds.push(stepId);
-      this.completedSteps = this.getProgressFromOpenedSteps();
-    }
+    this.openedStepId = stepId;
+    this.completedSteps = this.getProgressFromOpenedSteps();
+  }
+
+  onRenitializeDiaries(): void {
+    this.currentDiary = null;
+    this.steps = [];
+    this.panelHeight = 'collapsed';
   }
 
   /**
@@ -117,12 +126,29 @@ export class WorldMapPageComponent {
     this.steps = steps.map((step, index) => ({
       id: step.id,
       title: step.title || `Étape ${index + 1}`,
-      content: step.description || 'Aucune description disponible',
+      description: step.description || 'Aucune description disponible',
       country: step.country || 'Adresse non disponible',
       startDate: step.startDate ? new Date(step.startDate) : new Date(),
       medias: step.medias,
       isEditing: step.isEditing,
+      comments: step.comments,
+      latitude: step.latitude ?? 0,
+      longitude: step.longitude ?? 0,
+      likes: step.likes,
     }));
+
+    this.openFirstStep(this.steps);
+  }
+
+  private openFirstStep(steps: Step[]) {
+    // Ouvrir directement le premier step s'il existe
+    if (steps.length > 0) {
+      console.log('yo');
+      this.openedStepId = steps[0].id;
+      console.log('yo2', this.openedStepId);
+    } else {
+      this.openedStepId = null;
+    }
   }
 
   /**
@@ -140,33 +166,73 @@ export class WorldMapPageComponent {
 
   onAccordionToggle(stepId: number | undefined, isOpen: boolean) {
     if (!stepId) return;
-    if (isOpen && !this.openedStepIds.includes(stepId)) {
-      this.openedStepIds.push(stepId);
-    } else if (!isOpen) {
-      this.openedStepIds = this.openedStepIds.filter((id) => id !== stepId);
+    if (isOpen) {
+      this.openedStepId = stepId; // ✅ Ferme tous les autres, ouvre celui-ci
+    } else {
+      this.openedStepId = null; // ✅ Ferme tout
     }
 
     this.completedSteps = this.getProgressFromOpenedSteps();
   }
 
   getProgressFromOpenedSteps(): number {
-    if (this.openedStepIds.length === 0) return 0;
+    if (!this.openedStepId) return 0;
 
-    console.log(this.openedStepIds);
-    // Trouver les index correspondants aux stepIds ouverts
-    const openedIndexes = this.openedStepIds
-      .map((openedId) => this.steps.findIndex((step) => step.id === openedId))
-      .filter((index) => index !== -1);
-
-    console.log(openedIndexes);
-
-    if (openedIndexes.length === 0) return 0;
-
-    const maxOpened = Math.max(...openedIndexes);
-    return maxOpened + 1;
+    const index = this.steps.findIndex((step) => step.id === this.openedStepId);
+    return index !== -1 ? index + 1 : 0;
   }
 
   onDeleteSteps(id: number | undefined) {
     this.steps = this.steps.filter((step) => step.id !== id);
+  }
+
+  getCommentLabel(step: Step) {
+    const count = step.comments?.length ?? 0;
+    if (count === 1) {
+      return '1 commentaire';
+    } else if (count > 1) {
+      return `${count} commentaires`;
+    } else {
+      return 'commentaire';
+    }
+  }
+
+  handleButtonClick(action: string, step: Step): void {
+    if (action === 'like') {
+      console.log(`Step ${step.id} liké ! Total : ${step.likes}`);
+      // Logique d'ajout de like dans le step -- Si pas déjà aimé en fonction de l'user
+    } else if (action === 'comment') {
+      console.log(`Afficher les commentaires du step ${step.id}`);
+      // Tu peux ici gérer l'ouverture d'une section commentaires ou autre
+      console.log(this.openedCommentStepId);
+      this.openedCommentStepId = this.openedCommentStepId === step.id ? null : step.id;
+    }
+  }
+
+  scrollMediaContainer(stepId: number, direction: 'left' | 'right') {
+    // Trouver le container avec querySelector
+    const container = document.querySelector<HTMLDivElement>(
+      `.step__media__container[data-id="${stepId}"]`
+    );
+
+    if (!container) return;
+
+    const scrollAmount = 200; // pixels à scroller
+
+    if (direction === 'left') {
+      container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    } else {
+      container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  }
+
+  onStepClicked(stepId: number) {
+    const step = this.steps.find((step) => step.id === stepId);
+    if (step) {
+      this.mapCenterCoords = {
+        lat: step.latitude,
+        lng: step.longitude,
+      };
+    }
   }
 }
