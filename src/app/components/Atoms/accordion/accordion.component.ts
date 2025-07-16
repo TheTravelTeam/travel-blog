@@ -27,7 +27,15 @@ export class AccordionComponent implements OnChanges {
   @Output() isEditingChange = new EventEmitter<boolean>();
   @Output() remove = new EventEmitter<void>();
   @Output() toggleOpen = new EventEmitter<boolean>();
+  @Output() stepClicked = new EventEmitter<number>();
   /**region Output */
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['isEditing']) this.isOpen = this.isEditing;
+    if (changes['isOpen']) {
+      this.isOpen = changes['isOpen'].currentValue;
+    }
+  }
 
   get formattedDate(): string | undefined {
     if (!this.startDate) return undefined;
@@ -52,7 +60,9 @@ export class AccordionComponent implements OnChanges {
     this.remove.emit();
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['isEditing']) this.isOpen = this.isEditing;
+  onStepClick() {
+    if (this.id) {
+      this.stepClicked.emit(this.id);
+    }
   }
 }

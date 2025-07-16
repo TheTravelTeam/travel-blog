@@ -1,5 +1,5 @@
 <div [class]="['accordion__container', isFilter && 'filter']">
-  <div class="accordion__title" (click)="onToggleOpen()">
+  <div class="accordion__title" (click)="onToggleOpen()" (click)="onStepClick()">
     <div>
       <h3>{{ title }}</h3>
       <div class="accordion__description">
