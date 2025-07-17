@@ -1,4 +1,8 @@
 @use 'variables' as *;
+
+.layout {
+  display: flex;
+}
 .worldMap {
   display: flex;
   overflow: hidden;

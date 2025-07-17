@@ -1,0 +1,16 @@
+<div class="layout">
+  <div class="panel-area">
+    <router-outlet></router-outlet>
+  </div>
+  <div class="worldMap__map-area">
+    <app-map
+      [viewMode]="true"
+      [isDiary]="false"
+      (mapInitialized)="onMapInitialized($event)"
+      (diarySelected)="onDiarySelected($event)"
+      (stepSelected)="onStepSelected($event)"
+      (renitializedDiaries)="onRenitializeDiaries()"
+      [centerOnStep]="state.mapCenterCoords()"
+    ></app-map>
+  </div>
+</div>
