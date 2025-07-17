@@ -1,8 +1,12 @@
 <div class="worldMap">
-  <div class="worldMap__detail-panel" [ngClass]="isTabletOrMobile() ? panelHeight : ''">
+  <div
+    #detailPanel
+    class="worldMap__detail-panel"
+    [ngClass]="isTabletOrMobile() ? panelHeight() : ''"
+  >
     @if (isTabletOrMobile()) {
       <div class="worldMap__detail-divider" (click)="togglePanel()">
-        <app-divider thickness="thick"></app-divider>
+        <app-divider thickness="thick" radius="15"></app-divider>
       </div>
       @if (!currentDiary) {
         <div class="search-bar">
@@ -17,6 +21,11 @@
           class="diary__cover"
           [style]="`background-image: url(${currentDiary.coverMedia.fileUrl})`"
         >
+          <app-avatar
+            label=""
+            picture="{{ currentDiary.user.avatar }}"
+            class="diary__avatar"
+          ></app-avatar>
           <h1 class="worldMap__detail-panel__header--title">{{ currentDiary.title }}</h1>
           <p>Mettre des stats ?</p>
         </div>
@@ -33,12 +42,12 @@
 
     <div class="worldMap__detail-panel__body">
       @if (currentDiary) {
-        <div class="worldMap__detail-panel__body--progress-bar">
+        <div class="worldMap__detail-panel__body--progress-bar progress-bar--sticky">
           <app-progress-bar [completedSteps]="completedSteps" [totalSteps]="totalStepCount" />
         </div>
       }
       @if (!currentDiary) {
-        <div style="padding: 1rem" class="worldMap__filter-panel">
+        <div class="worldMap__filter-panel">
           <app-accordion [isFilter]="true" title="Pays">
             <div class="filter__container">
               <app-checkbox checkboxName="Farniente" label="Farniente" color></app-checkbox>
@@ -51,7 +60,7 @@
             </div>
           </app-accordion>
           <app-accordion [isFilter]="true" title="Continent">
-            <div style="display: flex; flex-direction: column; gap: 0.5rem">
+            <div class="filter__container">
               <app-checkbox checkboxName="Farniente" label="Farniente" color></app-checkbox>
               <app-checkbox checkboxName="A la dur" label="A la dur"></app-checkbox>
               <app-checkbox
@@ -62,7 +71,7 @@
             </div>
           </app-accordion>
           <app-accordion [isFilter]="true" title="Durée">
-            <div style="display: flex; flex-direction: column; gap: 0.5rem">
+            <div class="filter__container">
               <app-checkbox checkboxName="Farniente" label="Farniente" color></app-checkbox>
               <app-checkbox checkboxName="A la dur" label="A la dur"></app-checkbox>
               <app-checkbox
@@ -73,7 +82,7 @@
             </div>
           </app-accordion>
           <app-accordion [isFilter]="true" title="Themes">
-            <div style="display: flex; flex-direction: column; gap: 0.5rem">
+            <div class="filter__container">
               <app-checkbox checkboxName="Farniente" label="Farniente" color></app-checkbox>
               <app-checkbox checkboxName="A la dur" label="A la dur"></app-checkbox>
               <app-checkbox
@@ -99,7 +108,7 @@
             role="admin"
             [(isEditing)]="step.isEditing"
           >
-            <div class="step__container">
+            <div class="step__content__container">
               <p>{{ step.description }}</p>
 
               <div class="step__media__wrapper">
