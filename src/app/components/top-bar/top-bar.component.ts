@@ -24,7 +24,8 @@ export class TopBarComponent {
 
   // 💡 IconSize adapté automatiquement au device
   public iconSize = computed<IconSize>(() => {
-    if (this.bp.isMobile() || this.bp.isTablet()) return 'md';
+    if (this.bp.isMobile()) return 'lg';
+    if (this.bp.isTablet()) return 'md';
     return 'lg';
   });
 
@@ -35,5 +36,13 @@ export class TopBarComponent {
 
   get isHomeOrArticlePage(): boolean {
     return this.router.url === '/';
+  }
+
+  get isMapPage(): boolean {
+    return this.router.url === '/travels';
+  }
+
+  get isMyDiariesPage(): boolean {
+    return this.router.url === '/travels/me';
   }
 }

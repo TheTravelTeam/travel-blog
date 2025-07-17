@@ -58,21 +58,31 @@
           <a routerLink="/travels/me" class="topbar__link"
             ><app-icon name="import_contacts" [size]="iconSize()" />Carnet de voyage</a
           >
-          <a routerLink="/me" class="topbar__link"><app-avatar label="michel" />Compte</a>
+          <a routerLink="/me" class="topbar__link"><app-avatar label="Jean" />Compte</a>
         }
       }
       @if (bp.isMobile()) {
+        @if (isMapPage) {
+          <a routerLink="/travels/me" class="topbar__link__mobile"
+            ><app-icon name="import_contacts" [size]="iconSize()"
+          /></a>
+        }
+        @if (isMyDiariesPage) {
+          <a routerLink="/travels" class="topbar__link__mobile"
+            ><app-icon name="map_search" [size]="iconSize()"
+          /></a>
+        }
         @if (isHomeOrArticlePage) {
-          <a routerLink="/map" class="topbar__link">
+          <a routerLink="/map" class="topbar__link__mobile">
             <app-icon name="language" [size]="iconSize()" />
           </a>
         }
         @if (!isConnected) {
-          <a routerLink="/me" class="topbar__link">
+          <a routerLink="/me" class="topbar__link__mobile">
             <app-icon name="account_circle" [size]="iconSize()" />
           </a>
         } @else {
-          <a routerLink="/me" class="topbar__link"><app-avatar label="michel" /></a>
+          <a routerLink="/me" class="topbar__link__mobile"><app-avatar label="Jean" /></a>
         }
       }
     </nav>

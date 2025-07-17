@@ -4,6 +4,7 @@ app-accordion {
   display: flex;
   justify-content: center;
 }
+
 .worldMap {
   display: flex;
   overflow: hidden;
@@ -67,6 +68,7 @@ app-accordion {
       &--progress-bar {
         padding: 0 0 0.2rem;
       }
+
       &--steps-container {
         overflow-y: auto;
         scrollbar-gutter: stable;
@@ -238,6 +240,7 @@ app-accordion {
 .worldMap__detail-panel {
   height: 30vh;
 }
+
 .worldMap {
   flex-direction: column;
   height: 90%;
@@ -274,23 +277,13 @@ app-accordion {
     }
 
     &.collapsedDiary {
-      height: 20vh;
+      height: 15vh;
       overflow-y: hidden;
     }
 
     &.expanded {
       height: 70vh;
     }
-  }
-
-  .handle-bar {
-    width: 50px;
-    height: 6px;
-    background: #ccc;
-    border-radius: 3px;
-    margin: 8px auto;
-    cursor: pointer;
-    flex: 0 0 auto; // ⚡ important pour flex
   }
 }
 
@@ -304,7 +297,6 @@ app-accordion {
   width: 100%;
   max-width: 350px;
   border: 1px solid #ccc;
-
   font-size: 0.6rem;
 
   &__icon {
@@ -318,7 +310,6 @@ app-accordion {
     width: 100%;
     font-size: 0.8rem;
     font-size: 0.6rem;
-
     width: fit-content;
     font-size: 0.7rem;
   }
@@ -328,12 +319,17 @@ app-accordion {
   .worldMap {
     height: 88%;
   }
+
   .diary__cover {
     height: 10rem;
   }
 
   .worldMap__detail-panel {
     padding: 0 1rem 1rem 1rem;
+
+    &.collapsedDiary {
+      height: 21vh;
+    }
   }
 }
 
