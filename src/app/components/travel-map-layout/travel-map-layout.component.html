@@ -185,15 +185,4 @@
       </div>
     </div>
   </div>
-  <div class="worldMap__map-area">
-    <app-map
-      [viewMode]="true"
-      [isDiary]="false"
-      (mapInitialized)="onMapInitialized($event)"
-      (diarySelected)="onDiarySelected($event)"
-      (stepSelected)="onStepSelected($event)"
-      (renitializedDiaries)="onRenitializeDiaries()"
-      [centerOnStep]="mapCenterCoords"
-    ></app-map>
-  </div>
 </div>

@@ -14,13 +14,23 @@ import { accordionDefaultProps, AccordionProps } from '../../../model/accordion.
 export class AccordionComponent implements OnChanges {
   /**region Input */
   @Input({ required: true }) title!: AccordionProps['title'];
-  @Input() startDate: AccordionProps['startDate'];
+  // @Input() startDate: AccordionProps['startDate'];
   @Input() id: AccordionProps['id'];
   @Input() isEditing: AccordionProps['isEditing'] = accordionDefaultProps['isEditing'];
   @Input() isFilter: AccordionProps['isFilter'] = accordionDefaultProps['isFilter'];
   @Input() isOpen: AccordionProps['isOpen'] = accordionDefaultProps['isOpen'];
   @Input() role: AccordionProps['role'] = accordionDefaultProps['role'];
   @Input() subTitle: AccordionProps['country'];
+
+  private _startDate: Date | undefined;
+
+  @Input()
+  set startDate(value: Date | string | undefined) {
+    this._startDate = value ? new Date(value) : undefined;
+  }
+  get startDate(): Date | undefined {
+    return this._startDate;
+  }
   /**endregion Input */
 
   /**region Output */
