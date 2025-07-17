@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { Logo, logoDefault, LogosType } from '../../../model/logo';
+import { Logo, logoDefault, LogosType } from '../../../model/logo.model';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
