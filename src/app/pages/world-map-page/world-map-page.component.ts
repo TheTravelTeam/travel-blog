@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, effect, ElementRef, inject, signal, ViewChild } from '@angular/core';
 import {
   MapComponent,
   MapDiarySelectedEvent,
@@ -16,6 +16,7 @@ import { ButtonComponent } from '../../components/Button/button/button.component
 import { CommonModule } from '@angular/common';
 import { DividerComponent } from '../../components/divider/divider.component';
 import { BreakpointService } from '../../services/breakpoint.service';
+import { AvatarComponent } from '../../components/Atoms/avatar/avatar.component';
 
 @Component({
   selector: 'app-world-map-page',
@@ -29,6 +30,7 @@ import { BreakpointService } from '../../services/breakpoint.service';
     ButtonComponent,
     CommonModule,
     DividerComponent,
+    AvatarComponent,
   ],
   templateUrl: './world-map-page.component.html',
   styleUrl: './world-map-page.component.scss',
@@ -42,31 +44,45 @@ export class WorldMapPageComponent {
   openedStepId: number | null = null;
   completedSteps = 0;
   mapCenterCoords: { lat: number; lng: number } | null = null;
-  panelHeight: 'collapsed' | 'expanded' | 'collapsedDiary' = 'collapsed';
+  panelHeight = signal<'collapsed' | 'expanded' | 'collapsedDiary'>('collapsed');
 
   private breakpointService = inject(BreakpointService);
   isTabletOrMobile = this.breakpointService.isMobileOrTablet;
 
+  @ViewChild('detailPanel') detailPanelRef!: ElementRef<HTMLDivElement>;
+
+  // Reset du scroll avec des signals & un sélector via Angular ci dessus
+  constructor() {
+    effect(() => {
+      if (this.panelHeight() === 'collapsedDiary') {
+        // queueMicrotask --> Permet d’attendre que le DOM soit entièrement à jour avant d’agir (scroll, focus, etc.)
+        queueMicrotask(() => {
+          this.detailPanelRef?.nativeElement.scrollTo({ top: 0 });
+        });
+      }
+    });
+  }
+
   togglePanel() {
     if (!this.currentDiary) {
       // Si pas de diary, toggle simple entre collapsed/expanded
-      this.panelHeight = this.panelHeight === 'collapsed' ? 'expanded' : 'collapsed';
+      this.panelHeight.set(this.panelHeight() === 'collapsed' ? 'expanded' : 'collapsed');
       return;
     }
 
     // Si diary présent, logique spéciale à 3 états
-    switch (this.panelHeight) {
+    switch (this.panelHeight()) {
       case 'collapsed':
-        this.panelHeight = 'expanded';
+        this.panelHeight.set('expanded');
         break;
       case 'expanded':
-        this.panelHeight = 'collapsedDiary';
+        this.panelHeight.set('collapsedDiary');
         break;
       case 'collapsedDiary':
-        this.panelHeight = 'expanded';
+        this.panelHeight.set('expanded');
         break;
       default:
-        this.panelHeight = 'collapsed';
+        this.panelHeight.set('collapsed');
         break;
     }
   }
@@ -79,7 +95,6 @@ export class WorldMapPageComponent {
    * Événement déclenché quand la map est initialisée avec tous les diaries
    */
   onMapInitialized(event: MapInitializedEvent): void {
-    console.log('Map initialisée avec', event.diaries.length, 'diaries');
     this.allDiaries = event.diaries;
 
     // Optionnel : afficher tous les diaries ou garder les données statiques
@@ -97,9 +112,9 @@ export class WorldMapPageComponent {
     this.completedSteps = this.getProgressFromOpenedSteps();
 
     if (this.isTabletOrMobile()) {
-      this.panelHeight = 'collapsedDiary';
+      this.panelHeight.set('collapsedDiary');
     } else {
-      this.panelHeight = 'expanded'; // Optionnel : comportement desktop
+      this.panelHeight.set('expanded'); // Optionnel : comportement desktop
     }
   }
 
@@ -107,16 +122,16 @@ export class WorldMapPageComponent {
    * Événement déclenché quand un step est cliqué sur la map
    */
   onStepSelected(event: MapStepSelectedEvent): void {
-    console.log('Step sélectionné:', event.step.title, "à l'index", event.stepIndex);
     const stepId = event.step.id;
     this.openedStepId = stepId;
+    this.panelHeight.set('expanded');
     this.completedSteps = this.getProgressFromOpenedSteps();
   }
 
   onRenitializeDiaries(): void {
     this.currentDiary = null;
     this.steps = [];
-    this.panelHeight = 'collapsed';
+    this.panelHeight.set('collapsed');
   }
 
   /**
@@ -143,9 +158,7 @@ export class WorldMapPageComponent {
   private openFirstStep(steps: Step[]) {
     // Ouvrir directement le premier step s'il existe
     if (steps.length > 0) {
-      console.log('yo');
       this.openedStepId = steps[0].id;
-      console.log('yo2', this.openedStepId);
     } else {
       this.openedStepId = null;
     }
@@ -203,8 +216,7 @@ export class WorldMapPageComponent {
       // Logique d'ajout de like dans le step -- Si pas déjà aimé en fonction de l'user
     } else if (action === 'comment') {
       console.log(`Afficher les commentaires du step ${step.id}`);
-      // Tu peux ici gérer l'ouverture d'une section commentaires ou autre
-      console.log(this.openedCommentStepId);
+      // Gérer l'ouverture d'une section commentaires ou autre
       this.openedCommentStepId = this.openedCommentStepId === step.id ? null : step.id;
     }
   }

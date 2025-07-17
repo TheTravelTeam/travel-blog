@@ -11,12 +11,14 @@ export class DividerService {
     margin?: string;
     thickness?: string;
     radius?: string;
+    size?: string;
   }): string[] {
     return [
       'divider',
       `divider--${params.orientation}`,
       `divider--${params.color}`,
       `divider--${params.thickness}`,
+      `divider--size--${params.size}`,
       params.orientation === 'horizontal'
         ? `divider--horizontal--margin-${params.margin}`
         : `divider--vertical--margin-${params.margin}`,

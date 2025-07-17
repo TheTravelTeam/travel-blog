@@ -274,7 +274,6 @@ export class MapComponent implements AfterViewInit, OnChanges {
       this.currentSteps = steps;
 
       // Émettre l'événement de sélection de diary
-      console.log('emission du diary');
       this.diarySelected.emit({ diary, steps });
 
       steps.forEach((step, index) => {
