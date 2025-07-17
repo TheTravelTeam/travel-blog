@@ -268,7 +268,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
   private loadStepsForCurrentDiary(): void {
     if (!this.currentDiaryId) return;
 
-    this.stepService.getTravelWithSteps(this.currentDiaryId).subscribe((diary: TravelDiary) => {
+    this.stepService.getDiaryWithSteps(this.currentDiaryId).subscribe((diary: TravelDiary) => {
       const steps: Step[] = diary.steps;
       const currentUser: User = diary.user;
       this.currentSteps = steps;

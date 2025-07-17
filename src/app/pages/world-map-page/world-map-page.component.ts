@@ -1,37 +1,19 @@
-import { Component, effect, ElementRef, inject, signal, ViewChild } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import {
-  MapComponent,
   MapDiarySelectedEvent,
   MapInitializedEvent,
   MapStepSelectedEvent,
 } from '../../components/Atoms/map/map.component';
-import { ProgressBarComponent } from '../../components/Atoms/progress-bar/progress-bar.component';
-import { AccordionComponent } from '../../components/Atoms/accordion/accordion.component';
 import { FormsModule } from '@angular/forms';
 import { TravelDiary } from '../../model/travelDiary';
 import { Step } from '../../model/step';
-import { CheckboxComponent } from '../../components/checkbox/checkbox.component';
-import { IconComponent } from '../../components/icon/icon.component';
-import { ButtonComponent } from '../../components/Button/button/button.component';
 import { CommonModule } from '@angular/common';
-import { DividerComponent } from '../../components/divider/divider.component';
 import { BreakpointService } from '../../services/breakpoint.service';
-import { AvatarComponent } from '../../components/Atoms/avatar/avatar.component';
+import { TravelMapLayoutComponent } from '../../components/travel-map-layout/travel-map-layout.component';
 
 @Component({
   selector: 'app-world-map-page',
-  imports: [
-    MapComponent,
-    ProgressBarComponent,
-    AccordionComponent,
-    FormsModule,
-    CheckboxComponent,
-    IconComponent,
-    ButtonComponent,
-    CommonModule,
-    DividerComponent,
-    AvatarComponent,
-  ],
+  imports: [FormsModule, CommonModule, TravelMapLayoutComponent],
   templateUrl: './world-map-page.component.html',
   styleUrl: './world-map-page.component.scss',
 })
@@ -44,52 +26,9 @@ export class WorldMapPageComponent {
   openedStepId: number | null = null;
   completedSteps = 0;
   mapCenterCoords: { lat: number; lng: number } | null = null;
-  panelHeight = signal<'collapsed' | 'expanded' | 'collapsedDiary'>('collapsed');
 
   private breakpointService = inject(BreakpointService);
   isTabletOrMobile = this.breakpointService.isMobileOrTablet;
-
-  @ViewChild('detailPanel') detailPanelRef!: ElementRef<HTMLDivElement>;
-
-  // Reset du scroll avec des signals & un sélector via Angular ci dessus
-  constructor() {
-    effect(() => {
-      if (this.panelHeight() === 'collapsedDiary') {
-        // queueMicrotask --> Permet d’attendre que le DOM soit entièrement à jour avant d’agir (scroll, focus, etc.)
-        queueMicrotask(() => {
-          this.detailPanelRef?.nativeElement.scrollTo({ top: 0 });
-        });
-      }
-    });
-  }
-
-  togglePanel() {
-    if (!this.currentDiary) {
-      // Si pas de diary, toggle simple entre collapsed/expanded
-      this.panelHeight.set(this.panelHeight() === 'collapsed' ? 'expanded' : 'collapsed');
-      return;
-    }
-
-    // Si diary présent, logique spéciale à 3 états
-    switch (this.panelHeight()) {
-      case 'collapsed':
-        this.panelHeight.set('expanded');
-        break;
-      case 'expanded':
-        this.panelHeight.set('collapsedDiary');
-        break;
-      case 'collapsedDiary':
-        this.panelHeight.set('expanded');
-        break;
-      default:
-        this.panelHeight.set('collapsed');
-        break;
-    }
-  }
-
-  get totalStepCount(): number {
-    return this.steps.length;
-  }
 
   /**
    * Événement déclenché quand la map est initialisée avec tous les diaries
@@ -107,15 +46,8 @@ export class WorldMapPageComponent {
   onDiarySelected(event: MapDiarySelectedEvent): void {
     this.currentDiary = event.diary;
     this.updateStepsFromDiarySteps(event.steps);
-
     // Réinitialiser progression
     this.completedSteps = this.getProgressFromOpenedSteps();
-
-    if (this.isTabletOrMobile()) {
-      this.panelHeight.set('collapsedDiary');
-    } else {
-      this.panelHeight.set('expanded'); // Optionnel : comportement desktop
-    }
   }
 
   /**
@@ -124,14 +56,12 @@ export class WorldMapPageComponent {
   onStepSelected(event: MapStepSelectedEvent): void {
     const stepId = event.step.id;
     this.openedStepId = stepId;
-    this.panelHeight.set('expanded');
     this.completedSteps = this.getProgressFromOpenedSteps();
   }
 
   onRenitializeDiaries(): void {
     this.currentDiary = null;
     this.steps = [];
-    this.panelHeight.set('collapsed');
   }
 
   /**
@@ -199,17 +129,6 @@ export class WorldMapPageComponent {
     this.steps = this.steps.filter((step) => step.id !== id);
   }
 
-  getCommentLabel(step: Step) {
-    const count = step.comments?.length ?? 0;
-    if (count === 1) {
-      return '1 commentaire';
-    } else if (count > 1) {
-      return `${count} commentaires`;
-    } else {
-      return 'commentaire';
-    }
-  }
-
   handleButtonClick(action: string, step: Step): void {
     if (action === 'like') {
       console.log(`Step ${step.id} liké ! Total : ${step.likes}`);
@@ -218,23 +137,6 @@ export class WorldMapPageComponent {
       console.log(`Afficher les commentaires du step ${step.id}`);
       // Gérer l'ouverture d'une section commentaires ou autre
       this.openedCommentStepId = this.openedCommentStepId === step.id ? null : step.id;
-    }
-  }
-
-  scrollMediaContainer(stepId: number, direction: 'left' | 'right') {
-    // Trouver le container avec querySelector
-    const container = document.querySelector<HTMLDivElement>(
-      `.step__media__container[data-id="${stepId}"]`
-    );
-
-    if (!container) return;
-
-    const scrollAmount = 200; // pixels à scroller
-
-    if (direction === 'left') {
-      container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-    } else {
-      container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   }
 
