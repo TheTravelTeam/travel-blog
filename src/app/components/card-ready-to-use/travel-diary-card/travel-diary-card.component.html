@@ -21,15 +21,22 @@
     </app-card-header>
   } -->
   <app-card-body>
-    <app-card width="36%" height="100%" radius="lg">
-      <img [src]="image" alt="" />
-    </app-card>
+    @if (!isMobileOrTable()) {
+      <app-card width="36%" height="75%" radius="lg">
+        <img [src]="image" alt="" />
+      </app-card>
+    }
+
     <div class="informations">
       <div class="title">
         <h3>{{ title }}</h3>
         <div>
           <button (click)="onEdit()">
-            <app-icon name="edit" color="primary" size="lg"></app-icon>
+            <app-icon
+              name="edit"
+              [color]="isAltBackground ? 'light' : 'primary'"
+              size="lg"
+            ></app-icon>
           </button>
           <button (click)="onDelete()">
             <app-icon name="delete" color="secondary" size="lg"></app-icon>

@@ -4,11 +4,10 @@ import { Component, inject, Input } from '@angular/core';
 import { CardComponent } from '../../card/card.component';
 import { CardBodyComponent } from '../../card/card-body/card-body.component';
 import { IconComponent } from '../../icon/icon.component';
-import { CardHeaderComponent } from '../../card/card-header/card-header.component';
 
 @Component({
   selector: 'app-travel-diary-card',
-  imports: [CardComponent, CardBodyComponent, IconComponent, CardHeaderComponent],
+  imports: [CardComponent, CardBodyComponent, IconComponent],
   templateUrl: './travel-diary-card.component.html',
   styleUrl: './travel-diary-card.component.scss',
 })
@@ -17,6 +16,7 @@ export class TravelDiaryCardComponent {
   @Input({ required: true }) title!: VariantTripCard['title'];
   @Input({ required: true }) image!: VariantTripCard['image'];
   @Input({ required: true }) description!: VariantTripCard['description'];
+  @Input() isAltBackground = false;
 
   private breakpointService = inject(BreakpointService);
   isMobileOrTable = this.breakpointService.isMobileOrTablet;

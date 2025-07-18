@@ -38,8 +38,9 @@
 
     <div class="my-diaries__detail-panel__body">
       @for (diary of diariesList; track $index) {
-        <p>{{ diary.id }} {{ typeof diary.id }}</p>
         <app-travel-diary-card
+          [isAltBackground]="$index % 2 === 1"
+          [ngClass]="{ 'alt-background': $index % 2 === 1 }"
           [id]="diary.id"
           [title]="diary.title"
           [image]="diary.coverMedia?.fileUrl || ''"
