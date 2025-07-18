@@ -1,3 +1,4 @@
+import { effect } from '@angular/core';
 // Import Angular
 import {
   Component,
@@ -33,6 +34,8 @@ import { CreateDiaryDto } from '../../../dto/createDiaryDto';
 import { Media } from '../../../model/media';
 import { CreateStepDto } from '../../../dto/createStepDto';
 import { BreakpointService } from '../../../services/breakpoint.service';
+import { Router } from '@angular/router';
+import { TravelMapStateService } from '../../../services/travel-map-state.service';
 
 // Interface pour les événements
 export interface MapDiarySelectedEvent {
@@ -57,11 +60,21 @@ export interface MapInitializedEvent {
 })
 export class MapComponent implements AfterViewInit, OnChanges {
   @ViewChild('markerContainer', { read: ViewContainerRef }) markerContainer!: ViewContainerRef;
-  constructor(private injector: EnvironmentInjector) {}
+  constructor(private injector: EnvironmentInjector) {
+    effect(() => {
+      const diaryId = this.state.currentDiaryId();
+      if (diaryId && this.map) {
+        this.currentDiaryId = diaryId;
+        this.loadStepsForCurrentDiary();
+      }
+    });
+  }
 
   private http = inject(HttpClient);
   private stepService = inject(StepService);
   private breakpointService = inject(BreakpointService);
+  private router = inject(Router);
+  public state = inject(TravelMapStateService);
 
   private map!: L.Map;
   public currentDiaryId: number | null = null;
@@ -91,10 +104,14 @@ export class MapComponent implements AfterViewInit, OnChanges {
   ngAfterViewInit(): void {
     this.initMap();
 
-    if (this.viewMode) {
+    if (this.viewMode && !this.state.currentDiaryId()) {
       this.loadAllDiaries();
-    } else if (this.isStep && this.currentDiaryId) {
-      this.loadStepsForCurrentDiary();
+    }
+
+    // 💡 Si currentDiaryId est déjà là, on recharge (permet de déclencher l’effet ci-dessus)
+    if (this.state.currentDiaryId()) {
+      this.currentDiaryId = this.state.currentDiaryId();
+      this.loadStepsForCurrentDiary(); // ce sera ignoré si déjà appelé par l'effet
     }
   }
 
@@ -121,6 +138,10 @@ export class MapComponent implements AfterViewInit, OnChanges {
       }
     }
   }
+
+  // get showBackButton(): boolean {
+  //   return !!this.state.currentDiaryId();
+  // }
 
   /**
    * Initialise la carte et configure les événements
@@ -154,10 +175,6 @@ export class MapComponent implements AfterViewInit, OnChanges {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           this.userLoc = L.latLng(pos.coords.latitude, pos.coords.longitude);
-          if (this.isFirstCall) {
-            this.map.setView(this.userLoc, 10);
-            this.isFirstCall = !this.isFirstCall;
-          }
 
           const customIcon = L.divIcon({
             html: `<div class="white-circle"></div>`,
@@ -170,6 +187,11 @@ export class MapComponent implements AfterViewInit, OnChanges {
             .addTo(this.map)
             .bindPopup('Vous êtes ici')
             .openPopup();
+
+          if (this.isFirstCall && !this.currentDiaryId) {
+            this.map.setView(this.userLoc, 10);
+            this.isFirstCall = !this.isFirstCall;
+          }
         },
         (error) => console.warn('Géolocalisation refusée', error)
       );
@@ -256,6 +278,8 @@ export class MapComponent implements AfterViewInit, OnChanges {
               this.map.removeLayer(layer);
             }
           });
+          // 🧭 Naviguer proprement avec Angular :
+          this.router.navigate(['/travels', diary.id]);
           this.loadStepsForCurrentDiary();
         });
       });
@@ -268,12 +292,14 @@ export class MapComponent implements AfterViewInit, OnChanges {
   private loadStepsForCurrentDiary(): void {
     if (!this.currentDiaryId) return;
 
+    this.clearMapLayers(); // 🧹 très important
+
     this.stepService.getDiaryWithSteps(this.currentDiaryId).subscribe((diary: TravelDiary) => {
       const steps: Step[] = diary.steps;
       const currentUser: User = diary.user;
-      this.currentSteps = steps;
 
       // Émettre l'événement de sélection de diary
+
       this.diarySelected.emit({ diary, steps });
 
       steps.forEach((step, index) => {
@@ -415,7 +441,6 @@ export class MapComponent implements AfterViewInit, OnChanges {
     this.viewMode = true;
     this.currentDiaryId = null;
     this.lastPoint = null;
-    this.currentSteps = [];
     this.loadAllDiaries();
     if (navigator.geolocation) {
       this.getGeolocalisation();
@@ -427,6 +452,8 @@ export class MapComponent implements AfterViewInit, OnChanges {
       }
     }
     this.renitializedDiaries.emit();
+    // 🧭 Naviguer proprement avec Angular :
+    this.router.navigate(['/travels']);
   }
 
   /**

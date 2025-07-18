@@ -1,6 +1,6 @@
 <div class="container">
   <div class="map-container">
-    @if (currentDiaryId && !isMobile()) {
+    @if (state.currentDiaryId()) {
       <button (click)="backToDiaries()" class="back-button">⬅</button>
     }
     <div id="map"></div>

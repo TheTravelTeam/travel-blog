@@ -23,11 +23,14 @@ export class TravelMapLayoutPageComponent {
   }
 
   onDiarySelected(event: MapDiarySelectedEvent): void {
-    this.state.currentDiary.set(event.diary);
+    const current = this.state.currentDiary();
+    if (!current || current.id !== event.diary.id) {
+      this.state.currentDiary.set(event.diary);
+    }
+
     this.state.steps.set(event.steps);
     this.state.openedStepId.set(event.steps[0]?.id ?? null);
     this.state.panelHeight.set('collapsedDiary');
-    this.state.completedSteps.set(this.getProgressFromOpenedSteps());
   }
 
   onStepSelected(event: MapStepSelectedEvent): void {
@@ -36,7 +39,6 @@ export class TravelMapLayoutPageComponent {
       lat: event.step.latitude ?? 0,
       lng: event.step.longitude ?? 0,
     });
-    this.state.completedSteps.set(this.getProgressFromOpenedSteps());
   }
 
   getProgressFromOpenedSteps(): number {
