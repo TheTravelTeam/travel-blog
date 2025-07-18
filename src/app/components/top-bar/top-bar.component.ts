@@ -3,7 +3,7 @@ import { IconComponent } from '../icon/icon.component';
 import { ButtonComponent } from '../Button/button/button.component';
 import { CommonModule } from '@angular/common';
 import { AvatarComponent } from '../Atoms/avatar/avatar.component';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { IconSize, Size } from '../../model/variant';
 import { BreakpointService } from '../../services/breakpoint.service';
 
@@ -16,10 +16,12 @@ import { BreakpointService } from '../../services/breakpoint.service';
 })
 export class TopBarComponent {
   @Input() isConnected = true;
+  userId = 1;
 
   constructor(
     public bp: BreakpointService,
-    private router: Router
+    public router: Router,
+    private route: ActivatedRoute
   ) {}
 
   // 💡 IconSize adapté automatiquement au device
@@ -39,10 +41,13 @@ export class TopBarComponent {
   }
 
   get isMapPage(): boolean {
-    return this.router.url === '/travels';
+    return /^\/travels\/\d+$/.test(this.router.url);
   }
 
   get isMyDiariesPage(): boolean {
-    return this.router.url === '/travels/me';
+    return /^\/travels\/users\/\d+$/.test(this.router.url);
+  }
+  get isFilterPage(): boolean {
+    return this.router.url === '/travels';
   }
 }

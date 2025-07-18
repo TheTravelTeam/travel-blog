@@ -267,7 +267,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
           html,
           className: '',
           iconSize: [50, 50],
-          iconAnchor: [50, 50],
+          iconAnchor: [25, 25],
         });
 
         const marker = L.marker([diary.latitude, diary.longitude], { icon }).addTo(this.map);
@@ -450,6 +450,11 @@ export class MapComponent implements AfterViewInit, OnChanges {
           duration: 1.5,
         });
       }
+    } else {
+      this.map.flyTo([48.86, 2.333], 10, {
+        animate: true,
+        duration: 1.5,
+      });
     }
     this.renitializedDiaries.emit();
     // 🧭 Naviguer proprement avec Angular :
