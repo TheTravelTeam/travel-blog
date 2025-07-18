@@ -5,18 +5,19 @@ import { BreakpointService } from '../../services/breakpoint.service';
 import { TravelMapStateService } from '../../services/travel-map-state.service';
 import { CommonModule } from '@angular/common';
 import { DividerComponent } from '../../components/divider/divider.component';
-import { AvatarComponent } from '../../components/Atoms/avatar/avatar.component';
 import { StepService } from '../../services/step.service';
+import { TravelDiaryCardComponent } from '../../components/card-ready-to-use/travel-diary-card/travel-diary-card.component';
 
 @Component({
   selector: 'app-my-travels-page',
-  imports: [CommonModule, DividerComponent, AvatarComponent],
+  imports: [CommonModule, DividerComponent, TravelDiaryCardComponent],
   templateUrl: './my-travels-page.component.html',
   styleUrl: './my-travels-page.component.scss',
 })
 export class MyTravelsPageComponent implements OnInit {
   // private authService = inject(AuthService); // A créer
   connectedUserId = 1;
+  diariesList: TravelDiary[] = [];
   readonly state = inject(TravelMapStateService);
 
   private breakpointService = inject(BreakpointService);
@@ -45,7 +46,7 @@ export class MyTravelsPageComponent implements OnInit {
       this.stepService
         .getDiaryListByUser(this.connectedUserId)
         .subscribe((diaries: TravelDiary[]) => {
-          console.log(diaries);
+          this.diariesList = diaries;
         });
     }
   }

@@ -60,6 +60,7 @@ export interface MapInitializedEvent {
 })
 export class MapComponent implements AfterViewInit, OnChanges {
   @ViewChild('markerContainer', { read: ViewContainerRef }) markerContainer!: ViewContainerRef;
+
   constructor(private injector: EnvironmentInjector) {
     effect(() => {
       const diaryId = this.state.currentDiaryId();

@@ -21,7 +21,7 @@
           class="diary__cover"
           [style]="`background-image: url(${state.currentDiary()?.coverMedia?.fileUrl})`"
         > -->
-      <app-avatar label="" picture="toto" class="diary__avatar"></app-avatar>
+      <!-- <app-avatar label="" picture="toto" class="diary__avatar"></app-avatar> -->
       <!-- <h1 class="my-diaries__detail-panel__header--title">{{ state.currentDiary()?.title }}</h1> -->
       <p>Nom de l'utilisateur</p>
       <!-- </div> -->
@@ -37,6 +37,21 @@
     } -->
 
     <div class="my-diaries__detail-panel__body">
+      @for (diary of diariesList; track $index) {
+        <p>{{ diary.id }} {{ typeof diary.id }}</p>
+        <app-travel-diary-card
+          [id]="diary.id"
+          [title]="diary.title"
+          [image]="diary.coverMedia?.fileUrl || ''"
+          [description]="diary.description"
+        ></app-travel-diary-card>
+      }
+      <!-- <app-travel-diary-card
+        [id]="1"
+        title="toto"
+        description="balbelabe"
+        image="https://www.echosciences-grenoble.fr/uploads/article/image/attachment/1005418938/xl_lens-1209823_1920.jpg"
+      ></app-travel-diary-card> -->
       <!-- @if (state.currentDiary()) { -->
       <!-- <div class="my-diaries__detail-panel__body">
           <app-progress-bar

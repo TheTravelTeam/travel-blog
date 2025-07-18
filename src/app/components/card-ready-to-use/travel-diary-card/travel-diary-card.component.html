@@ -8,10 +8,21 @@
   [isHoverable]="true"
   [isClickable]="true"
   (click)="onCardClick()"
+  [style]="{
+    'background-image': isMobileOrTable() ? 'url(' + image + ')' : '',
+    'background-size': 'cover',
+    'background-position': 'center',
+    'background-repeat': 'no-repeat',
+  }"
 >
+  <!-- @if (!isMobileOrTable()) {
+    <app-card-header>
+      <img [src]="image" alt="" />
+    </app-card-header>
+  } -->
   <app-card-body>
     <app-card width="36%" height="100%" radius="lg">
-      <img src="Images/thailand.jpg" alt="" />
+      <img [src]="image" alt="" />
     </app-card>
     <div class="informations">
       <div class="title">
