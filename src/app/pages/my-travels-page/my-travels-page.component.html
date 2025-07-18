@@ -6,7 +6,7 @@
   >
     @if (isTabletOrMobile()) {
       <div class="my-diaries__detail-divider" (click)="togglePanel()">
-        <app-divider thickness="thick" radius="15"></app-divider>
+        <app-divider thickness="thick" radius="15" [isOpenMobile]="true"></app-divider>
       </div>
       <!-- @if (!state.currentDiary()) {
         <div class="search-bar">
@@ -22,24 +22,28 @@
           [style]="`background-image: url(${state.currentDiary()?.coverMedia?.fileUrl})`"
         > -->
       <!-- <app-avatar label="" picture="toto" class="diary__avatar"></app-avatar> -->
-      <!-- <h1 class="my-diaries__detail-panel__header--title">{{ state.currentDiary()?.title }}</h1> -->
-      <p>Nom de l'utilisateur</p>
-      <!-- </div> -->
-    </div>
-    <!-- } @else if (!state.currentDiary() && !isTabletOrMobile()) {
-      <div class="my-diaries__detail-panel__header my-diaries__header__filter">
-        <app-icon name="search" color="primary" size="xl"></app-icon>
-        <h1 class="my-diaries__detail-panel__header--title">Lieux à explorer</h1>
-        <div class="iconContainer arrow">
-          <img src="icon/arrow_down.svg" />
+      <h1 class="my-diaries__detail-panel__header--title">Mes carnets de voyage</h1>
+
+      @if (!isTabletOrMobile()) {
+        <div class="my-diaries__detail-divider">
+          <app-divider
+            thickness="thin"
+            radius="15"
+            orientation="horizontal"
+            color="primary"
+          ></app-divider>
         </div>
-      </div>
-    } -->
+        <div class="my-diaries__detail-panel__header--btn">
+          <app-button [isActionBtn]="true" size="md" color="primary" type="like"></app-button>
+          <p>Ajouter un carnet</p>
+        </div>
+      }
+    </div>
 
     <div class="my-diaries__detail-panel__body">
       @for (diary of diariesList; track $index) {
         <app-travel-diary-card
-          [isAltBackground]="$index % 2 === 1"
+          [isAltBackground]="$index % 2 === 1 && !isTabletOrMobile()"
           [ngClass]="{ 'alt-background': $index % 2 === 1 }"
           [id]="diary.id"
           [title]="diary.title"
@@ -47,157 +51,22 @@
           [description]="diary.description"
         ></app-travel-diary-card>
       }
-      <!-- <app-travel-diary-card
-        [id]="1"
-        title="toto"
-        description="balbelabe"
-        image="https://www.echosciences-grenoble.fr/uploads/article/image/attachment/1005418938/xl_lens-1209823_1920.jpg"
-      ></app-travel-diary-card> -->
-      <!-- @if (state.currentDiary()) { -->
-      <!-- <div class="my-diaries__detail-panel__body">
-          <app-progress-bar
-            [completedSteps]="state.completedSteps()"
-            [totalSteps]="state.totalStepsCount()"
-          /> -->
-      <!-- </div> -->
-      <!-- } -->
-      <!-- @if (!state.currentDiary()) { -->
-      <!-- <div class="my-diaries__detail-panel__diary-list">
-         <app-accordion [isFilter]="true" title="Pays">
-            <div class="filter__container">
-              <app-checkbox checkboxName="Farniente" label="Farniente" color></app-checkbox>
-              <app-checkbox checkboxName="A la dur" label="A la dur"></app-checkbox>
-              <app-checkbox
-                checkboxName="Je reste chez c'est triste"
-                label="Je reste chez c'est triste"
-              ></app-checkbox>
-              <app-checkbox checkboxName="La plage" label="la plage"></app-checkbox>
-            </div>
-          </app-accordion>
-          <app-accordion [isFilter]="true" title="Continent">
-            <div class="filter__container">
-              <app-checkbox checkboxName="Farniente" label="Farniente" color></app-checkbox>
-              <app-checkbox checkboxName="A la dur" label="A la dur"></app-checkbox>
-              <app-checkbox
-                checkboxName="Je reste chez c'est triste"
-                label="Je reste chez c'est triste"
-              ></app-checkbox>
-              <app-checkbox checkboxName="La plage" label="la plage"></app-checkbox>
-            </div>
-          </app-accordion>
-          <app-accordion [isFilter]="true" title="Durée">
-            <div class="filter__container">
-              <app-checkbox checkboxName="Farniente" label="Farniente" color></app-checkbox>
-              <app-checkbox checkboxName="A la dur" label="A la dur"></app-checkbox>
-              <app-checkbox
-                checkboxName="Je reste chez c'est triste"
-                label="Je reste chez c'est triste"
-              ></app-checkbox>
-              <app-checkbox checkboxName="La plage" label="la plage"></app-checkbox>
-            </div>
-          </app-accordion>
-          <app-accordion [isFilter]="true" title="Themes">
-            <div class="filter__container">
-              <app-checkbox checkboxName="Farniente" label="Farniente" color></app-checkbox>
-              <app-checkbox checkboxName="A la dur" label="A la dur"></app-checkbox>
-              <app-checkbox
-                checkboxName="Je reste chez c'est triste"
-                label="Je reste chez c'est triste"
-              ></app-checkbox>
-              <app-checkbox checkboxName="La plage" label="la plage"></app-checkbox>
-            </div>
-          </app-accordion> -->
-      <!-- </div> -->
-      <!-- } -->
-      <div class="my-diaries__detail-panel__diary-list-container">
-        @for (step of state.steps(); track $index) {
-          <!-- <app-accordion
-            [id]="step.id"
-            [title]="step.title"
-            [subTitle]="step.country"
-            [startDate]="step.startDate"
-            [isOpen]="state.openedStepId() === step.id"
-            (toggleOpen)="onAccordionToggle(step.id, $event)"
-            (stepClicked)="onStepClicked($event)"
-            (remove)="onDeleteSteps(step.id)"
-            role="admin"
-            [(isEditing)]="step.isEditing"
-          >
-            <div class="step__content__container">
-              <p>{{ step.description }}</p>
-
-              <div class="step__media__wrapper">
-                @if (step.medias && step.medias.length > 1) {
-                  <button
-                    class="scroll-btn scroll-btn--left"
-                    (click)="scrollMediaContainer(step.id, 'left')"
-                  >
-                    ←
-                  </button>
-                }
-
-                <div class="step__media__container" [attr.data-id]="step.id">
-                  @for (media of step.medias; track $index) {
-                    <img [src]="media.fileUrl" />
-                  }
-                </div>
-
-                @if (step.medias && step.medias.length > 1) {
-                  <button
-                    class="scroll-btn scroll-btn--right"
-                    (click)="scrollMediaContainer(step.id, 'right')"
-                  >
-                    →
-                  </button>
-                }
-              </div>
-
-              <div class="step__action__btn">
-                <app-button
-                  [startIcon]="true"
-                  icon="favorite"
-                  type="like"
-                  text="{{ step.likes }}"
-                  (btnClick)="handleButtonClick($event, step)"
-                ></app-button>
-                <app-button
-                  [startIcon]="true"
-                  icon="chat_bubble"
-                  type="comment"
-                  text="{{ getCommentLabel(step) }}"
-                  (btnClick)="handleButtonClick($event, step)"
-                ></app-button>
-              </div>
-              <!-- ✅ Ici on affiche si le step correspond -->
-          <!-- @if (state.openedCommentStepId() === step.id) {
-                <div class="step_comments">
-                  @if (step.comments?.length) {
-                    @for (comment of step.comments; track $index) {
-                      <div
-                        class="step_comments__container"
-                        [ngClass]="{
-                          'step_comments__container--left': $index % 2 === 0,
-                          'step_comments__container--right': $index % 2 !== 0,
-                        }"
-                      >
-                        <p class="step_comment__user">
-                          {{ comment.user.username }}
-                          <span class="step_comment__date">{{
-                            comment.updatedAt | date: 'dd/MM/yyyy'
-                          }}</span>
-                        </p>
-                        <p class="step_comment__content">{{ comment.content }}</p>
-                      </div>
-                    }
-                  } @else {
-                    <p>Aucun commentaire pour le moment.</p>
-                  }
-                </div>
-              }
-            </div>
-          </app-accordion> -->
-        }
-      </div>
+    </div>
+    <div class="my-diaries__button-container">
+      <app-button
+        [startIcon]="true"
+        color="secondary"
+        icon="delete"
+        text="Supprimer"
+        size="auto"
+      ></app-button>
+      <app-button
+        [startIcon]="true"
+        color="primary"
+        icon="add"
+        text="Ajouter"
+        size="auto"
+      ></app-button>
     </div>
   </div>
 </div>

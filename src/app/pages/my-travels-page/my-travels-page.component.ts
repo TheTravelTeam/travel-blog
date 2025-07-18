@@ -7,10 +7,11 @@ import { CommonModule } from '@angular/common';
 import { DividerComponent } from '../../components/divider/divider.component';
 import { StepService } from '../../services/step.service';
 import { TravelDiaryCardComponent } from '../../components/card-ready-to-use/travel-diary-card/travel-diary-card.component';
+import { ButtonComponent } from '../../components/Button/button/button.component';
 
 @Component({
   selector: 'app-my-travels-page',
-  imports: [CommonModule, DividerComponent, TravelDiaryCardComponent],
+  imports: [CommonModule, DividerComponent, TravelDiaryCardComponent, ButtonComponent],
   templateUrl: './my-travels-page.component.html',
   styleUrl: './my-travels-page.component.scss',
 })

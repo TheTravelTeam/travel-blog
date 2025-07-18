@@ -13,17 +13,22 @@
 }
 
 .worldMap__map-area {
-  flex: 11;
+  flex: 1;
   height: calc(100vh - 70px);
 }
 
 @media screen and (min-width: 1024px) {
-  .panel-area {
-    flex: 8;
-  }
   .worldMap__map-area {
-    flex: 11;
-    height: calc(100vh - 70px);
     width: auto;
+  }
+
+  .panel-area {
+    &__worldMap {
+      flex: 0 0 40%;
+    }
+
+    &__myTravels {
+      flex: 0 0 50%;
+    }
   }
 }

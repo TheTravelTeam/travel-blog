@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import {
   MapComponent,
   MapDiarySelectedEvent,
@@ -6,8 +6,9 @@ import {
   MapStepSelectedEvent,
 } from '../../components/Atoms/map/map.component';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { TravelMapStateService } from '../../services/travel-map-state.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-travel-map-layout-page',
@@ -15,9 +16,27 @@ import { TravelMapStateService } from '../../services/travel-map-state.service';
   templateUrl: './travel-map-layout-page.component.html',
   styleUrl: './travel-map-layout-page.component.scss',
 })
-export class TravelMapLayoutPageComponent {
+export class TravelMapLayoutPageComponent implements OnInit, OnDestroy {
   readonly state = inject(TravelMapStateService);
-  userId = 1;
+  private router = inject(Router);
+  private routeSub?: Subscription;
+
+  public userId = 1;
+  readonly currentRoute = signal(this.router.url);
+  readonly isWorldMapOrFilterpage = computed(
+    () => this.currentRoute() === '/travels' || /^\/travels\/\d+$/.test(this.currentRoute())
+  );
+  readonly isMyTravelsPage = computed(() => /^\/travels\/users\/\d+$/.test(this.currentRoute()));
+
+  ngOnInit(): void {
+    this.routeSub = this.router.events.subscribe(() => {
+      this.currentRoute.set(this.router.url);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.routeSub?.unsubscribe();
+  }
 
   onMapInitialized(event: MapInitializedEvent): void {
     this.state.allDiaries.set(event.diaries);

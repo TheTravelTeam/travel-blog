@@ -9,26 +9,27 @@
   }
 
   &__detail-panel {
-    flex: 8;
-    display: flex;
     flex-direction: column;
-    height: calc(100vh - 70px);
-    padding-bottom: 1rem;
     overflow-y: auto;
     gap: 0.5rem;
 
     &__header {
-      max-height: 200px;
-      background-size: cover;
-      background-position: center;
       display: flex;
-      justify-content: center;
-      flex: 1 1 auto;
+      align-items: center;
       width: 100%;
+      padding: 0.5rem;
+      flex-direction: column;
 
       &--title {
-        position: relative;
-        z-index: 1;
+        font-size: 1.2rem;
+      }
+
+      &--btn {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        gap: 0.5rem;
+        color: $primaryColor;
       }
     }
 
@@ -41,21 +42,6 @@
       gap: 1rem;
     }
   }
-}
-
-.diary__cover {
-  width: 100%;
-  height: 100%;
-  color: $secondaryTextColor;
-  padding: 1rem;
-  background-size: cover;
-  background-position: center;
-  border-radius: 1rem;
-  position: relative;
-}
-
-.my-diaries__detail-panel__header--title {
-  font-size: 1.5rem;
 }
 
 .diary__avatar {
@@ -92,7 +78,6 @@
     background: white;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
     transition: height 0.3s ease;
-    // overflow-y: auto;
     display: flex;
     align-items: center;
     padding: 0 0.5rem 0.5rem 0.5rem;
@@ -111,6 +96,25 @@
       height: 70vh;
     }
   }
+
+  &__button-container {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media screen and (min-width: 430px) {
+  .my-diaries {
+    &__button-container {
+      gap: 2rem;
+    }
+
+    &__detail-panel {
+      padding: 0 1.5rem 0.5rem 1.5rem;
+    }
+  }
 }
 
 @media screen and (min-width: 1024px) {
@@ -118,6 +122,14 @@
     &__detail-panel {
       position: relative;
       flex: 11;
+
+      &__header {
+        padding: 1.5rem;
+      }
+
+      &__body {
+        padding-bottom: 1rem;
+      }
     }
   }
 
