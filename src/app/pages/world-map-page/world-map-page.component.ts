@@ -1,16 +1,15 @@
-import { Component, effect, ElementRef, inject, ViewChild } from '@angular/core';
+import { Component, effect, ElementRef, inject, ViewChild, OnInit } from '@angular/core';
 import { ProgressBarComponent } from '../../components/Atoms/progress-bar/progress-bar.component';
 import { AccordionComponent } from '../../components/Atoms/accordion/accordion.component';
 import { FormsModule } from '@angular/forms';
 import { Step } from '../../model/step';
-import { CheckboxComponent } from '../../components/checkbox/checkbox.component';
-import { IconComponent } from '../../components/icon/icon.component';
 import { ButtonComponent } from '../../components/Button/button/button.component';
 import { CommonModule } from '@angular/common';
 import { DividerComponent } from '../../components/divider/divider.component';
 import { BreakpointService } from '../../services/breakpoint.service';
 import { AvatarComponent } from '../../components/Atoms/avatar/avatar.component';
 import { TravelMapStateService } from '../../services/travel-map-state.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-world-map-page',
@@ -18,8 +17,6 @@ import { TravelMapStateService } from '../../services/travel-map-state.service';
     ProgressBarComponent,
     AccordionComponent,
     FormsModule,
-    CheckboxComponent,
-    IconComponent,
     ButtonComponent,
     CommonModule,
     DividerComponent,
@@ -28,11 +25,13 @@ import { TravelMapStateService } from '../../services/travel-map-state.service';
   templateUrl: './world-map-page.component.html',
   styleUrl: './world-map-page.component.scss',
 })
-export class WorldMapPageComponent {
+export class WorldMapPageComponent implements OnInit {
   readonly state = inject(TravelMapStateService);
 
   private breakpointService = inject(BreakpointService);
   isTabletOrMobile = this.breakpointService.isMobileOrTablet;
+
+  private activatedRoute = inject(ActivatedRoute);
 
   @ViewChild('detailPanel') detailPanelRef!: ElementRef<HTMLDivElement>;
 
@@ -48,6 +47,16 @@ export class WorldMapPageComponent {
     });
   }
 
+  ngOnInit(): void {
+    this.activatedRoute.paramMap.subscribe((params) => {
+      const id = params.get('id');
+      console.log(id);
+      if (id) {
+        // Met à jour l'état global avec l'id du carnet
+        this.state.setCurrentDiaryId(+id); // <-- tu peux juste mettre un `TravelDiary` partiel ici
+      }
+    });
+  }
   togglePanel() {
     if (!this.state.currentDiary()) {
       // Si pas de diary, toggle simple entre collapsed/expanded
@@ -171,8 +180,6 @@ export class WorldMapPageComponent {
     } else {
       this.state.openedStepId.set(null); // ✅ Ferme tout
     }
-
-    this.state.completedSteps.set(this.state.getProgressFromOpenedSteps());
   }
 
   onDeleteSteps(id: number | undefined) {
