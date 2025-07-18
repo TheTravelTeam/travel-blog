@@ -6,6 +6,7 @@ import { DividerComponent } from '../../components/divider/divider.component';
 import { CommonModule } from '@angular/common';
 import { BreakpointService } from '../../services/breakpoint.service';
 import { TravelMapStateService } from '../../services/travel-map-state.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-filter-page',
@@ -15,6 +16,7 @@ import { TravelMapStateService } from '../../services/travel-map-state.service';
 })
 export class FilterPageComponent {
   readonly state = inject(TravelMapStateService);
+  public router = inject(Router);
 
   private breakpointService = inject(BreakpointService);
   isTabletOrMobile = this.breakpointService.isMobileOrTablet;
@@ -24,17 +26,15 @@ export class FilterPageComponent {
   // Reset du scroll avec des signals & un sélector via Angular ci dessus
   constructor() {
     effect(() => {
-      if (this.state.panelHeight() === 'collapsedDiary') {
-        // queueMicrotask --> Permet d’attendre que le DOM soit entièrement à jour avant d’agir (scroll, focus, etc.)
-        queueMicrotask(() => {
-          this.detailPanelRef?.nativeElement.scrollTo({ top: 0 });
-        });
+      if (this.router.url === '/travels' && this.state.panelHeight() !== 'expanded') {
+        this.state.panelHeight.set('collapsed');
       }
     });
   }
 
   togglePanel() {
-    if (!this.state.currentDiary()) {
+    if (!this.state.currentDiary() || this.router.url === '/travels') {
+      console.log('dans le if du toogle');
       // Si pas de diary, toggle simple entre collapsed/expanded
       this.state.panelHeight.set(
         this.state.panelHeight() === 'collapsed' ? 'expanded' : 'collapsed'

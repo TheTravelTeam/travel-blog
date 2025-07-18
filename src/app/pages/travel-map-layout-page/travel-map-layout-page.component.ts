@@ -41,14 +41,6 @@ export class TravelMapLayoutPageComponent {
     });
   }
 
-  getProgressFromOpenedSteps(): number {
-    console.log('yooooooooooooooooo');
-    if (!this.state.openedStepId()) return 0;
-
-    const index = this.state.steps().findIndex((step) => step.id === this.state.openedStepId());
-    return index !== -1 ? index + 1 : 0;
-  }
-
   onRenitializeDiaries(): void {
     this.state.reset();
     this.state.panelHeight.set('collapsed');

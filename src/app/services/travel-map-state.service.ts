@@ -62,17 +62,4 @@ export class TravelMapStateService {
     this.mapCenterCoords.set(null);
     // this.completedSteps.set(0);
   }
-
-  // private updateProgress() {
-  //   const currentStepId = this.openedStepId();
-  //   const index = this.steps().findIndex((step) => step.id === currentStepId);
-  //   this.completedSteps.set(index !== -1 ? index + 1 : 0);
-  // }
-
-  // getProgressFromOpenedSteps(): number {
-  //   if (!this.openedStepId()) return 0;
-
-  //   const index = this.steps().findIndex((step) => step.id === this.openedStepId());
-  //   return index !== -1 ? index + 1 : 0;
-  // }
 }

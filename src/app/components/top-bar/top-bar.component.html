@@ -55,7 +55,7 @@
           <a routerLink="/articles" class="topbar__link">
             <app-icon name="map_search" [size]="iconSize()" />Articles de voyages</a
           >
-          <a routerLink="/travels/me" class="topbar__link"
+          <a [routerLink]="['/travels/users', userId]" class="topbar__link"
             ><app-icon name="import_contacts" [size]="iconSize()" />Carnet de voyage</a
           >
           <a routerLink="/me" class="topbar__link"><app-avatar label="Jean" />Compte</a>
@@ -63,11 +63,19 @@
       }
       @if (bp.isMobile()) {
         @if (isMapPage) {
-          <a routerLink="/travels/me" class="topbar__link__mobile"
+          <a [routerLink]="['/travels/users', userId]" class="topbar__link__mobile"
             ><app-icon name="import_contacts" [size]="iconSize()"
           /></a>
         }
         @if (isMyDiariesPage) {
+          <a routerLink="/travels" class="topbar__link__mobile"
+            ><app-icon name="map_search" [size]="iconSize()"
+          /></a>
+        }
+        @if (isFilterPage) {
+          <a [routerLink]="['/travels/users', userId]" class="topbar__link__mobile"
+            ><app-icon name="import_contacts" [size]="iconSize()"
+          /></a>
           <a routerLink="/travels" class="topbar__link__mobile"
             ><app-icon name="map_search" [size]="iconSize()"
           /></a>

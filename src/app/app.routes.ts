@@ -20,7 +20,7 @@ export const routes: Routes = [
         path: ':id',
         component: WorldMapPageComponent,
       },
-      { path: 'me', component: MyTravelsPageComponent },
+      { path: 'users/:id', component: MyTravelsPageComponent },
     ],
   },
 ];
