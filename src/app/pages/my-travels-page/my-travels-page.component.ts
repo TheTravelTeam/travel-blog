@@ -1,10 +1,12 @@
-import { Component, effect, ElementRef, inject, ViewChild } from '@angular/core';
+import { TravelDiary } from './../../model/travelDiary';
+import { Component, effect, ElementRef, inject, ViewChild, OnInit } from '@angular/core';
 
 import { BreakpointService } from '../../services/breakpoint.service';
 import { TravelMapStateService } from '../../services/travel-map-state.service';
 import { CommonModule } from '@angular/common';
 import { DividerComponent } from '../../components/divider/divider.component';
 import { AvatarComponent } from '../../components/Atoms/avatar/avatar.component';
+import { StepService } from '../../services/step.service';
 
 @Component({
   selector: 'app-my-travels-page',
@@ -12,13 +14,15 @@ import { AvatarComponent } from '../../components/Atoms/avatar/avatar.component'
   templateUrl: './my-travels-page.component.html',
   styleUrl: './my-travels-page.component.scss',
 })
-export class MyTravelsPageComponent {
+export class MyTravelsPageComponent implements OnInit {
   // private authService = inject(AuthService); // A créer
   connectedUserId = 1;
   readonly state = inject(TravelMapStateService);
 
   private breakpointService = inject(BreakpointService);
   isTabletOrMobile = this.breakpointService.isMobileOrTablet;
+
+  private stepService = inject(StepService);
 
   @ViewChild('detailPanel') detailPanelRef!: ElementRef<HTMLDivElement>;
 
@@ -32,6 +36,18 @@ export class MyTravelsPageComponent {
         });
       }
     });
+  }
+
+  ngOnInit(): void {
+    //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
+    //Add 'implements OnInit' to the class.
+    if (this.connectedUserId) {
+      this.stepService
+        .getDiaryListByUser(this.connectedUserId)
+        .subscribe((diaries: TravelDiary[]) => {
+          console.log(diaries);
+        });
+    }
   }
 
   togglePanel() {

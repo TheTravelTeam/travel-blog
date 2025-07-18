@@ -19,6 +19,14 @@ export class StepService {
     );
   }
 
+  getDiaryListByUser(userId: number): Observable<TravelDiary[]> {
+    return this.http.get<TravelDiary[]>(`${this.apiUrl}/users/${userId}`).pipe(
+      map((travels) => {
+        return travels;
+      })
+    );
+  }
+
   addStepToTravel(travelId: number, newStep: CreateStepDto): Observable<TravelDiary> {
     return this.http.post<TravelDiary>(
       `http://localhost:8080/api/travels-diaries/${travelId}/steps`,

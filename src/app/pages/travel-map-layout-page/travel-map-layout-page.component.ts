@@ -17,6 +17,7 @@ import { TravelMapStateService } from '../../services/travel-map-state.service';
 })
 export class TravelMapLayoutPageComponent {
   readonly state = inject(TravelMapStateService);
+  userId = 1;
 
   onMapInitialized(event: MapInitializedEvent): void {
     this.state.allDiaries.set(event.diaries);
