@@ -1,5 +1,5 @@
 @use '../../../styles/variables' as *;
-
+@use 'sass:color';
 .toggle-btn__wrapper {
   display: inline-flex;
   align-items: center;
@@ -9,7 +9,7 @@
 .toggle-btn {
   width: 3rem;
   height: 1.5rem;
-  background-color: lighten($commentTextColor, 20%);
+  background-color: color.adjust($commentTextColor, $lightness:20%);
   border: none;
   border-radius: 999px;
   position: relative;
@@ -62,7 +62,7 @@
   &--off-primary,
   &--off-secondary,
   &--off-white {
-    background-color: lighten($commentTextColor, 20%);
+    background-color: color.adjust($commentTextColor, $lightness:20%);
   }
 
   &--disabled {

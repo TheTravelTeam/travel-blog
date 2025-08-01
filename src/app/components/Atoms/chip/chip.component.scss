@@ -1,6 +1,6 @@
 @use 'variables' as *;
 @use 'utilities' as *;
-
+@use 'sass:map';
 :host {
   display: inline-flex;
   text-align: center;
@@ -30,7 +30,7 @@
   }
 
   button {
-    background: map-get($colors, primary);
+    background: map.get($colors, primary);
     border: none;
     color: inherit;
     padding: 0;
