@@ -1,5 +1,5 @@
 @use 'variables' as *;
-
+@use 'sass:color';
 .topbar {
   display: flex;
   flex-direction: row;
@@ -20,7 +20,7 @@
   }
 
   @media screen and (max-width: 430px) {
-    padding: 0rem 1.5rem;
+    padding: 0 1.5rem;
   }
 
   &--desktop-home {
@@ -109,7 +109,7 @@
     }
 
     &:hover {
-      color: darken($color: $secondaryTextColor, $amount: 10);
+      color: color.adjust($color: $secondaryTextColor, $lightness: 10%);
     }
   }
 
@@ -118,7 +118,7 @@
     font-size: 0.75rem;
 
     &:hover {
-      color: darken($color: $secondaryTextColor, $amount: 10);
+      color: color.adjust($color: $secondaryTextColor, $lightness: 10%);
     }
   }
 }
