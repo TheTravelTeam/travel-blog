@@ -15,19 +15,19 @@ import { HttpClient } from '@angular/common/http';
 import * as L from 'leaflet';
 
 // Import services
-import { StepService } from './../../../services/step.service';
+import { StepService } from '@service/step.service';
 
 // Types
-import { NominatimResponse } from '../../../model/nominatimResponse';
+import { NominatimResponse } from '@model/nominatim-reponse.model';
 import { CommonModule } from '@angular/common';
-import { MapConfig, mapConfigDefault } from '../../../model/map.model';
-import { AvatarComponent } from '../avatar/avatar.component';
-import { TravelDiary } from '../../../model/travelDiary';
-import { Step } from '../../../model/step';
-import { User } from '../../../model/user';
-import { CreateDiaryDto } from '../../../dto/createDiaryDto';
-import { Media } from '../../../model/media';
-import { CreateStepDto } from '../../../dto/createStepDto';
+import { MapConfig, mapConfigDefault } from '@model/map.model';
+import { TravelDiary } from '@model/travel-diary.model';
+import { Step } from '@model/step.model';
+import { User } from '@model/user.model';
+import { CreateDiaryDto } from '@dto/create-diary.dto';
+import { Media } from '@model/media.model';
+import { CreateStepDto } from '@dto/create-step.dto';
+import { AvatarComponent } from 'components/Atoms/avatar/avatar.component';
 
 @Component({
   selector: 'app-map',

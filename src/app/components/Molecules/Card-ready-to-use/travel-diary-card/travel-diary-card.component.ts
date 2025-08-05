@@ -1,8 +1,8 @@
 import { Component, Input } from '@angular/core';
-import { CardComponent } from '../../card/card.component';
-import { CardBodyComponent } from '../../card/card-body/card-body.component';
-import { IconComponent } from '../../icon/icon.component';
-import { VariantTripCard } from '../../../model/visual-trip-card';
+import { VariantTripCard } from '@model/visual-trip-card.model';
+import { CardBodyComponent } from 'components/Atoms/Card/card-body/card-body.component';
+import { CardComponent } from 'components/Atoms/Card/card.component';
+import { IconComponent } from 'components/Atoms/Icon/icon.component';
 
 @Component({
   selector: 'app-travel-diary-card',

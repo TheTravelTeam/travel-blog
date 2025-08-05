@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
-import { Icon, iconDefault } from '../../model/icon';
 import { CommonModule } from '@angular/common';
+import { Icon, iconDefault } from '@model/icon.model';
 
 @Component({
   selector: 'app-icon',

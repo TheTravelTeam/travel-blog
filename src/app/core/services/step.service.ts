@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
-import { CreateStepDto } from '../dto/createStepDto';
-import { TravelDiary } from '../model/travelDiary';
-import { CreateDiaryDto } from '../dto/createDiaryDto';
+import { CreateStepDto } from '@dto/create-step.dto';
+import { TravelDiary } from '@model/travel-diary.model';
+import { CreateDiaryDto } from '@dto/create-diary.dto';
 
 @Injectable({ providedIn: 'root' })
 export class StepService {

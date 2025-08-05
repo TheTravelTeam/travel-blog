@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Component, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
-import { IconComponent } from '../../icon/icon.component';
-import { ItemProps, selectDefaultProps, SelectProps } from '../../../model/select.model';
+import { ItemProps, selectDefaultProps, SelectProps } from '@model/select.model';
 import { SelectService } from './select.service';
+import { IconComponent } from '../Icon/icon.component';
 
 interface Item {
   id: number;

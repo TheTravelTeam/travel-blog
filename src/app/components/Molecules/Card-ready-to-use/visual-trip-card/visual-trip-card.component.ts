@@ -1,9 +1,9 @@
 import { Component, Input } from '@angular/core';
-import { CardComponent } from '../../card/card.component';
-import { CardBodyComponent } from '../../card/card-body/card-body.component';
-import { CardFooterComponent } from '../../card/card-footer/card-footer.component';
-import { ChipComponent } from '../../Atoms/chip/chip.component';
-import { VariantTripCard } from '../../../model/visual-trip-card';
+import { VariantTripCard } from '@model/visual-trip-card.model';
+import { CardBodyComponent } from 'components/Atoms/Card/card-body/card-body.component';
+import { CardFooterComponent } from 'components/Atoms/Card/card-footer/card-footer.component';
+import { CardComponent } from 'components/Atoms/Card/card.component';
+import { ChipComponent } from 'components/Atoms/chip/chip.component';
 
 @Component({
   selector: 'app-visual-trip-card',

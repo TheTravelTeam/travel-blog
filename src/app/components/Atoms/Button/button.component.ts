@@ -1,8 +1,8 @@
 import { Component, inject, Input } from '@angular/core';
-import { ButtonService } from '../button.service';
+import { ButtonService } from './button.service';
 import { CommonModule } from '@angular/common';
-import { Btn, btnDefault } from '../../../model/btn';
-import { IconComponent } from '../../icon/icon.component';
+import { Btn, btnDefault } from '@model/btn.model';
+import { IconComponent } from '../Icon/icon.component';
 @Component({
   selector: 'app-button',
   imports: [CommonModule, IconComponent],

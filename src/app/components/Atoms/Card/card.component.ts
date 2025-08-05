@@ -7,7 +7,7 @@ import {
   Input,
   Output,
 } from '@angular/core';
-import { Card, cardDefault } from '../../model/card';
+import { Card, cardDefault } from '@model/card.model';
 import { CommonModule } from '@angular/common';
 import { CardBodyComponent } from './card-body/card-body.component';
 import { CardFooterComponent } from './card-footer/card-footer.component';

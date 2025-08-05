@@ -1,7 +1,7 @@
 import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
-import { Chip, chipDefault } from '../../../model/chip';
-import { IconComponent } from '../../icon/icon.component';
 import { CommonModule } from '@angular/common';
+import { IconComponent } from '../Icon/icon.component';
+import { Chip, chipDefault } from '@model/chip.model';
 
 @Component({
   selector: 'app-chip',
