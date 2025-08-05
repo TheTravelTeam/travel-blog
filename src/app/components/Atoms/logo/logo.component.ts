@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { Logo, logoDefault } from '../../../model/logo';
+import { Logo, logoDefault } from '@model/logo.model';
 import { CommonModule } from '@angular/common';
 
 @Component({

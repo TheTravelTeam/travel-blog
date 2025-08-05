@@ -1,7 +1,7 @@
 import { DividerService } from './divider.service';
 import { Component, Input, inject } from '@angular/core';
-import { Divider, dividerDefault } from '../../model/divider';
 import { CommonModule } from '@angular/common';
+import { Divider, dividerDefault } from '@model/divider.model';
 
 @Component({
   selector: 'app-divider',

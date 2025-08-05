@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Checkbox, checkboxDefault } from '../../model/checkbox';
+import { Checkbox, checkboxDefault } from '@model/checkbox.model';
 
 @Component({
   selector: 'app-checkbox',

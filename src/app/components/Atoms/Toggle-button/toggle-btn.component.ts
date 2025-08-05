@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
-import { ToggleButton, toggleButtonDefault } from '../../model/toggle-btn';
+import { ToggleButton, toggleButtonDefault } from '@model/toggle-btn.model';
 
 @Component({
   selector: 'app-toggle-btn',

@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
-import { Link, linkDefault } from '../../../model/link';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { Link, linkDefault } from '@model/link.model';
 
 @Component({
   selector: 'app-link',

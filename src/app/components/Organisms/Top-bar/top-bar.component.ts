@@ -1,11 +1,11 @@
 import { Component, computed, Input } from '@angular/core';
-import { IconComponent } from '../icon/icon.component';
-import { ButtonComponent } from '../Button/button/button.component';
 import { CommonModule } from '@angular/common';
-import { AvatarComponent } from '../Atoms/avatar/avatar.component';
 import { RouterLink } from '@angular/router';
-import { IconSize, Size } from '../../model/variant';
-import { BreakpointService } from '../../services/breakpoint.service';
+import { IconSize, Size } from '@model/variant.model';
+import { BreakpointService } from '@service/breakpoint.service';
+import { IconComponent } from 'components/Atoms/Icon/icon.component';
+import { ButtonComponent } from 'components/Atoms/Button/button.component';
+import { AvatarComponent } from 'components/Atoms/avatar/avatar.component';
 
 @Component({
   selector: 'app-top-bar',
