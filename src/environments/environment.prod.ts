@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://travel-blog.cloud'
+  apiUrl: 'https://api.travel-blog.cloud'
 };
