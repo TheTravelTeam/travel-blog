@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ItemProps } from '../../../model/select.model';
+import { ItemProps } from '@model/select.model';
 
 @Injectable({
   providedIn: 'root',

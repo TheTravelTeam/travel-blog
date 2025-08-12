@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Icon, iconDefault } from '@model/icon.model';
+import { IconSize } from '@model/variant.model';
 
 @Component({
   selector: 'app-icon',
@@ -28,13 +29,13 @@ export class IconComponent {
 
   private getOpticalSize(): number | undefined {
     if (!this.size) return;
-    const sizeMap = {
+    const sizeMap: Record<IconSize, number> = {
       xs: 20,
       sm: 24,
       md: 32,
       lg: 40,
       xl: 48,
-    } as const;
+    };
     return sizeMap[this.size];
   }
 }
