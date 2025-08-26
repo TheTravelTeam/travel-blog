@@ -109,6 +109,13 @@
     width: 10.25rem;
   }
 
+  &--auto {
+    font-size: 0.8rem;
+    width: auto;
+    min-width: 8rem;
+    padding: auto;
+  }
+
   &--border_lg {
     border-radius: 1.125rem;
   }

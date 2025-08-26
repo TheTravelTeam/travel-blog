@@ -1,11 +1,11 @@
 <div [class]="['accordion__container', isFilter && 'filter']">
-  <div class="accordion__title" (click)="onToggleOpen()">
+  <div class="accordion__title" (click)="onToggleOpen()" (click)="onStepClick()">
     <div>
       <h3>{{ title }}</h3>
       <div class="accordion__description">
         <span>{{ subTitle }}</span>
-        @if (date) {
-          <p>{{ date }}</p>
+        @if (startDate) {
+          <p>{{ formattedDate }}</p>
         }
       </div>
     </div>
@@ -38,10 +38,14 @@
       </div>
     }
     <button
-      [class]="['accordion__title--button', isOpen ? 'rotate' : '']"
+      [class]="[
+        'accordion__title--button',
+        'accordion__title--button--chevron',
+        isOpen ? 'rotate' : '',
+      ]"
       [attr.aria-label]="(isOpen ? `Masquer` : `Afficher`) + ' les détails'"
     >
-      <app-icon name="keyboard_arrow_down" size="xl"></app-icon>
+      <app-icon name="keyboard_arrow_down" size="lg"></app-icon>
     </button>
   </div>
   <div [@verticalSlide]="isOpen ? 'open' : 'close'">

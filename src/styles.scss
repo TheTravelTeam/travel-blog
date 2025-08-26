@@ -29,6 +29,7 @@ body {
   height: 100vh;
   font-family: $font-text;
   color: $textColor;
+  // overflow: hidden;
 }
 
 a {
@@ -46,7 +47,8 @@ a {
 }
 
 .size-md {
-  width: 3rem !important;
-  height: auto !important; /* si tu veux garder la proportion */
+  width: 2rem !important;
+  height: 2rem !important; /* si tu veux garder la proportion */
   border-radius: 50%; /* si tu veux un rond, optionnel */
+  border: 2px solid $backgroundColor;
 }
