@@ -5,6 +5,7 @@ export type Link = {
   route: string;
   color?: Color;
   icon?:
+    | 'none'
     | 'add'
     | 'close'
     | 'arrow_back'
@@ -25,5 +26,5 @@ export type Link = {
 
 export const linkDefault: Required<Omit<Link, 'label' | 'route'>> = {
   color: 'white',
-  icon: 'hiking',
+  icon: 'none',
 };
