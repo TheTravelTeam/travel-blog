@@ -4,7 +4,7 @@ import { Observable, map } from 'rxjs';
 import { CreateStepDto } from '../dto/createStepDto';
 import { TravelDiary } from '../model/travelDiary';
 import { CreateDiaryDto } from '../dto/createDiaryDto';
-import { environment} from '../../environments/environment';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class StepService {
@@ -13,7 +13,7 @@ export class StepService {
   constructor(private http: HttpClient) {}
 
   getDiaryWithSteps(travelId: number): Observable<TravelDiary> {
-    return this.http.get<TravelDiary>(`${this.apiUrl}/${travelId}`).pipe(
+    return this.http.get<TravelDiary>(`${this.baseUrl}/${travelId}`).pipe(
       map((travels) => {
         return travels;
       })
@@ -21,7 +21,7 @@ export class StepService {
   }
 
   getDiaryListByUser(userId: number): Observable<TravelDiary[]> {
-    return this.http.get<TravelDiary[]>(`${this.apiUrl}/users/${userId}`).pipe(
+    return this.http.get<TravelDiary[]>(`${this.baseUrl}/users/${userId}`).pipe(
       map((travels) => {
         return travels;
       })
@@ -29,10 +29,7 @@ export class StepService {
   }
 
   addStepToTravel(travelId: number, newStep: CreateStepDto): Observable<TravelDiary> {
-    return this.http.post<TravelDiary>(
-      `${this.baseUrl}/travel-diaries/${travelId}/steps`,
-      newStep
-    );
+    return this.http.post<TravelDiary>(`${this.baseUrl}/travel-diaries/${travelId}/steps`, newStep);
   }
 
   getAllDiaries(): Observable<TravelDiary[]> {
