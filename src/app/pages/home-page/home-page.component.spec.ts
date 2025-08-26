@@ -4,9 +4,13 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { HomePageComponent } from './home-page.component';
+<<<<<<< HEAD
 import { StepService } from '@service/step.service';
 import { ArticleService } from '@service/article.service';
 import { BreakpointService } from '@service/breakpoint.service';
+=======
+import { provideRouter } from '@angular/router';
+>>>>>>> 53e0e97 (feat(KAN-252): adding clickOutside directive  (#33))
 
 describe('HomePageComponent', () => {
   let component: HomePageComponent;
