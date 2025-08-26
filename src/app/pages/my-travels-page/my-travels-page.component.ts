@@ -1,13 +1,12 @@
-import { TravelDiary } from './../../model/travelDiary';
 import { Component, effect, ElementRef, inject, ViewChild, OnInit } from '@angular/core';
-
-import { BreakpointService } from '../../services/breakpoint.service';
-import { TravelMapStateService } from '../../services/travel-map-state.service';
 import { CommonModule } from '@angular/common';
-import { DividerComponent } from '../../components/divider/divider.component';
-import { StepService } from '../../services/step.service';
-import { TravelDiaryCardComponent } from '../../components/card-ready-to-use/travel-diary-card/travel-diary-card.component';
-import { ButtonComponent } from '../../components/Button/button/button.component';
+import { DividerComponent } from 'components/Atoms/Divider/divider.component';
+import { TravelDiaryCardComponent } from 'components/Molecules/Card-ready-to-use/travel-diary-card/travel-diary-card.component';
+import { ButtonComponent } from 'components/Atoms/Button/button.component';
+import { TravelDiary } from '@model/travel-diary.model';
+import { TravelMapStateService } from '@service/travel-map-state.service';
+import { BreakpointService } from '@service/breakpoint.service';
+import { StepService } from '@service/step.service';
 
 @Component({
   selector: 'app-my-travels-page',

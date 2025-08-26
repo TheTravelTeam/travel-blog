@@ -1,8 +1,8 @@
 import { Component, Input } from '@angular/core';
-import { BreadcrumbItem, iconColorDefault } from '../../../model/breadcrumb';
-import { IconComponent } from '../../icon/icon.component';
+import { BreadcrumbItem, iconColorDefault } from '@model/breadcrumb.model';
 import { CommonModule } from '@angular/common';
-import { IconColor } from '../../../model/variant';
+import { IconColor } from '@model/variant.model';
+import { IconComponent } from '../Icon/icon.component';
 
 @Component({
   selector: 'app-breadcrumb',

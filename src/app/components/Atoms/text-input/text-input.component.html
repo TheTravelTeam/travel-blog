@@ -1,9 +1,7 @@
 <div [ngClass]="containerClasses">
   <!-- Label -->
   @if (label) {
-    <label
-      [for]="inputId"
-      [ngClass]="labelClasses">
+    <label [for]="inputId" [ngClass]="labelClasses">
       {{ label }}
       @if (isRequired) {
         <span class="text-input__required-indicator">*</span>
@@ -47,7 +45,8 @@
         type="button"
         class="text-input__icon text-input__icon--right text-input__password-toggle"
         (click)="togglePasswordVisibility()"
-        [disabled]="isDisabled">
+        [disabled]="isDisabled"
+      >
         <app-icon [name]="passwordToggleIcon"></app-icon>
       </button>
     }
@@ -72,7 +71,8 @@
       @if (shouldShowCharCount) {
         <span
           class="text-input__char-count"
-          [ngClass]="{'text-input__char-count--max': characterCount === maxLength}">
+          [ngClass]="{ 'text-input__char-count--max': characterCount === maxLength }"
+        >
           {{ characterCount }}/{{ maxLength }}
         </span>
       }
