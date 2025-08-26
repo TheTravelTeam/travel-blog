@@ -38,6 +38,7 @@ export class EditorComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     const quill = this.editor.quillEditor;
+    if (!quill) return;
 
     quill.on('text-change', () => {
       const text = quill.getText().trim();
