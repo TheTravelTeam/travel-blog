@@ -256,7 +256,6 @@ export class MapComponent implements AfterViewInit, OnChanges {
     this.stepService.getAllDiaries().subscribe((diaries: TravelDiary[]) => {
       // Émettre l'événement d'initialisation
       this.mapInitialized.emit({ diaries });
-      console.log(diaries);
 
       diaries.forEach((diary: TravelDiary) => {
         const fileUrl = diary.coverMedia?.fileUrl ?? '/icon/logo.svg';
@@ -298,7 +297,6 @@ export class MapComponent implements AfterViewInit, OnChanges {
     this.clearMapLayers(); // 🧹 très important
 
     this.stepService.getDiaryWithSteps(this.currentDiaryId).subscribe((diary: TravelDiary) => {
-      console.log('hello');
       const steps: Step[] = diary.steps;
       const currentUser: User = diary.user;
 
