@@ -1,0 +1,120 @@
+@use '../../../styles/utilities' as *;
+
+.iconContainer {
+  width: 150px;
+  height: 150px;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+.iconContainer:nth-child(even) {
+  img {
+    transform: scaleX(-1);
+  }
+}
+
+header {
+  height: 100vh;
+  position: relative;
+  display: flex;
+  justify-content: center;
+
+  .titleContainer {
+    color: #eaeaea;
+    width: 28rem;
+    max-width: 100%;
+    left: 5rem;
+    top: 33%;
+    align-self: flex-start;
+    position: absolute;
+  }
+
+  app-top-bar {
+    position: absolute;
+    width: 100%;
+  }
+
+  .imageContainer {
+    width: 100%;
+    height: 100%;
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .arrow {
+    position: absolute;
+    bottom: -50px;
+  }
+}
+
+section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  h2 {
+    text-align: center;
+    margin-top: 26px;
+    padding: 58px;
+  }
+  &:nth-of-type(odd) {
+    h2 {
+      color: map-get($colors, primary);
+    }
+
+    .tripCardsList {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      width: 100%;
+      padding: 36px;
+      gap: 24px;
+    }
+  }
+
+  &:nth-of-type(even) {
+    h2 {
+      color: map-get($colors, secondary);
+    }
+    .subSection {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background-color: map-get($colors, primary);
+      padding: 2rem;
+      gap: 1rem;
+      .destinationsList {
+        display: grid;
+        grid-auto-flow: column;
+        grid-template-rows: repeat(2, max-content);
+        grid-template-columns: repeat(auto-fit, max-content);
+        gap: 1rem;
+        .imageDestinationContainer {
+          position: relative;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-size: 1.5rem;
+          img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+
+          app-chip {
+            position: absolute;
+          }
+        }
+      }
+    }
+  }
+}

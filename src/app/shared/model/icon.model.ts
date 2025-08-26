@@ -55,7 +55,9 @@ export type IconName =
   | 'check_box_outline_blank'
   | 'disabled_by_default'
   | 'home'
-  | 'account_circle';
+  | 'account_circle'
+  | 'explore'
+  | 'travel';
 
 export type IconWeight = 100 | 200 | 300 | 400 | 500 | 600 | 700;
 export type IconGrade = -25 | 0 | 200;
