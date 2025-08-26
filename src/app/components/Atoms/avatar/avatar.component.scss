@@ -1,4 +1,5 @@
 @use 'variables' as *;
+@use 'sass:map';
 
 .avatar__content {
   position: relative;
@@ -33,18 +34,18 @@
 }
 
 .avatar__content.compact {
-  width: 32px;
+  width: 2rem;
 }
 @each $name, $colors in $avatar-colors {
   .avatar--#{$name} {
-    background-color: map-get($colors, bg);
-    border: 3px solid map-get($colors, border);
-    color: map-get($colors, text);
+    background-color: map.get($colors, bg);
+    border: 3px solid map.get($colors, border);
+    color: map.get($colors, text);
   }
 }
 
-@media screen and (max-width: 480px) {
+@media screen and (max-width: 1024px) {
   .avatar__content {
-    width: 32px;
+    width: 2rem;
   }
 }

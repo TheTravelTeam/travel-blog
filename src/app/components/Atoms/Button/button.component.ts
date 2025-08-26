@@ -1,4 +1,4 @@
-import { Component, inject, Input } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { ButtonService } from './button.service';
 import { CommonModule } from '@angular/common';
 import { Btn, btnDefault } from '@model/btn.model';
@@ -23,7 +23,9 @@ export class ButtonComponent {
   @Input() type: Btn['type'] = btnDefault['type'];
   @Input() icon: Btn['icon'] = btnDefault['icon'];
 
+  @Output() btnClick = new EventEmitter<string>();
+
   onClick() {
-    this.buttonService.clickEvent();
+    this.btnClick.emit(this.type);
   }
 }

@@ -1,0 +1,140 @@
+@use 'variables' as *;
+
+.my-diaries {
+  display: flex;
+  overflow: hidden;
+
+  app-travel-diary-card {
+    border-radius: 1rem;
+  }
+
+  &__detail-panel {
+    flex-direction: column;
+    overflow-y: auto;
+    gap: 0.5rem;
+
+    &__header {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      padding: 0.5rem;
+      flex-direction: column;
+
+      &--title {
+        font-size: 1.2rem;
+      }
+
+      &--btn {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        gap: 0.5rem;
+        color: $primaryColor;
+      }
+    }
+
+    &__body {
+      display: flex;
+      position: relative;
+      flex-direction: column;
+      width: 100%;
+      align-items: center;
+      gap: 1rem;
+    }
+  }
+}
+
+.diary__avatar {
+  position: absolute;
+  right: 1rem;
+}
+
+.my-diaries__detail-panel {
+  height: 30vh;
+}
+
+.my-diaries {
+  flex-direction: column;
+  height: 100%;
+
+  &__detail-divider {
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: white;
+    padding: 0.3rem;
+  }
+
+  &__detail-panel {
+    flex: none;
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    z-index: 10;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    background: white;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+    transition: height 0.3s ease;
+    display: flex;
+    align-items: center;
+    padding: 0 0.5rem 0.5rem 0.5rem;
+
+    &.collapsed {
+      height: 10vh;
+      overflow-y: hidden;
+    }
+
+    &.collapsedDiary {
+      height: 15vh;
+      overflow-y: hidden;
+    }
+
+    &.expanded {
+      height: 70vh;
+    }
+  }
+
+  &__button-container {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media screen and (min-width: 430px) {
+  .my-diaries {
+    &__button-container {
+      gap: 2rem;
+    }
+
+    &__detail-panel {
+      padding: 0 1.5rem 0.5rem 1.5rem;
+    }
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .my-diaries {
+    &__detail-panel {
+      position: relative;
+      flex: 11;
+
+      &__header {
+        padding: 1.5rem;
+      }
+
+      &__body {
+        padding-bottom: 1rem;
+      }
+    }
+  }
+
+  .alt-background {
+    background-color: $primaryColor;
+    color: $secondaryTextColor;
+  }
+}
