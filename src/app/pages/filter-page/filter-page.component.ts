@@ -1,11 +1,11 @@
 import { Component, effect, ElementRef, inject, ViewChild } from '@angular/core';
 import { AccordionComponent } from '../../components/Atoms/accordion/accordion.component';
-import { CheckboxComponent } from '../../components/checkbox/checkbox.component';
-import { IconComponent } from '../../components/icon/icon.component';
-import { DividerComponent } from '../../components/divider/divider.component';
+import { CheckboxComponent } from 'components/Atoms/Checkbox/checkbox.component';
+import { IconComponent } from 'components/Atoms/Icon/icon.component';
+import { DividerComponent } from 'components/Atoms/Divider/divider.component';
 import { CommonModule } from '@angular/common';
-import { BreakpointService } from '../../services/breakpoint.service';
-import { TravelMapStateService } from '../../services/travel-map-state.service';
+import { BreakpointService } from '@service/breakpoint.service';
+import { TravelMapStateService } from '@service/travel-map-state.service';
 import { Router } from '@angular/router';
 
 @Component({

@@ -1,10 +1,11 @@
-# Test en local 
-ng serve -o 
+# Test en local
+
+ng serve -o
 l'environnement.ts sera activé par défaut et cherchera localhost:8080
 
 # Test en local avec docker
-npm run docker:dev
 
+npm run docker:dev
 
 # Frontend
 

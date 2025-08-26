@@ -9,7 +9,7 @@ describe('FooterComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [FooterComponent],
-      providers: [provideRouter([])], // routes vides pour le test
+      providers: [provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(FooterComponent);

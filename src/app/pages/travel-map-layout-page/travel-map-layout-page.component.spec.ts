@@ -11,10 +11,7 @@ describe('TravelMapLayoutPageComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TravelMapLayoutPageComponent],
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting()
-      ]
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TravelMapLayoutPageComponent);

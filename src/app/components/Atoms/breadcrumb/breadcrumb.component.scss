@@ -6,7 +6,7 @@
       color: $primaryColor;
 
       &:hover {
-        color: color.adjust($primaryColor, $lightness:5%);
+        color: color.adjust($primaryColor, $lightness: 5%);
       }
     }
   }
@@ -16,7 +16,7 @@
       color: $primaryColor;
 
       &:hover {
-        color: color.adjust($primaryColor, $lightness:5%);
+        color: color.adjust($primaryColor, $lightness: 5%);
       }
     }
   }
@@ -26,7 +26,7 @@
       color: $secondaryColor;
 
       &:hover {
-        color: color.adjust($secondaryColor, $lightness:5%);
+        color: color.adjust($secondaryColor, $lightness: 5%);
       }
     }
   }

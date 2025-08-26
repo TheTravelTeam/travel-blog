@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
-import { IconComponent } from '../../icon/icon.component';
-import { ProgressBarProps } from '../../../model/progress-bar.model';
+import { IconComponent } from '../Icon/icon.component';
+import { ProgressBarProps } from '@model/progress-bar.model';
 
 @Component({
   selector: 'app-progress-bar',

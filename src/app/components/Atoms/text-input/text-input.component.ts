@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { Component, EventEmitter, forwardRef, Input, OnChanges, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TextInput, textInputDefault } from '../../../model/text-input';
+import { TextInput, textInputDefault } from '@model/text-input';
 import { FormsModule, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
-import { IconName } from '../../../model/icon';
-import { IconComponent } from '../../icon/icon.component';
+import { IconName } from '@model/icon.model';
+import { IconComponent } from '../Icon/icon.component';
 
 @Component({
   selector: 'app-text-input',
@@ -45,6 +46,7 @@ export class TextInputComponent implements OnChanges {
 
   value = '';
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private onChange = (value: string) => {};
   private onTouched = () => {};
 
