@@ -1,4 +1,4 @@
-import { IconColor } from './variant';
+import { IconColor } from './variant.model';
 
 export type BreadcrumbItem = {
   label: string;

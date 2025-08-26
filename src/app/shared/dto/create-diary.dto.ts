@@ -1,4 +1,4 @@
-import { CoverMediaDto } from './coverMediaDto';
+import { CoverMediaDto } from './cover-media.dto';
 
 export interface CreateDiaryDto {
   title: string;
