@@ -5,6 +5,8 @@ import { VisualTripCardComponent } from '../../components/card-ready-to-use/visu
 import { CardComponent } from '../../components/card/card.component';
 import { ButtonComponent } from '../../components/Button/button/button.component';
 import { ChipComponent } from '../../components/Atoms/chip/chip.component';
+import { IconComponent } from '../../components/icon/icon.component';
+
 @Component({
   selector: 'app-home-page',
   standalone: true,
@@ -15,6 +17,7 @@ import { ChipComponent } from '../../components/Atoms/chip/chip.component';
     CardComponent,
     ButtonComponent,
     ChipComponent,
+    IconComponent,
   ],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.scss',
