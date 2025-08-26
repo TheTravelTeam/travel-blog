@@ -19,7 +19,7 @@
     color: $primaryColor;
 
     &:hover {
-      color: color.adjust($primaryColor, 10%);
+      color: color.adjust($primaryColor, $lightness:10%);
       font-variation-settings: 'FILL' 1;
     }
   }
@@ -28,7 +28,7 @@
     color: $secondaryColor;
 
     &:hover {
-      color: color.adjust($secondaryColor, 10%);
+      color: color.adjust($secondaryColor, $lightness:10%);
       font-variation-settings: 'FILL' 1;
     }
   }
@@ -37,7 +37,7 @@
     color: red;
 
     &:hover {
-      color: color.adjust(red, 10%);
+      color: color.adjust(red, $lightness:10%);
       font-variation-settings: 'FILL' 1;
     }
   }
@@ -46,7 +46,7 @@
     color: $backgroundWithOpacity;
 
     &:hover {
-      color: color.adjust($backgroundWithOpacity, 50%);
+      color: color.adjust($backgroundWithOpacity, $lightness:50%);
     }
   }
 }
