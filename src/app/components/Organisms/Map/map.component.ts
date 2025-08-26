@@ -298,6 +298,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
     this.clearMapLayers(); // 🧹 très important
 
     this.stepService.getDiaryWithSteps(this.currentDiaryId).subscribe((diary: TravelDiary) => {
+      console.log('hello');
       const steps: Step[] = diary.steps;
       const currentUser: User = diary.user;
 
