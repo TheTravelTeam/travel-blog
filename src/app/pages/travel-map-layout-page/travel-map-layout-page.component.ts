@@ -4,10 +4,10 @@ import {
   MapDiarySelectedEvent,
   MapInitializedEvent,
   MapStepSelectedEvent,
-} from '../../components/Atoms/map/map.component';
+} from 'components/Organisms/Map/map.component';
 import { CommonModule } from '@angular/common';
 import { Router, RouterOutlet } from '@angular/router';
-import { TravelMapStateService } from '../../services/travel-map-state.service';
+import { TravelMapStateService } from '@service/travel-map-state.service';
 import { Subscription } from 'rxjs';
 
 @Component({

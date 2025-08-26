@@ -6,7 +6,7 @@
       color: $primaryColor;
 
       &:hover {
-        color: color.adjust($primaryColor, 5%);
+        color: color.adjust($primaryColor, $lightness: 5%);
       }
     }
   }
@@ -16,7 +16,7 @@
       color: $primaryColor;
 
       &:hover {
-        color: color.adjust($primaryColor, 5%);
+        color: color.adjust($primaryColor, $lightness: 5%);
       }
     }
   }
@@ -26,7 +26,7 @@
       color: $secondaryColor;
 
       &:hover {
-        color: color.adjust($secondaryColor, 5%);
+        color: color.adjust($secondaryColor, $lightness: 5%);
       }
     }
   }
@@ -70,7 +70,7 @@
     color: $textColor;
 
     &:hover {
-      color: color.adjust($color: $textColor, $amount: 20%);
+      color: color.adjust($color: $textColor, $lightness: 20%);
     }
   }
 
@@ -78,20 +78,20 @@
     &-text {
       color: $primaryColor;
       &.breadcrumb__item-home:hover {
-        color: color.adjust($color: $primaryColor, $amount: 5);
+        color: color.adjust($color: $primaryColor, $lightness: 5%);
       }
     }
     &-primary {
       color: $primaryColor;
 
       &.breadcrumb__item-home:hover {
-        color: color.adjust($color: $primaryColor, $amount: 5);
+        color: color.adjust($color: $primaryColor, $lightness: 5%);
       }
     }
     &-secondary {
       color: $secondaryColor;
       &.breadcrumb__item-home:hover {
-        color: color.adjust($color: $secondaryColor, $amount: 5);
+        color: color.adjust($color: $secondaryColor, $lightness: 5%);
       }
     }
   }

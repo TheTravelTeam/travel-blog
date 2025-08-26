@@ -5,6 +5,8 @@
   flex-direction: column;
   width: fit-content;
   padding: 1rem;
+  width: fit-content;
+  height: auto;
   label {
     padding: 0.2rem;
     width: fit-content;
@@ -26,12 +28,9 @@
     position: relative;
     cursor: pointer;
     user-select: none;
+    overflow: hidden;
     background: $inputBackgroundColor;
 
-    &.open {
-      border-bottom: none;
-      border-radius: 4px 4px 0 0;
-    }
     > button {
       background-color: transparent;
       width: 100%;
@@ -48,6 +47,7 @@
         border: none;
         outline: none;
         font-size: medium;
+        cursor: pointer;
         &::placeholder {
           color: $placeHolderColor;
         }
@@ -67,34 +67,90 @@
         z-index: 5;
       }
     }
+    &--button {
+      width: 40px;
+      height: 40px;
+      border: none;
+      color: $primaryColor;
+      background: transparent;
+      border-radius: 50%;
+      position: relative;
+      z-index: 0;
+      cursor: pointer;
+      transition: all 0.4s ease;
+
+      &:focus {
+        outline: none;
+      }
+
+      &.rotate {
+        transform: rotate(180deg);
+      }
+
+      &::before {
+        content: '';
+        background: radial-gradient(circle, $backgroundArticleColor 0%, transparent 100%);
+        opacity: 0;
+        display: inline-block;
+        position: absolute;
+        border-radius: 50%;
+        width: 0;
+        box-sizing: border-box;
+        z-index: -1;
+        left: 50%;
+        top: 50%;
+        height: 0;
+        transition: all 0.4s ease;
+      }
+
+      &:hover::before,
+      &:focus-visible::before {
+        background: radial-gradient(circle, $backgroundArticleColor 0%, transparent 100%);
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        opacity: 1;
+      }
+    }
   }
   &__dropdown {
-    position: absolute;
-    top: 100%;
-    left: -2px;
-    width: 320px;
-    border: 2px solid $primaryColor;
     border-radius: 0 0 4px 4px;
     background: $inputBackgroundColor;
-    z-index: 10;
     padding-block: 0.5rem;
     border-top: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 150px;
     li {
       padding: 0.5rem;
       border-top: 1px solid $backgroundArticleColor;
+      background: transparent;
+      cursor: pointer;
       transition:
-        background-color 0.2s ease,
-        transform 0.2s ease;
+        background-color 0.3s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 
-      &:hover {
-        background-color: $primaryColor;
+      &:hover,
+      &:focus-visible {
+        background: linear-gradient(to right, lighten($primaryColor, 5%) 0%, $primaryColor 100%);
         color: $secondaryTextColor;
-        transform: translateY(-1px);
+        transform: scale(1.02);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+        outline: none;
+      }
+
+      &:active {
+        transform: scale(0.98);
+        box-shadow: none;
       }
 
       &.selected {
         background-color: $backgroundArticleColor;
         font-weight: bold;
+        border-top: 1px solid $inputBackgroundColor;
       }
     }
     &--scroll {
@@ -107,25 +163,7 @@
 .error-message {
   display: flex;
   justify-content: flex-end;
-  color: color.adjust($color: $secondaryColor, $amount: 30);
-}
-
-.animate-dropdown {
-  animation: dropdown-enter 600ms ease 0s 1 normal forwards;
-  will-change: transform, opacity;
-  transform-origin: top;
-}
-
-@keyframes dropdown-enter {
-  0% {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  color: color.adjust($color: $secondaryColor, $lightness: 30%);
 }
 
 /***DELETE WHEN THE CHIP COMPONENT IS INTREGRATED  ***/
@@ -146,7 +184,7 @@
     padding-inline: 0.2rem;
     cursor: pointer;
     &:hover {
-      background-color: color.adjust($color: red, $amount: 10);
+      background-color: color.adjust($color: red, $lightness: 10%);
     }
   }
 }

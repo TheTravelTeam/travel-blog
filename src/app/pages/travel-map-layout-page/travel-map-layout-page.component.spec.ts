@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { TravelMapLayoutPageComponent } from './travel-map-layout-page.component';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 describe('TravelMapLayoutPageComponent', () => {
   let component: TravelMapLayoutPageComponent;
@@ -9,6 +11,7 @@ describe('TravelMapLayoutPageComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TravelMapLayoutPageComponent],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TravelMapLayoutPageComponent);

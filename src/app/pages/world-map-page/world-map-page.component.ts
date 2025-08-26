@@ -2,13 +2,13 @@ import { Component, effect, ElementRef, inject, ViewChild, OnInit } from '@angul
 import { ProgressBarComponent } from '../../components/Atoms/progress-bar/progress-bar.component';
 import { AccordionComponent } from '../../components/Atoms/accordion/accordion.component';
 import { FormsModule } from '@angular/forms';
-import { Step } from '../../model/step';
-import { ButtonComponent } from '../../components/Button/button/button.component';
+import { Step } from '@model/step.model';
+import { ButtonComponent } from 'components/Atoms/Button/button.component';
 import { CommonModule } from '@angular/common';
-import { DividerComponent } from '../../components/divider/divider.component';
-import { BreakpointService } from '../../services/breakpoint.service';
+import { DividerComponent } from 'components/Atoms/Divider/divider.component';
+import { BreakpointService } from '@service/breakpoint.service';
 import { AvatarComponent } from '../../components/Atoms/avatar/avatar.component';
-import { TravelMapStateService } from '../../services/travel-map-state.service';
+import { TravelMapStateService } from '@service/travel-map-state.service';
 import { ActivatedRoute } from '@angular/router';
 
 @Component({
@@ -50,7 +50,7 @@ export class WorldMapPageComponent implements OnInit {
   ngOnInit(): void {
     this.activatedRoute.paramMap.subscribe((params) => {
       const id = params.get('id');
-      console.log(id);
+      console.info(id);
       if (id) {
         // Met à jour l'état global avec l'id du carnet
         this.state.setCurrentDiaryId(+id); // <-- tu peux juste mettre un `TravelDiary` partiel ici

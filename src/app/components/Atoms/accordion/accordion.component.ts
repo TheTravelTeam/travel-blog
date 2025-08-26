@@ -1,8 +1,8 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { IconComponent } from '../../icon/icon.component';
 import { CommonModule } from '@angular/common';
 import { verticalSlide } from '../../../animations/vertical-slide.animation';
-import { accordionDefaultProps, AccordionProps } from '../../../model/accordion.model';
+import { accordionDefaultProps, AccordionProps } from '@model/accordion.model';
+import { IconComponent } from '../Icon/icon.component';
 
 @Component({
   selector: 'app-accordion',
