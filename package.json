@@ -12,7 +12,9 @@
     "lint": "ng lint",
     "lint:fix": "eslint . --ext .ts,.html --fix",
     "format": "prettier --write .",
-    "db": "json-server --watch db.json"
+    "db": "json-server --watch db.json",
+    "docker:dev": "npm ci && npm run build -- --configuration development && docker build -t travel-blog-front:local . && docker run --rm -p 8081:80 travel-blog-front:local",
+    "docker:prod": "npm run build -- --configuration production && docker build -t travel-blog-front:prod . && docker run --rm -p 8081:80 travel-blog-front:prod"
   },
   "lint-staged": {
     "**/*.{ts,js,json,scss,html,md}": [
