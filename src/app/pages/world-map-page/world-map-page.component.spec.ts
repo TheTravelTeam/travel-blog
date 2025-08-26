@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { WorldMapPageComponent } from './world-map-page.component';
+import { provideRouter } from '@angular/router';
 
 describe('WorldMapPageComponent', () => {
   let component: WorldMapPageComponent;
@@ -9,6 +10,7 @@ describe('WorldMapPageComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [WorldMapPageComponent],
+      providers: [provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(WorldMapPageComponent);

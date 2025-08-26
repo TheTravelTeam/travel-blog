@@ -1,6 +1,6 @@
-import { Media } from './media';
-import { Step } from './step';
-import { User } from './user';
+import { Media } from './media.model';
+import { Step } from './step.model';
+import { User } from './user.model';
 
 export interface TravelDiary {
   id: number;

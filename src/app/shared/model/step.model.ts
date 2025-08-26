@@ -1,5 +1,5 @@
 import { Comment } from './comment';
-import { Media } from './media';
+import { Media } from './media.model';
 
 export interface Step {
   id: number;

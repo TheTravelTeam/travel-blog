@@ -1,7 +1,7 @@
 export type SelectProps = {
-  items: ItemProps[];
+  itemsList: ItemProps[];
   label: string;
-  placeholder: string;
+  placeholder?: string;
   disabled?: boolean;
   withMultipleSelect?: boolean;
   maxSelectionMessage?: string;
@@ -12,7 +12,7 @@ export type ItemProps = {
   label: string;
 };
 
-export const selectDefaultProps: Required<Omit<SelectProps, 'label' | 'items'>> = {
+export const selectDefaultProps: Required<Omit<SelectProps, 'label' | 'itemsList'>> = {
   disabled: false,
   placeholder: 'Sélectionnez...',
   withMultipleSelect: false,

@@ -1,4 +1,5 @@
-import { Component, Input } from '@angular/core';
+import { BreakpointService } from '@service/breakpoint.service';
+import { Component, inject, Input } from '@angular/core';
 import { VariantTripCard } from '@model/visual-trip-card.model';
 import { CardBodyComponent } from 'components/Atoms/Card/card-body/card-body.component';
 import { CardComponent } from 'components/Atoms/Card/card.component';

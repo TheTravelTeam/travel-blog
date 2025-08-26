@@ -1,6 +1,7 @@
 import { BreakpointService } from '@service/breakpoint.service';
 import { Component, computed, inject } from '@angular/core';
 import { LogoComponent } from '../Atoms/logo/logo.component';
+import { LinkComponent } from 'components/Atoms/Link/link/link.component';
 import { CommonModule } from '@angular/common';
 import { LinkComponent } from 'components/Atoms/Link/link/link.component';
 
