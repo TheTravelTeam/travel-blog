@@ -1,0 +1,33 @@
+export type TextInputType = 'text' | 'password' | 'email' | 'tel' | 'url' | 'search';
+export type TextInputSize = 'small' | 'medium' | 'large';
+export type TextInputVariant = 'outlined' | 'filled';
+export type IconPosition = 'left' | 'right';
+
+export interface TextInput {
+  label?: string;
+  placeholder: string;
+  type: TextInputType;
+  size: TextInputSize;
+  variant: TextInputVariant;
+  isDisabled?: boolean;
+  isRequired?: boolean;
+  helperText?: string;
+  errorMessage?: string;
+  maxLength?: number;
+  showCharCount?: boolean;
+  icon?: string;
+  iconPosition: IconPosition;
+}
+
+export const textInputDefault: Required<
+  Omit<TextInput, 'label' | 'placeholder' | 'errorMessage' | 'maxLength' | 'icon'>
+> = {
+  type: 'text',
+  size: 'medium',
+  variant: 'outlined',
+  isDisabled: false,
+  isRequired: false,
+  showCharCount: false,
+  iconPosition: 'left',
+  helperText: '',
+};

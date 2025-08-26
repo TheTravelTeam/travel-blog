@@ -1,0 +1,342 @@
+@use 'variables' as *;
+@use 'utilities' as *;
+
+.text-input {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+
+  &__label {
+    font-family: $font-text;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 20px;
+    color: $textColor;
+    margin-bottom: 2px;
+
+    &--required {
+      .text-input__required-indicator {
+        color: $secondaryColor;
+        margin-left: 2px;
+      }
+    }
+
+    &--error {
+      color: $secondaryColor;
+    }
+  }
+
+  &__container {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  &__field {
+    width: 100%;
+    font-family: $font-text;
+    font-size: 14px;
+    line-height: 20px;
+    color: $textColor;
+    background-color: $inputBackgroundColor;
+    border: 1px solid #e1e5e9;
+    border-radius: 8px;
+    outline: none;
+    transition: all 0.2s ease-in-out;
+
+    &::placeholder {
+      color: $placeHolderColor;
+    }
+
+    &:hover:not(:disabled) {
+      border-color: #c1c7cd;
+    }
+
+    &:focus {
+      border-color: $primaryColor;
+      box-shadow: 0 0 0 3px rgba(7, 91, 93, 0.1);
+    }
+
+    &:disabled {
+      background-color: #f8f9fa;
+      border-color: #e9ecef;
+      color: #adb5bd;
+      cursor: not-allowed;
+
+      &::placeholder {
+        color: #adb5bd;
+      }
+    }
+
+    &--with-icon-left {
+      padding-left: 40px;
+    }
+
+    &--with-icon-right {
+      padding-right: 40px;
+    }
+  }
+
+  &__icon {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $placeHolderColor;
+    font-size: 16px;
+    pointer-events: none;
+    z-index: 1;
+
+    &--left {
+      left: 12px;
+    }
+
+    &--right {
+      right: 12px;
+    }
+  }
+
+  .text-input__password-toggle {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    pointer-events: auto;
+    color: $placeHolderColor;
+    transition: color 0.2s ease-in-out;
+    border-radius: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover:not(:disabled) {
+      color: $primaryColor;
+    }
+
+    &:focus {
+      outline: none;
+    }
+
+    &:disabled {
+      color: #adb5bd;
+      cursor: not-allowed;
+    }
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    min-height: 20px;
+  }
+
+  &__help {
+    flex: 1;
+  }
+
+  &__helper-text {
+    font-family: $font-text;
+    font-size: 12px;
+    line-height: 16px;
+    color: $commentTextColor;
+  }
+
+  &__error-message {
+    font-family: $font-text;
+    font-size: 12px;
+    line-height: 16px;
+    color: $secondaryColor;
+  }
+
+  &__char-count {
+    font-family: $font-text;
+    font-size: 12px;
+    line-height: 16px;
+    color: $commentTextColor;
+    white-space: nowrap;
+    margin-left: 8px;
+
+    &--max {
+      color: $secondaryColor;
+    }
+  }
+
+  // Size variants
+  &--small {
+    .text-input__field {
+      padding: 8px 12px;
+      font-size: 13px;
+      line-height: 18px;
+
+      &--with-icon-left {
+        padding-left: 36px;
+      }
+
+      &--with-icon-right {
+        padding-right: 36px;
+      }
+    }
+
+    .text-input__icon {
+      font-size: 14px;
+
+      &--left {
+        left: 10px;
+      }
+
+      &--right {
+        right: 10px;
+      }
+    }
+
+    .text-input__password-toggle {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  &--medium {
+    .text-input__field {
+      padding: 10px 14px;
+      font-size: 14px;
+      line-height: 20px;
+
+      &--with-icon-left {
+        padding-left: 36px;
+      }
+
+      &--with-icon-right {
+        padding-right: 36px;
+      }
+    }
+
+    .text-input__icon {
+      font-size: 14px;
+
+      &--left {
+        left: 10px;
+      }
+
+      &--right {
+        right: 10px;
+      }
+    }
+
+    .text-input__password-toggle {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  &--large {
+    .text-input__field {
+      padding: 14px 16px;
+      font-size: 16px;
+      line-height: 24px;
+
+      &--with-icon-left {
+        padding-left: 44px;
+      }
+
+      &--with-icon-right {
+        padding-right: 44px;
+      }
+    }
+
+    .text-input__icon {
+      font-size: 18px;
+
+      &--left {
+        left: 14px;
+      }
+
+      &--right {
+        right: 14px;
+      }
+    }
+
+    .text-input__password-toggle {
+      width: 22px;
+      height: 22px;
+    }
+  }
+
+  // Variant styles
+  &--filled {
+    .text-input__field {
+      background-color: #f8f9fa;
+      border: 1px solid transparent;
+
+      &:hover:not(:disabled) {
+        background-color: #e9ecef;
+        border-color: transparent;
+      }
+
+      &:focus {
+        background-color: $inputBackgroundColor;
+        border-color: $primaryColor;
+      }
+
+      &:disabled {
+        background-color: #f1f3f4;
+      }
+    }
+  }
+
+  // State modifiers
+  &--error {
+    .text-input__field {
+      border-color: $secondaryColor;
+
+      &:focus {
+        border-color: $secondaryColor;
+        box-shadow: 0 0 0 3px rgba(161, 14, 19, 0.1);
+      }
+    }
+
+    .text-input__icon {
+      color: $secondaryColor;
+    }
+
+    .text-input__password-toggle {
+      color: $secondaryColor;
+    }
+  }
+
+  &--focused {
+    .text-input__icon {
+      color: $primaryColor;
+    }
+
+    .text-input__password-toggle {
+      color: $primaryColor;
+    }
+  }
+
+  &--has-value {
+    .text-input__icon {
+      color: $textColor;
+    }
+
+    .text-input__password-toggle {
+      color: $textColor;
+    }
+  }
+
+  &--disabled {
+    .text-input__label {
+      color: #adb5bd;
+    }
+
+    .text-input__icon {
+      color: #adb5bd;
+    }
+
+    .text-input__password-toggle {
+      color: #adb5bd;
+    }
+  }
+}
