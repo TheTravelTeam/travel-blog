@@ -1,0 +1,30 @@
+@use 'variables' as *;
+.editor {
+  &__container {
+    width: fit-content;
+    padding: 1rem;
+  }
+  &__info {
+    display: flex;
+    justify-content: space-between;
+  }
+  &__error-message {
+    display: flex;
+    justify-content: flex-end;
+    color: lighten($color: $secondaryColor, $amount: 30);
+  }
+}
+.ql-toolbar.ql-snow,
+.ql-toolbar.ql-bubble {
+  border-radius: 8px 8px 0 0;
+}
+.ql-container {
+  border-radius: 0 0 8px 8px;
+  min-height: 200px;
+}
+
+.ql-editor {
+  u {
+    text-decoration: underline !important;
+  }
+}
