@@ -1,7 +1,7 @@
 <div class="container">
   <div class="map-container">
-    @if (currentDiaryId) {
-      <button (click)="backToDiaries()" class="back-button">⬅ Retour aux diaries</button>
+    @if (state.currentDiaryId()) {
+      <button (click)="backToDiaries()" class="back-button">⬅</button>
     }
     <div id="map"></div>
   </div>

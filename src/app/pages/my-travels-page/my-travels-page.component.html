@@ -1,0 +1,72 @@
+<div class="my-diaries">
+  <div
+    #detailPanel
+    class="my-diaries__detail-panel"
+    [ngClass]="isTabletOrMobile() ? state.panelHeight() : ''"
+  >
+    @if (isTabletOrMobile()) {
+      <div class="my-diaries__detail-divider" (click)="togglePanel()">
+        <app-divider thickness="thick" radius="15" [isOpenMobile]="true"></app-divider>
+      </div>
+      <!-- @if (!state.currentDiary()) {
+        <div class="search-bar">
+          <span class="search-bar__icon material-symbols-outlined">search</span>
+          <input type="text" class="search-bar__input" placeholder="Hinted search text" />
+        </div>
+      } -->
+    }
+    <!-- @if (state.currentDiary()) { -->
+    <div class="my-diaries__detail-panel__header">
+      <!-- <div
+          class="diary__cover"
+          [style]="`background-image: url(${state.currentDiary()?.coverMedia?.fileUrl})`"
+        > -->
+      <!-- <app-avatar label="" picture="toto" class="diary__avatar"></app-avatar> -->
+      <h1 class="my-diaries__detail-panel__header--title">Mes carnets de voyage</h1>
+
+      @if (!isTabletOrMobile()) {
+        <div class="my-diaries__detail-divider">
+          <app-divider
+            thickness="thin"
+            radius="15"
+            orientation="horizontal"
+            color="primary"
+          ></app-divider>
+        </div>
+        <div class="my-diaries__detail-panel__header--btn">
+          <app-button [isActionBtn]="true" size="md" color="primary" type="like"></app-button>
+          <p>Ajouter un carnet</p>
+        </div>
+      }
+    </div>
+
+    <div class="my-diaries__detail-panel__body">
+      @for (diary of diariesList; track $index) {
+        <app-travel-diary-card
+          [isAltBackground]="$index % 2 === 1 && !isTabletOrMobile()"
+          [ngClass]="{ 'alt-background': $index % 2 === 1 }"
+          [id]="diary.id"
+          [title]="diary.title"
+          [image]="diary.coverMedia?.fileUrl || ''"
+          [description]="diary.description"
+        ></app-travel-diary-card>
+      }
+    </div>
+    <div class="my-diaries__button-container">
+      <app-button
+        [startIcon]="true"
+        color="secondary"
+        icon="delete"
+        text="Supprimer"
+        size="auto"
+      ></app-button>
+      <app-button
+        [startIcon]="true"
+        color="primary"
+        icon="add"
+        text="Ajouter"
+        size="auto"
+      ></app-button>
+    </div>
+  </div>
+</div>

@@ -2,27 +2,47 @@
   width="100%"
   height="218px"
   layout="column"
-  padding="xl"
+  [padding]="isMobile() ? 'sm' : 'xl'"
   shadow="xs"
   radius="lg"
   [isHoverable]="true"
   [isClickable]="true"
   (click)="onCardClick()"
+  [style]="{
+    'background-image': isMobileOrTablet() ? 'url(' + image + ')' : '',
+    'background-size': 'cover',
+    'background-position': 'center',
+    'background-repeat': 'no-repeat',
+  }"
 >
+  <!-- @if (!isMobileOrTable()) {
+    <app-card-header>
+      <img [src]="image" alt="" />
+    </app-card-header>
+  } -->
   <app-card-body>
-    <app-card width="36%" height="100%" radius="lg">
-      <img src="Images/thailand.jpg" alt="" />
-    </app-card>
-    <div class="informations">
+    @if (!isMobileOrTablet()) {
+      <app-card width="36%" height="75%" radius="lg">
+        <img [src]="image" alt="" />
+      </app-card>
+    }
+
+    <div class="informations" [ngClass]="isMobileOrTablet() ? 'informations--mobile' : ''">
       <div class="title">
         <h3>{{ title }}</h3>
         <div>
           <button (click)="onEdit()">
-            <app-icon name="edit" color="primary" size="lg"></app-icon>
+            <app-icon
+              name="edit"
+              [color]="isAltBackground ? 'light' : 'primary'"
+              size="lg"
+            ></app-icon>
           </button>
-          <button (click)="onDelete()">
-            <app-icon name="delete" color="secondary" size="lg"></app-icon>
-          </button>
+          @if (!isMobileOrTablet()) {
+            <button (click)="onDelete()">
+              <app-icon name="delete" color="secondary" size="lg"></app-icon>
+            </button>
+          }
         </div>
       </div>
       <div class="description">

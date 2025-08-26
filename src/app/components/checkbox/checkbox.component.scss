@@ -1,5 +1,5 @@
 @use 'variables' as *;
-
+@use 'sass:color';
 .checkbox {
   position: relative;
   display: inline-flex;
@@ -33,8 +33,8 @@
 
     // Focus via clavier
     .checkbox__input:focus-visible + &::before {
-      outline: 4px solid lighten($primaryColor, 50%);
-      outline-offset: 0px;
+      outline: 4px solid color.adjust($primaryColor, $lightness: 50%);
+      outline-offset: 0;
     }
   }
 
@@ -51,8 +51,8 @@
 
   //  Afficher l'icône uniquement quand coché
   .checkbox__input:checked + .checkbox__label::before {
-    background-color: $primaryColor;
-    border-color: $primaryColor;
+    background-color: $backgroundArticleColor;
+    border-color: $backgroundColor;
   }
 
   .checkbox__input:checked + .checkbox__label .checkbox__icon {
@@ -61,14 +61,14 @@
 
   // Hover
   .checkbox__input:not(:disabled):checked + .checkbox__label:hover::before {
-    outline: 4px solid lighten($primaryColor, 70%);
+    outline: 4px solid color.adjust($primaryColor, $lightness: 70%);
     outline-offset: 0;
   }
 
   // Hover sur une checkbox non cochée ➜ fond vert clair
   .checkbox__input:not(:disabled):not(:checked) + .checkbox__label:hover::before {
     border-color: $primaryColor;
-    background-color: lighten($primaryColor, 70%);
+    background-color: color.adjust($primaryColor, $lightness: 70%);
   }
 
   // Disabled

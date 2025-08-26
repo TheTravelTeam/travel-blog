@@ -1,0 +1,78 @@
+<div class="worldMap">
+  <div
+    #detailPanel
+    class="worldMap__detail-panel"
+    [ngClass]="isTabletOrMobile() ? state.panelHeight() : ''"
+  >
+    @if (isTabletOrMobile()) {
+      <div class="worldMap__detail-divider" (click)="togglePanel()">
+        <app-divider thickness="thick" radius="15"></app-divider>
+      </div>
+
+      @if (!state.currentDiary() || router.url === '/travels') {
+        <div class="search-bar">
+          <span class="search-bar__icon material-symbols-outlined">search</span>
+          <input type="text" class="search-bar__input" placeholder="Hinted search text" />
+        </div>
+      }
+    }
+    @if (!isTabletOrMobile()) {
+      <div class="worldMap__detail-panel__header worldMap__header__filter">
+        <app-icon name="search" color="primary" size="xl"></app-icon>
+        <h1 class="worldMap__detail-panel__header--title">Lieux à explorer</h1>
+        <div class="iconContainer arrow">
+          <img src="icon/arrow_down.svg" />
+        </div>
+      </div>
+    }
+
+    <div class="worldMap__detail-panel__body">
+      <div class="worldMap__filter-panel">
+        <app-accordion [isFilter]="true" title="Pays">
+          <div class="filter__container">
+            <app-checkbox checkboxName="Farniente" label="Farniente" color></app-checkbox>
+            <app-checkbox checkboxName="A la dur" label="A la dur"></app-checkbox>
+            <app-checkbox
+              checkboxName="Je reste chez c'est triste"
+              label="Je reste chez c'est triste"
+            ></app-checkbox>
+            <app-checkbox checkboxName="La plage" label="la plage"></app-checkbox>
+          </div>
+        </app-accordion>
+        <app-accordion [isFilter]="true" title="Continent">
+          <div class="filter__container">
+            <app-checkbox checkboxName="Farniente" label="Farniente" color></app-checkbox>
+            <app-checkbox checkboxName="A la dur" label="A la dur"></app-checkbox>
+            <app-checkbox
+              checkboxName="Je reste chez c'est triste"
+              label="Je reste chez c'est triste"
+            ></app-checkbox>
+            <app-checkbox checkboxName="La plage" label="la plage"></app-checkbox>
+          </div>
+        </app-accordion>
+        <app-accordion [isFilter]="true" title="Durée">
+          <div class="filter__container">
+            <app-checkbox checkboxName="Farniente" label="Farniente" color></app-checkbox>
+            <app-checkbox checkboxName="A la dur" label="A la dur"></app-checkbox>
+            <app-checkbox
+              checkboxName="Je reste chez c'est triste"
+              label="Je reste chez c'est triste"
+            ></app-checkbox>
+            <app-checkbox checkboxName="La plage" label="la plage"></app-checkbox>
+          </div>
+        </app-accordion>
+        <app-accordion [isFilter]="true" title="Themes">
+          <div class="filter__container">
+            <app-checkbox checkboxName="Farniente" label="Farniente" color></app-checkbox>
+            <app-checkbox checkboxName="A la dur" label="A la dur"></app-checkbox>
+            <app-checkbox
+              checkboxName="Je reste chez c'est triste"
+              label="Je reste chez c'est triste"
+            ></app-checkbox>
+            <app-checkbox checkboxName="La plage" label="la plage"></app-checkbox>
+          </div>
+        </app-accordion>
+      </div>
+    </div>
+  </div>
+</div>

@@ -12,13 +12,20 @@ export class StepService {
 
   constructor(private http: HttpClient) {}
 
-
   getDiaryWithSteps(travelId: number): Observable<TravelDiary> {
     return this.http.get<TravelDiary>(`${this.baseUrl}/travel-diaries/${travelId}`);
   }
 
   getDiaryListByUser(userId: number): Observable<TravelDiary[]> {
     return this.http.get<TravelDiary[]>(`${this.baseUrl}/users/${userId}`);
+  }
+
+  getDiaryListByUser(userId: number): Observable<TravelDiary[]> {
+    return this.http.get<TravelDiary[]>(`${this.apiUrl}/users/${userId}`).pipe(
+      map((travels) => {
+        return travels;
+      })
+    );
   }
 
   addStepToTravel(travelId: number, newStep: CreateStepDto): Observable<TravelDiary> {

@@ -5,7 +5,7 @@ export const btnDefault: Btn = {
   color: 'primary',
   type: 'standard',
   radius: 'border_lg',
-  size: 'md',
+  size: 'auto',
   text: '',
   isDisabled: false,
   startIcon: false,

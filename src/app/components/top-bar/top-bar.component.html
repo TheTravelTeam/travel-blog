@@ -4,7 +4,7 @@
     bp.isMobile() ? 'is-mobile' : '',
     bp.isTablet() ? 'is-tablet' : '',
     bp.isDesktop() ? 'is-desktop' : '',
-    (bp.isDesktop() || bp.isTablet()) && isHomeOrArticlePage ? 'topbar--desktop-home' : '',
+    (bp.isDesktop() || bp.isTablet()) && isHomeOrArticlePage ? 'topbar--desktop-home' : 'hola',
   ]"
 >
   <div class="topbar__left">
@@ -15,7 +15,7 @@
         <app-icon name="arrow_back" [size]="iconSize()" />
       </a>
     }
-    @if (!bp.isMobile() && !isHomeOrArticlePage) {
+    @if (!bp.isMobileOrTablet() && !isHomeOrArticlePage) {
       <div class="topbar__center">
         <div class="search-bar">
           <span class="search-bar__icon material-symbols-outlined">search</span>
@@ -30,9 +30,9 @@
       @if (bp.isDesktop() || bp.isTablet()) {
         @if (!isConnected && isHomeOrArticlePage) {
           <app-button [type]="'standard'" text="Connexion" routerLink="/me" color="secondary" />
-          <app-button [type]="'standard'" text="Mappemonde" routerLink="/map" color="primary" />
+          <app-button [type]="'standard'" text="Mappemonde" routerLink="/travels" color="primary" />
         } @else if (!isConnected && !isHomeOrArticlePage) {
-          <a routerLink="/map" class="topbar__link">
+          <a routerLink="/travels" class="topbar__link">
             <app-icon name="language" [size]="iconSize()" />
             MappeMonde
           </a>
@@ -48,31 +48,49 @@
             [size]="btnSize()"
           />
         } @else {
-          <a routerLink="/map" class="topbar__link">
+          <a routerLink="/travels" class="topbar__link">
             <app-icon name="language" [size]="iconSize()" />
             Mappemonde
           </a>
           <a routerLink="/articles" class="topbar__link">
             <app-icon name="map_search" [size]="iconSize()" />Articles de voyages</a
           >
-          <a routerLink="/travel-diaries" class="topbar__link"
+          <a [routerLink]="['/travels/users', userId]" class="topbar__link"
             ><app-icon name="import_contacts" [size]="iconSize()" />Carnet de voyage</a
           >
-          <a routerLink="/me" class="topbar__link"><app-avatar label="michel" />Compte</a>
+          <a routerLink="/me" class="topbar__link"><app-avatar label="Jean" />Compte</a>
         }
       }
       @if (bp.isMobile()) {
+        @if (isMapPage) {
+          <a [routerLink]="['/travels/users', userId]" class="topbar__link__mobile"
+            ><app-icon name="import_contacts" [size]="iconSize()"
+          /></a>
+        }
+        @if (isMyDiariesPage) {
+          <a routerLink="/travels" class="topbar__link__mobile"
+            ><app-icon name="map_search" [size]="iconSize()"
+          /></a>
+        }
+        @if (isFilterPage) {
+          <a [routerLink]="['/travels/users', userId]" class="topbar__link__mobile"
+            ><app-icon name="import_contacts" [size]="iconSize()"
+          /></a>
+          <a routerLink="/travels" class="topbar__link__mobile"
+            ><app-icon name="map_search" [size]="iconSize()"
+          /></a>
+        }
         @if (isHomeOrArticlePage) {
-          <a routerLink="/map" class="topbar__link">
+          <a routerLink="/travels" class="topbar__link__mobile">
             <app-icon name="language" [size]="iconSize()" />
           </a>
         }
         @if (!isConnected) {
-          <a routerLink="/me" class="topbar__link">
+          <a routerLink="/me" class="topbar__link__mobile">
             <app-icon name="account_circle" [size]="iconSize()" />
           </a>
         } @else {
-          <a routerLink="/me" class="topbar__link"><app-avatar label="michel" /></a>
+          <a routerLink="/me" class="topbar__link__mobile"><app-avatar label="Jean" /></a>
         }
       }
     </nav>
