@@ -13,6 +13,8 @@ describe('SelectComponent', () => {
 
     fixture = TestBed.createComponent(SelectComponent);
     component = fixture.componentInstance;
+    // 🟢 Corrige ici : fournis un tableau (vide ou avec des valeurs)
+    component.items = [];
     fixture.detectChanges();
   });
 

@@ -121,6 +121,15 @@
       color: color.adjust($color: $secondaryTextColor, $lightness: 10%);
     }
   }
+
+  &__link__mobile {
+    color: $secondaryTextColor;
+    font-size: 0.75rem;
+
+    &:hover {
+      color: darken($color: $secondaryTextColor, $amount: 10);
+    }
+  }
 }
 
 .search-bar {
