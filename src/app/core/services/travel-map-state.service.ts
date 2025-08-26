@@ -1,6 +1,6 @@
 import { computed, Injectable, signal } from '@angular/core';
-import { Step } from '../model/step';
-import { TravelDiary } from '../model/travelDiary';
+import { Step } from '@model/step.model';
+import { TravelDiary } from '@model/travel-diary.model';
 
 @Injectable({
   providedIn: 'root',
