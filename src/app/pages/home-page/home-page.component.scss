@@ -18,7 +18,6 @@
 }
 
 header {
-  width: 100vw;
   height: 100vh;
   position: relative;
   display: flex;
@@ -60,12 +59,13 @@ section {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  h1 {
+  h2 {
     text-align: center;
+    margin-top: 26px;
     padding: 58px;
   }
   &:nth-of-type(odd) {
-    h1 {
+    h2 {
       color: map-get($colors, primary);
     }
 
@@ -80,7 +80,7 @@ section {
   }
 
   &:nth-of-type(even) {
-    h1 {
+    h2 {
       color: map-get($colors, secondary);
     }
     .subSection {
