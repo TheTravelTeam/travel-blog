@@ -11,8 +11,16 @@ export class StepService {
 
   constructor(private http: HttpClient) {}
 
-  getTravelWithSteps(travelId: number): Observable<TravelDiary> {
+  getDiaryWithSteps(travelId: number): Observable<TravelDiary> {
     return this.http.get<TravelDiary>(`${this.apiUrl}/${travelId}`).pipe(
+      map((travels) => {
+        return travels;
+      })
+    );
+  }
+
+  getDiaryListByUser(userId: number): Observable<TravelDiary[]> {
+    return this.http.get<TravelDiary[]>(`${this.apiUrl}/users/${userId}`).pipe(
       map((travels) => {
         return travels;
       })

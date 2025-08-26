@@ -14,5 +14,5 @@ export interface TravelDiary {
   steps: Step[];
   user: User;
   medias: Media[];
-  coverMedia: Media;
+  coverMedia: Media | null;
 }
