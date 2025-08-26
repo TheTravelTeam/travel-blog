@@ -1,0 +1,26 @@
+<!-- <button type="button" (click)="onClick()">click</button> -->
+<button
+  [ngClass]="[
+    'btn',
+    'btn--' + color,
+    'btn--' + size,
+    'btn--' + radius,
+    type !== 'standard' ? 'btn--' + type + '--' + color : 'btn--standard',
+    isDisabled ? 'btn--disabled' : '',
+    isActionBtn ? 'btn--icon-only' : '',
+  ]"
+  [disabled]="isDisabled"
+  (click)="onClick()"
+>
+  @if (isActionBtn) {
+    <app-icon class="btn__icon" [name]="icon"></app-icon>
+  } @else {
+    @if (startIcon) {
+      <app-icon class="btn__icon" [name]="icon"></app-icon>
+    }
+    {{ text }}
+    @if (endIcon) {
+      <app-icon class="btn__icon" [name]="icon"></app-icon>
+    }
+  }
+</button>

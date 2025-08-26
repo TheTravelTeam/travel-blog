@@ -1,0 +1,46 @@
+@use 'variables' as *;
+
+:host {
+  display: inline-block;
+}
+
+.logo {
+  display: block;
+  object-fit: contain;
+  cursor: pointer;
+  &--xs {
+    font-size: 1rem; // 12px
+  }
+
+  &--sm {
+    width: 1.5rem;
+  }
+
+  &--md {
+    width: 2rem;
+  }
+
+  &--lg {
+    width: 2.5rem;
+  }
+
+  &--xl {
+    width: 3rem;
+  }
+
+  &--xl {
+    width: 4rem;
+  }
+
+  &--primary {
+    color: $primaryColor;
+  }
+}
+
+.logo__social {
+  background-color: red;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex: 1 1 25%;
+}

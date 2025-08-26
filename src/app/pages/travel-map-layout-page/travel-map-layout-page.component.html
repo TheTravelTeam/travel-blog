@@ -1,0 +1,22 @@
+<div class="layout">
+  <div
+    class="panel-area"
+    [ngClass]="{
+      'panel-area__worldMap': isWorldMapOrFilterpage(),
+      'panel-area__myTravels': isMyTravelsPage(),
+    }"
+  >
+    <router-outlet></router-outlet>
+  </div>
+  <div class="worldMap__map-area">
+    <app-map
+      [viewMode]="true"
+      [isDiary]="false"
+      (mapInitialized)="onMapInitialized($event)"
+      (diarySelected)="onDiarySelected($event)"
+      (stepSelected)="onStepSelected($event)"
+      (renitializedDiaries)="onRenitializeDiaries()"
+      [centerOnStep]="state.mapCenterCoords()"
+    ></app-map>
+  </div>
+</div>

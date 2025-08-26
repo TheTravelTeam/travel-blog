@@ -1,0 +1,85 @@
+@use 'variables' as *;
+
+:host {
+  vertical-align: middle;
+  color: inherit;
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  user-select: none;
+  font-style: normal;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  user-select: none;
+  font-style: normal;
+  vertical-align: middle;
+  line-height: 1;
+
+  &--xs {
+    font-size: 0.75rem; // 12px
+  }
+
+  &--sm {
+    font-size: 1rem; // 16px
+  }
+
+  &--md {
+    font-size: 1.5rem; // 24px
+  }
+
+  &--lg {
+    font-size: 2rem; // 32px
+  }
+
+  &--xl {
+    font-size: 2.5rem; // 40px
+  }
+
+  // Couleurs des icônes
+  &--primary {
+    color: $primaryColor;
+  }
+
+  &--secondary {
+    color: $secondaryColor;
+  }
+
+  &--danger {
+    color: red;
+  }
+
+  &--accent {
+    color: $accentColor;
+  }
+
+  &--text {
+    color: $textColor;
+  }
+
+  &--light {
+    color: $secondaryTextColor;
+  }
+
+  &--comment {
+    color: $commentTextColor;
+  }
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined', 'Material Icons', monospace, sans-serif;
+  font-style: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}

@@ -1,0 +1,102 @@
+@use 'variables' as *;
+@use 'sass:color';
+.breadcrumb {
+  &--text {
+    .breadcrumb__item-last a {
+      color: $primaryColor;
+
+      &:hover {
+        color: color.adjust($primaryColor, $lightness: 5%);
+      }
+    }
+  }
+
+  &--primary {
+    .breadcrumb__item-last a {
+      color: $primaryColor;
+
+      &:hover {
+        color: color.adjust($primaryColor, $lightness: 5%);
+      }
+    }
+  }
+
+  &--secondary {
+    .breadcrumb__item-last a {
+      color: $secondaryColor;
+
+      &:hover {
+        color: color.adjust($secondaryColor, $lightness: 5%);
+      }
+    }
+  }
+
+  &__list {
+    display: flex;
+    list-style: none;
+    gap: 0.5rem;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    cursor: pointer;
+
+    &::after {
+      content: '';
+      display: inline-block;
+      width: 2rem;
+      height: 2rem;
+      margin-left: 0.5rem;
+      background-image: url('/icon/Vector.svg');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      vertical-align: middle;
+    }
+
+    &.breadcrumb__item-last::after {
+      content: none; // ✅ plus de flèche pour le dernier
+    }
+
+    &.breadcrumb__item-last {
+      cursor: default;
+    }
+  }
+
+  &__link {
+    text-decoration: none;
+    color: $textColor;
+
+    &:hover {
+      color: color.adjust($color: $textColor, $lightness: 20%);
+    }
+  }
+
+  &__icon {
+    &-text {
+      color: $primaryColor;
+      &.breadcrumb__item-home:hover {
+        color: color.adjust($color: $primaryColor, $lightness: 5%);
+      }
+    }
+    &-primary {
+      color: $primaryColor;
+
+      &.breadcrumb__item-home:hover {
+        color: color.adjust($color: $primaryColor, $lightness: 5%);
+      }
+    }
+    &-secondary {
+      color: $secondaryColor;
+      &.breadcrumb__item-home:hover {
+        color: color.adjust($color: $secondaryColor, $lightness: 5%);
+      }
+    }
+  }
+  &__item-disabled a {
+    pointer-events: none;
+    cursor: wait;
+  }
+}

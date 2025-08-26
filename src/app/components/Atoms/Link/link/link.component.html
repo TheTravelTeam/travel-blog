@@ -1,0 +1,11 @@
+<a
+  [routerLink]="route"
+  routerLinkActive="router-link-active"
+  [ngClass]="['link', 'link--' + color, icon === 'none' ? 'align-item-start' : '']"
+>
+  @if (icon !== 'none') {
+    <span class="material-symbols-outlined link__icon">{{ icon }}</span>
+  }
+
+  <span class="link__label"> {{ label }}</span>
+</a>

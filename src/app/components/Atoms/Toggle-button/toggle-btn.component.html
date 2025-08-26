@@ -1,0 +1,13 @@
+<div class="toggle-btn__wrapper">
+  <p
+    [ngClass]="[
+      'toggle-btn__label',
+      isDisabled ? 'toggle-btn--disabled' : 'toggle-btn__label--' + color,
+    ]"
+  >
+    {{ label }}
+  </p>
+  <button [disabled]="isDisabled" [ngClass]="classes" (click)="toggle()">
+    <span class="toggle-btn__indicator"></span>
+  </button>
+</div>

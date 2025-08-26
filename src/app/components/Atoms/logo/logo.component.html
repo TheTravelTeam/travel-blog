@@ -1,0 +1,9 @@
+@if (!isSvg) {
+  <a routerLink="/">
+    <img [src]="src" [alt]="alt" [ngClass]="'logo--' + size" class="logo" />
+  </a>
+} @else {
+  <a [href]="logoUrl" [ngClass]="['logo--' + color]">
+    <div [innerHTML]="svg" [ngClass]="['logo', 'logo--' + size]"></div>
+  </a>
+}

@@ -1,0 +1,56 @@
+<div [class]="['accordion__container', isFilter && 'filter']">
+  <div class="accordion__title" (click)="onToggleOpen()" (click)="onStepClick()">
+    <div>
+      <h3>{{ title }}</h3>
+      <div class="accordion__description">
+        <span>{{ subTitle }}</span>
+        @if (startDate) {
+          <p>{{ formattedDate }}</p>
+        }
+      </div>
+    </div>
+    @if (role !== 'reader' && !isFilter) {
+      <div class="accordion__title--actions">
+        @if (!isEditing) {
+          <button
+            (click)="onToggleEdit($event)"
+            class="accordion__title--button"
+            [attr.aria-label]="`modifier ${title}`"
+          >
+            <app-icon name="edit" size="md" color="primary"></app-icon>
+          </button>
+          <button
+            (click)="onDelete($event)"
+            class="accordion__title--button danger"
+            [attr.aria-label]="`supprimer ${title}`"
+          >
+            <app-icon name="delete" size="md" color="danger"></app-icon>
+          </button>
+        } @else {
+          <button
+            (click)="onToggleEdit($event)"
+            class="accordion__title--button"
+            [attr.aria-label]="`annuler la modification`"
+          >
+            <app-icon name="close" size="md" color="primary" [weight]="600"></app-icon>
+          </button>
+        }
+      </div>
+    }
+    <button
+      [class]="[
+        'accordion__title--button',
+        'accordion__title--button--chevron',
+        isOpen ? 'rotate' : '',
+      ]"
+      [attr.aria-label]="(isOpen ? `Masquer` : `Afficher`) + ' les détails'"
+    >
+      <app-icon name="keyboard_arrow_down" size="lg"></app-icon>
+    </button>
+  </div>
+  <div [@verticalSlide]="isOpen ? 'open' : 'close'">
+    <div class="accordion__content">
+      <ng-content></ng-content>
+    </div>
+  </div>
+</div>

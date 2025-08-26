@@ -1,0 +1,191 @@
+@use 'variables' as *;
+@use 'sass:color';
+.select {
+  display: flex;
+  flex-direction: column;
+  width: fit-content;
+  padding: 1rem;
+  width: fit-content;
+  height: auto;
+  label {
+    padding: 0.2rem;
+    width: fit-content;
+  }
+  &__top-section {
+    display: flex;
+    flex-wrap: wrap;
+    padding-block: 0.5rem;
+    color: white;
+    gap: 0.2rem;
+    width: 100%;
+    max-width: 320px;
+  }
+  &__container {
+    border: 2px solid $primaryColor;
+    border-radius: 4px;
+    padding: 5px;
+    width: 320px;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    overflow: hidden;
+    background: $inputBackgroundColor;
+
+    > button {
+      background-color: transparent;
+      width: 100%;
+      border: none;
+    }
+    &--input {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+
+      input {
+        background: transparent;
+        padding-left: 0.5rem;
+        border: none;
+        outline: none;
+        font-size: medium;
+        cursor: pointer;
+        &::placeholder {
+          color: $placeHolderColor;
+        }
+      }
+    }
+    &.disabled {
+      cursor: not-allowed;
+      filter: grayscale(100%) brightness(0.85);
+      opacity: 0.8;
+
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 4px;
+        background-color: rgba(220, 220, 220, 0.4);
+        z-index: 5;
+      }
+    }
+    &--button {
+      width: 40px;
+      height: 40px;
+      border: none;
+      color: $primaryColor;
+      background: transparent;
+      border-radius: 50%;
+      position: relative;
+      z-index: 0;
+      cursor: pointer;
+      transition: all 0.4s ease;
+
+      &:focus {
+        outline: none;
+      }
+
+      &.rotate {
+        transform: rotate(180deg);
+      }
+
+      &::before {
+        content: '';
+        background: radial-gradient(circle, $backgroundArticleColor 0%, transparent 100%);
+        opacity: 0;
+        display: inline-block;
+        position: absolute;
+        border-radius: 50%;
+        width: 0;
+        box-sizing: border-box;
+        z-index: -1;
+        left: 50%;
+        top: 50%;
+        height: 0;
+        transition: all 0.4s ease;
+      }
+
+      &:hover::before,
+      &:focus-visible::before {
+        background: radial-gradient(circle, $backgroundArticleColor 0%, transparent 100%);
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        opacity: 1;
+      }
+    }
+  }
+  &__dropdown {
+    border-radius: 0 0 4px 4px;
+    background: $inputBackgroundColor;
+    padding-block: 0.5rem;
+    border-top: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 150px;
+    li {
+      padding: 0.5rem;
+      border-top: 1px solid $backgroundArticleColor;
+      background: transparent;
+      cursor: pointer;
+      transition:
+        background-color 0.3s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+
+      &:hover,
+      &:focus-visible {
+        background: linear-gradient(to right, lighten($primaryColor, 5%) 0%, $primaryColor 100%);
+        color: $secondaryTextColor;
+        transform: scale(1.02);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+        outline: none;
+      }
+
+      &:active {
+        transform: scale(0.98);
+        box-shadow: none;
+      }
+
+      &.selected {
+        background-color: $backgroundArticleColor;
+        font-weight: bold;
+        border-top: 1px solid $inputBackgroundColor;
+      }
+    }
+    &--scroll {
+      overflow-y: auto;
+      max-height: 150px;
+    }
+  }
+}
+
+.error-message {
+  display: flex;
+  justify-content: flex-end;
+  color: color.adjust($color: $secondaryColor, $lightness: 30%);
+}
+
+/***DELETE WHEN THE CHIP COMPONENT IS INTREGRATED  ***/
+.chip {
+  background-color: red;
+  font-size: small;
+  width: fit-content;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.2rem;
+  button {
+    background-color: transparent;
+    border-radius: 50%;
+    font-size: small;
+    color: white;
+    border: none;
+    padding: 0;
+    margin-left: 0.5rem;
+    padding-inline: 0.2rem;
+    cursor: pointer;
+    &:hover {
+      background-color: color.adjust($color: red, $lightness: 10%);
+    }
+  }
+}
+/***END DELETE ZONE  ***/

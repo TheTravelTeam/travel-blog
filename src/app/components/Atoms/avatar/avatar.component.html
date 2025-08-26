@@ -1,0 +1,16 @@
+<div
+  class="avatar__content"
+  [ngClass]="[
+    'avatar--' + (color || 'mint'),
+    isInactive ? 'avatar--inactive' : '',
+    size === 'compact' ? 'compact' : '',
+  ]"
+>
+  @if (picture) {
+    <img [src]="picture" [alt]="alt" />
+  } @else {
+    <span
+      ><p>{{ initials }}</p></span
+    >
+  }
+</div>

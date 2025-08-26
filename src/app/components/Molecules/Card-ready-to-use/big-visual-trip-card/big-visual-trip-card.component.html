@@ -1,0 +1,22 @@
+<app-card width="510px" height="439px" layout="column" padding="xl" shadow="sm" radius="lg">
+  <app-card-header>
+    <div>
+      <h2 class="inColor">{{ title }}</h2>
+      <div class="informations">
+        <p class="inColor">{{ country }}</p>
+        <p>{{ dateCreation }}</p>
+      </div>
+    </div>
+    <div>
+      <p class="inColor">Destination : {{ continent }}</p>
+      <app-chip children="author" startIcon="account_circle" startIconColor="secondary"></app-chip>
+    </div>
+  </app-card-header>
+  <app-card-body>
+    <app-card [customClass]="'margin'" width="100%" height="350px" radius="lg"
+      ><img [src]="image"
+    /></app-card>
+    <p>{{ description }}</p>
+  </app-card-body>
+  <app-card-footer><a>Lire la suite</a></app-card-footer>
+</app-card>

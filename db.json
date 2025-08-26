@@ -1,7 +1,251 @@
 {
-  "Hello": [
+  "travels": [
     {
-      "title": "Hello World !"
+      "id": 1,
+      "title": "Tour du monde en solo",
+      "description": "Mon aventure autour du monde",
+      "createdAt": "2025-07-08T09:37:01",
+      "updatedAt": "2025-07-08T09:37:01",
+      "status": "IN_PROGRESS",
+      "canComment": true,
+      "user": {
+        "id": 1,
+        "avatar": null,
+        "username": "alice@example.com",
+        "email": "alice@example.com",
+        "biography": "Passionnée de voyage",
+        "createdAt": "2025-07-08T09:37:01",
+        "updatedAt": "2025-07-08T09:37:01",
+        "status": "ACTIVE",
+        "enabled": true,
+        "authorities": [
+          {
+            "authority": "ROLE_USER"
+          },
+          {
+            "authority": "ROLE_ADMIN"
+          }
+        ],
+        "userName": "alice",
+        "accountNonLocked": true,
+        "accountNonExpired": true,
+        "credentialsNonExpired": true
+      },
+      "steps": [
+        {
+          "id": 3,
+          "title": "Berlin",
+          "description": "Art urbain et histoire",
+          "createdAt": "2025-07-08T09:37:01",
+          "updatedAt": "2025-07-08T09:37:01",
+          "startDate": "2025-07-08T09:37:01",
+          "endDate": "2025-07-08T09:37:01",
+          "status": "COMPLETED",
+          "location": "Berlin",
+          "country": "Allemagne",
+          "continent": "Europe",
+          "latitude": 52.52,
+          "longitude": 13.405,
+          "path": "�\u0010\u0000\u0000\u0001\u0002\u0000\u0000\u0000\u0003\u0000\u0000\u0000���(\\�*@��(\\�BJ@�5�;N�\u0002@v��\u0011�mH@�z\u0014�Ga\"@�f��j�F@",
+          "medias": [
+            {
+              "id": 3,
+              "fileUrl": "https://example.com/photo-berlin.jpg",
+              "mediaType": "PHOTO",
+              "createdAt": "2025-07-08T09:37:01",
+              "updatedAt": "2025-07-08T09:37:01",
+              "status": "VISIBLE"
+            }
+          ],
+          "comments": [
+            {
+              "id": 3,
+              "content": "Berlin est top pour les artistes !",
+              "createdAt": "2025-07-08T09:37:01",
+              "updatedAt": "2025-07-08T09:37:01",
+              "status": "APPROVED"
+            }
+          ],
+          "stepThemes": [
+            {
+              "id": 4,
+              "theme": {
+                "id": 1,
+                "name": "Aventure",
+                "createdAt": "2025-07-08T09:37:01",
+                "updatedAt": "2025-07-08T09:37:01"
+              }
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "title": "Bangkok",
+          "description": "Street food, temples et marchés",
+          "createdAt": "2025-07-08T09:37:01",
+          "updatedAt": "2025-07-08T09:37:01",
+          "startDate": "2025-07-08T09:37:01",
+          "endDate": "2025-07-08T09:37:01",
+          "status": "IN_PROGRESS",
+          "location": "Bangkok",
+          "country": "Thaïlande",
+          "continent": "Asia",
+          "latitude": 13.7563,
+          "longitude": 100.5018,
+          "path": "�\u0010\u0000\u0000\u0001\u0002\u0000\u0000\u0000\u0003\u0000\u0000\u0000�H�}\u001d Y@����9�+@�lV}�vZ@���K\u00075@��\u0011��\u0011[@@�߾\u000e\f0@",
+          "medias": [
+            {
+              "id": 2,
+              "fileUrl": "https://example.com/video-bangkok.mp4",
+              "mediaType": "VIDEO",
+              "createdAt": "2025-07-08T09:37:01",
+              "updatedAt": "2025-07-08T09:37:01",
+              "status": "VISIBLE"
+            }
+          ],
+          "comments": [
+            {
+              "id": 2,
+              "content": "Bangkok a lair incroyable !",
+              "createdAt": "2025-07-08T09:37:01",
+              "updatedAt": "2025-07-08T09:37:01",
+              "status": "APPROVED"
+            }
+          ],
+          "stepThemes": [
+            {
+              "id": 2,
+              "theme": {
+                "id": 2,
+                "name": "Culture",
+                "createdAt": "2025-07-08T09:37:01",
+                "updatedAt": "2025-07-08T09:37:01"
+              }
+            },
+            {
+              "id": 3,
+              "theme": {
+                "id": 3,
+                "name": "Food",
+                "createdAt": "2025-07-08T09:37:01",
+                "updatedAt": "2025-07-08T09:37:01"
+              }
+            }
+          ]
+        },
+        {
+          "id": 1,
+          "title": "Paris",
+          "description": "Départ officiel",
+          "createdAt": "2025-07-08T09:37:01",
+          "updatedAt": "2025-07-08T09:37:01",
+          "startDate": "2025-07-08T09:37:01",
+          "endDate": "2025-07-08T09:37:01",
+          "status": "COMPLETED",
+          "location": "Paris",
+          "country": "France",
+          "continent": "Europe",
+          "latitude": 48.8566,
+          "longitude": 2.3522,
+          "path": "�\u0010\u0000\u0000\u0001\u0002\u0000\u0000\u0000\u0003\u0000\u0000\u0000�5�;N�\u0002@v��\u0011�mH@\u00054\u00116<]!@.���1\u000eI@���(\\�*@��(\\�BJ@",
+          "medias": [
+            {
+              "id": 1,
+              "fileUrl": "https://example.com/photo-paris.jpg",
+              "mediaType": "PHOTO",
+              "createdAt": "2025-07-08T09:37:01",
+              "updatedAt": "2025-07-08T09:37:01",
+              "status": "VISIBLE"
+            }
+          ],
+          "comments": [
+            {
+              "id": 1,
+              "content": "Super début de voyage !",
+              "createdAt": "2025-07-08T09:37:01",
+              "updatedAt": "2025-07-08T09:37:01",
+              "status": "APPROVED"
+            }
+          ],
+          "stepThemes": [
+            {
+              "id": 1,
+              "theme": {
+                "id": 1,
+                "name": "Aventure",
+                "createdAt": "2025-07-08T09:37:01",
+                "updatedAt": "2025-07-08T09:37:01"
+              }
+            }
+          ]
+        }
+      ],
+      "published": true,
+      "private": false
+    },
+    {
+      "id": 2,
+      "title": "Escapade en Asie",
+      "description": "Découverte des saveurs et cultures Asie",
+      "createdAt": "2025-07-08T09:37:01",
+      "updatedAt": "2025-07-08T09:37:01",
+      "status": "COMPLETED",
+      "canComment": true,
+      "user": {
+        "id": 2,
+        "avatar": null,
+        "username": "bob@example.com",
+        "email": "bob@example.com",
+        "biography": "Photographe globe-trotteur",
+        "createdAt": "2025-07-08T09:37:01",
+        "updatedAt": "2025-07-08T09:37:01",
+        "status": "ACTIVE",
+        "enabled": true,
+        "authorities": [
+          {
+            "authority": "ROLE_USER"
+          }
+        ],
+        "userName": "bob",
+        "accountNonLocked": true,
+        "accountNonExpired": true,
+        "credentialsNonExpired": true
+      },
+      "steps": [],
+      "published": true,
+      "private": false
+    },
+    {
+      "id": 3,
+      "title": "Road trip en Europe",
+      "description": "Voyage en van à travers Europe",
+      "createdAt": "2025-07-08T09:37:01",
+      "updatedAt": "2025-07-08T09:37:01",
+      "status": "CAN_COMMENT",
+      "canComment": true,
+      "user": {
+        "id": 3,
+        "avatar": null,
+        "username": "charlie@example.com",
+        "email": "charlie@example.com",
+        "biography": "Aventurier en sac à dos",
+        "createdAt": "2025-07-08T09:37:01",
+        "updatedAt": "2025-07-08T09:37:01",
+        "status": "ACTIVE",
+        "enabled": true,
+        "authorities": [
+          {
+            "authority": "ROLE_USER"
+          }
+        ],
+        "userName": "charlie",
+        "accountNonLocked": true,
+        "accountNonExpired": true,
+        "credentialsNonExpired": true
+      },
+      "steps": [],
+      "published": true,
+      "private": false
     }
   ]
 }
