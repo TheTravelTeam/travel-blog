@@ -1,4 +1,4 @@
-import { Color } from './variant';
+import { Color } from './variant.model';
 
 export type Link = {
   label: string;

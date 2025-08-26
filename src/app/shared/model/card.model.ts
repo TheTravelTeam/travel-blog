@@ -1,4 +1,4 @@
-import { AppColor, BorderWeight, JustifyContent, Radius, Shadow, Spacing } from './variant';
+import { AppColor, BorderWeight, JustifyContent, Radius, Shadow, Spacing } from './variant.model';
 
 export const cardDefault: Required<
   Omit<

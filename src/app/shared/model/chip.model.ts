@@ -1,4 +1,4 @@
-import { IconName } from './icon';
+import { IconName } from './icon.model';
 import {
   AppColor,
   BorderWeight,
@@ -7,7 +7,7 @@ import {
   Radius,
   Shadow,
   Spacing,
-} from './variant';
+} from './variant.model';
 
 export const chipDefault: Required<
   Omit<

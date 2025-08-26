@@ -1,4 +1,4 @@
-import { IconColor, IconSize } from './variant';
+import { IconColor, IconSize } from './variant.model';
 
 export const iconDefault: Required<Omit<Icon, 'name'>> = {
   size: 'sm',
