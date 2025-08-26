@@ -1,0 +1,34 @@
+@use 'variables' as *;
+
+.layout {
+  display: flex;
+}
+
+.panel-area {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  box-shadow: none;
+  height: calc(100vh - 70px);
+  overflow-y: auto;
+}
+
+.worldMap__map-area {
+  flex: 1;
+  height: calc(100vh - 70px);
+}
+
+@media screen and (min-width: 1024px) {
+  .worldMap__map-area {
+    width: auto;
+  }
+
+  .panel-area {
+    &__worldMap {
+      flex: 0 0 40%;
+    }
+
+    &__myTravels {
+      flex: 0 0 50%;
+    }
+  }
+}

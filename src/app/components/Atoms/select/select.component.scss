@@ -1,5 +1,5 @@
 @use 'variables' as *;
-
+@use 'sass:color';
 .select {
   display: flex;
   flex-direction: column;
@@ -163,7 +163,7 @@
 .error-message {
   display: flex;
   justify-content: flex-end;
-  color: lighten($color: $secondaryColor, $amount: 30);
+  color: color.adjust($color: $secondaryColor, $lightness: 30%);
 }
 
 /***DELETE WHEN THE CHIP COMPONENT IS INTREGRATED  ***/
@@ -184,7 +184,7 @@
     padding-inline: 0.2rem;
     cursor: pointer;
     &:hover {
-      background-color: darken($color: red, $amount: 10);
+      background-color: color.adjust($color: red, $lightness: 10%);
     }
   }
 }

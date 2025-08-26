@@ -31,7 +31,6 @@
 
   &--icon-only {
     max-width: 2.5rem;
-    max-width: 2.5rem;
     padding: 10px 10px !important;
     justify-content: center;
     gap: 0;
@@ -107,6 +106,12 @@
     font-size: 16px;
     padding: 1.125rem 1rem;
     width: 10.25rem;
+  }
+
+  &--auto {
+    font-size: 0.8rem;
+    width: auto;
+    min-width: 8rem;
   }
 
   &--border_lg {

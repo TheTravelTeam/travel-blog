@@ -18,6 +18,7 @@ export class DividerComponent {
   @Input() margin: Divider['margin'] = dividerDefault['margin'];
   @Input() isOpenMobile: Divider['isOpenMobile'] = dividerDefault['isOpenMobile'];
   @Input() radius: Divider['radius'] = dividerDefault['radius'];
+  @Input() size: Divider['size'] = dividerDefault['size'];
 
   get classes(): string[] {
     return this.dividerService.getClasses({
@@ -27,6 +28,7 @@ export class DividerComponent {
       margin: this.margin,
       thickness: this.thickness,
       radius: this.radius,
+      size: this.size,
     });
   }
 }

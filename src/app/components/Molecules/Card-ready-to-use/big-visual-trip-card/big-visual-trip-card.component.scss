@@ -1,7 +1,7 @@
 @use '../../../../styles/utilities' as *;
-
+@use 'sass:map';
 .inColor {
-  color: map-get($colors, primary);
+  color: map.get($colors, primary);
 }
 
 ::ng-deep app-card-header header {
@@ -17,7 +17,7 @@
     :first-child::after {
       content: '•';
       margin: 0 8px;
-      color: map-get($colors, primary);
+      color: map.get($colors, primary);
     }
   }
 }
@@ -39,5 +39,5 @@ app-card-body {
 }
 
 app-card-footer {
-  color: map-get($colors, primary);
+  color: map.get($colors, primary);
 }

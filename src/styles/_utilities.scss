@@ -1,7 +1,7 @@
 // ===========================================
 //     📦 COLORS
 // =========================================== */
-
+@use 'sass:map';
 $colors: (
   primary: #075b5d,
   secondary: #a10e13,
@@ -106,7 +106,7 @@ $border-weights: (
 );
 
 @mixin border-weight($size) {
-  border-width: map-get($border-weights, $size);
+  border-width: map.get($border-weights, $size);
 }
 
 @each $name, $value in $border-weights {

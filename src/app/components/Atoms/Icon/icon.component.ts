@@ -35,7 +35,8 @@ export class IconComponent {
       md: 32,
       lg: 40,
       xl: 48,
-    };
+      xxl: 52,
+    } as const;
     return sizeMap[this.size];
   }
 }
