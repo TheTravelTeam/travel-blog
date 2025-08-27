@@ -34,7 +34,6 @@ export class FilterPageComponent {
 
   togglePanel() {
     if (!this.state.currentDiary() || this.router.url === '/travels') {
-      console.log('dans le if du toogle');
       // Si pas de diary, toggle simple entre collapsed/expanded
       this.state.panelHeight.set(
         this.state.panelHeight() === 'collapsed' ? 'expanded' : 'collapsed'
