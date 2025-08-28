@@ -71,14 +71,10 @@ app-accordion {
       }
 
       &--steps-container {
-        overflow-y: auto;
-        scrollbar-gutter: stable;
         display: flex;
         flex-direction: column;
         gap: 1rem;
-        width: 95%;
-        // padding: 0 1rem 2rem 1rem;
-        // padding: 1rem 0;
+        width: 90%;
       }
     }
   }
@@ -101,7 +97,8 @@ app-accordion {
 
 .diary__cover {
   width: 100%;
-  height: 100%;
+  // height: 100%;
+  height: 200px;
   color: $secondaryTextColor;
   padding: 1rem;
   background-size: cover;
@@ -353,6 +350,7 @@ app-accordion {
     height: calc(100vh - 70px);
     padding: 0 1rem 1rem 1rem;
     overflow-y: auto;
+    scrollbar-gutter: stable;
   }
 
   .diary__cover {
@@ -365,7 +363,7 @@ app-accordion {
     margin-top: 1rem;
   }
 
-  .worldMap__detail-panel__body--steps-container {
-    padding: 1rem;
-  }
+  // .worldMap__detail-panel__body--steps-container {
+  //   padding: 1rem;
+  // }
 }

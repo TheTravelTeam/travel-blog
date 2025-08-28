@@ -1,0 +1,25 @@
+<div class="editor__container">
+  @if (label) {
+    <label>{{ label }}</label>
+  }
+  <quill-editor
+    [(ngModel)]="content"
+    [modules]="modules"
+    [theme]="theme"
+    [placeholder]="placeholder"
+    [readOnly]="readOnly"
+    [maxLength]="maxLength"
+    (onEditorCreated)="registerQuill($event)"
+    (ngModelChange)="onContentChange($event)"
+  ></quill-editor>
+  <div class="editor__info">
+    <div class="editor__input-counter">
+      <p>{{ charCount() }} / {{ maxLength }} caractères</p>
+    </div>
+    @if (errorMessage(); as errorMsg) {
+      <div class="editor__error-message">
+        <small>⁕{{ errorMsg }}</small>
+      </div>
+    }
+  </div>
+</div>

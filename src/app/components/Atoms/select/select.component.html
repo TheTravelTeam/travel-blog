@@ -9,20 +9,21 @@
   (keydown)="navigateWithKey($event)"
 >
   <label>{{ label }}</label>
-
-  @if (withMutipleSelect && itemsSelected().length > 0) {
+  @if (withMutipleSelect) {
     <div class="select__top-section">
-      @for (item of itemsSelected(); track item.id) {
-        <span class="chip">
-          {{ item.label }}
-          <button
-            type="button"
-            [attr.aria-label]="'Retirer ' + item.label"
-            (click)="removeChip(item.id, $event)"
-          >
-            <app-icon name="close"></app-icon>
-          </button>
-        </span>
+      @if (itemsSelected().length > 0) {
+        @for (item of itemsSelected(); track item.id) {
+          <span class="chip">
+            {{ item.label }}
+            <button
+              type="button"
+              [attr.aria-label]="'Retirer ' + item.label"
+              (click)="removeChip(item.id, $event)"
+            >
+              <app-icon name="close"></app-icon>
+            </button>
+          </span>
+        }
       }
     </div>
   }

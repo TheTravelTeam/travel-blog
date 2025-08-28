@@ -1,52 +1,50 @@
-<div [class]="['accordion__container', isFilter && 'filter']">
-  <div class="accordion__title" (click)="onToggleOpen()" (click)="onStepClick()">
-    <div>
+<div [class]="['accordion__container', isFilter && 'filter']" (clickOutside)="closeDropdown()">
+  <div class="accordion__header">
+    <div class="accordion__header__title" (click)="onToggleOpen()" (click)="onStepClick()">
       <h3>{{ title }}</h3>
-      <div class="accordion__description">
+      @if (role !== 'reader' && !isFilter) {
+        <div class="accordion__header__title--actions">
+          @if (!isEditing) {
+            <button
+              (click)="onToggleEdit($event)"
+              class="accordion__header__title--button"
+              [attr.aria-label]="`modifier ${title}`"
+            >
+              <app-icon name="edit" size="md" color="primary"></app-icon>
+            </button>
+            <button
+              (click)="onDelete($event)"
+              class="accordion__header__title--button danger"
+              [attr.aria-label]="`supprimer ${title}`"
+            >
+              <app-icon name="delete" size="md" color="danger"></app-icon>
+            </button>
+          } @else {
+            <button
+              (click)="onToggleEdit($event)"
+              class="accordion__header__title--button"
+              [attr.aria-label]="`annuler la modification`"
+            >
+              <app-icon name="close" size="md" color="primary" [weight]="600"></app-icon>
+            </button>
+          }
+        </div>
+      }
+      <button
+        [class]="['accordion__header__title--button', isOpen ? 'rotate' : '']"
+        [attr.aria-label]="(isOpen ? `Masquer` : `Afficher`) + ' les détails'"
+      >
+        <app-icon name="keyboard_arrow_down" size="lg"></app-icon>
+      </button>
+    </div>
+    @if (!isFilter) {
+      <div class="accordion__header__subtitle">
         <span>{{ subTitle }}</span>
         @if (startDate) {
           <p>{{ formattedDate }}</p>
         }
       </div>
-    </div>
-    @if (role !== 'reader' && !isFilter) {
-      <div class="accordion__title--actions">
-        @if (!isEditing) {
-          <button
-            (click)="onToggleEdit($event)"
-            class="accordion__title--button"
-            [attr.aria-label]="`modifier ${title}`"
-          >
-            <app-icon name="edit" size="md" color="primary"></app-icon>
-          </button>
-          <button
-            (click)="onDelete($event)"
-            class="accordion__title--button danger"
-            [attr.aria-label]="`supprimer ${title}`"
-          >
-            <app-icon name="delete" size="md" color="danger"></app-icon>
-          </button>
-        } @else {
-          <button
-            (click)="onToggleEdit($event)"
-            class="accordion__title--button"
-            [attr.aria-label]="`annuler la modification`"
-          >
-            <app-icon name="close" size="md" color="primary" [weight]="600"></app-icon>
-          </button>
-        }
-      </div>
     }
-    <button
-      [class]="[
-        'accordion__title--button',
-        'accordion__title--button--chevron',
-        isOpen ? 'rotate' : '',
-      ]"
-      [attr.aria-label]="(isOpen ? `Masquer` : `Afficher`) + ' les détails'"
-    >
-      <app-icon name="keyboard_arrow_down" size="lg"></app-icon>
-    </button>
   </div>
   <div [@verticalSlide]="isOpen ? 'open' : 'close'">
     <div class="accordion__content">
