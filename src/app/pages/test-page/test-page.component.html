@@ -1,0 +1,42 @@
+<div style="padding: 1rem; height: calc(100vh - 71.2px)">
+  <h2>Test avec EditorComponent</h2>
+  <p></p>
+  <div style="display: flex; flex-wrap: wrap">
+    <div>
+      <app-editor [(content)]="content"></app-editor>
+      <app-button text="Sauvegarder" (btnClick)="saveContent(editor)"></app-button>
+    </div>
+    <app-select
+      style="padding: 2rem 0 0 5rem"
+      [itemsList]="[
+        {
+          id: 1,
+          label: 'option 1',
+        },
+        {
+          id: 2,
+          label: 'option 2',
+        },
+        {
+          id: 3,
+          label: 'option 3',
+        },
+        {
+          id: 4,
+          label: 'option 4',
+        },
+        {
+          id: 5,
+          label: 'option 5',
+        },
+        {
+          id: 6,
+          label: 'option 6',
+        },
+      ]"
+      label=""
+    ></app-select>
+  </div>
+  <h3 style="padding-top: 2rem">Texte sauvegardé:</h3>
+  <div style="word-wrap: break-word" [innerHTML]="cleanedContent"></div>
+</div>

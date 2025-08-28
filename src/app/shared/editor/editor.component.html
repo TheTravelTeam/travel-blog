@@ -1,4 +1,7 @@
 <div class="editor__container">
+  @if (label) {
+    <label>{{ label }}</label>
+  }
   <quill-editor
     [(ngModel)]="content"
     [modules]="modules"

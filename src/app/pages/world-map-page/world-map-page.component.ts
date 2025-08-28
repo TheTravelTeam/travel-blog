@@ -10,6 +10,7 @@ import { BreakpointService } from '@service/breakpoint.service';
 import { AvatarComponent } from '../../components/Atoms/avatar/avatar.component';
 import { TravelMapStateService } from '@service/travel-map-state.service';
 import { ActivatedRoute } from '@angular/router';
+import { EditorComponent } from 'shared/editor/editor.component';
 
 @Component({
   selector: 'app-world-map-page',
@@ -21,6 +22,7 @@ import { ActivatedRoute } from '@angular/router';
     CommonModule,
     DividerComponent,
     AvatarComponent,
+    EditorComponent,
   ],
   templateUrl: './world-map-page.component.html',
   styleUrl: './world-map-page.component.scss',

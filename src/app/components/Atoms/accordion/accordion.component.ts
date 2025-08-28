@@ -1,15 +1,25 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+  ViewEncapsulation,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { verticalSlide } from '../../../animations/vertical-slide.animation';
 import { accordionDefaultProps, AccordionProps } from '@model/accordion.model';
 import { IconComponent } from '../Icon/icon.component';
+import { ClickOutsideDirective } from 'shared/directives/click-outside.directive';
 
 @Component({
   selector: 'app-accordion',
-  imports: [CommonModule, IconComponent],
+  imports: [CommonModule, IconComponent, ClickOutsideDirective],
   templateUrl: './accordion.component.html',
   styleUrl: './accordion.component.scss',
   animations: [verticalSlide],
+  encapsulation: ViewEncapsulation.None,
 })
 export class AccordionComponent implements OnChanges {
   /**region Input */
@@ -21,9 +31,6 @@ export class AccordionComponent implements OnChanges {
   @Input() isOpen: AccordionProps['isOpen'] = accordionDefaultProps['isOpen'];
   @Input() role: AccordionProps['role'] = accordionDefaultProps['role'];
   @Input() subTitle: AccordionProps['country'];
-
-  private _startDate: Date | undefined;
-
   @Input()
   set startDate(value: Date | string | undefined) {
     this._startDate = value ? new Date(value) : undefined;
@@ -32,6 +39,8 @@ export class AccordionComponent implements OnChanges {
     return this._startDate;
   }
   /**endregion Input */
+
+  private _startDate: Date | undefined;
 
   /**region Output */
   @Output() isEditingChange = new EventEmitter<boolean>();
@@ -54,25 +63,29 @@ export class AccordionComponent implements OnChanges {
     const year = this.startDate.getFullYear();
     return `${month} ${day} ${year}`;
   }
-  onToggleOpen() {
+  public onToggleOpen(): void {
     this.isOpen = !this.isOpen;
     this.toggleOpen.emit(this.isOpen);
   }
 
-  onToggleEdit(e: Event) {
+  public onToggleEdit(e: Event): void {
     e.stopPropagation();
     this.isEditing = !this.isEditing;
     this.isEditingChange.emit(this.isEditing);
   }
 
-  onDelete(e: Event) {
+  public onDelete(e: Event): void {
     e.stopPropagation();
     this.remove.emit();
   }
 
-  onStepClick() {
+  public onStepClick(): void {
     if (this.id) {
       this.stepClicked.emit(this.id);
     }
+  }
+
+  public closeDropdown(): void {
+    if (this.isFilter) this.isOpen = false;
   }
 }

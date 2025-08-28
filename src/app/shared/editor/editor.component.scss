@@ -1,8 +1,15 @@
 @use 'variables' as *;
 .editor {
   &__container {
-    width: fit-content;
-    padding: 1rem;
+    width: 100%;
+    padding: 1rem 0 1rem 0;
+    display: flex;
+    flex-direction: column;
+    max-width: 600px;
+    label {
+      font-size: 20px;
+      padding: 0.5rem;
+    }
   }
   &__info {
     display: flex;
@@ -16,14 +23,17 @@
 }
 .ql-toolbar.ql-snow,
 .ql-toolbar.ql-bubble {
+  background-color: $backgroundColor;
   border-radius: 8px 8px 0 0;
 }
 .ql-container {
   border-radius: 0 0 8px 8px;
   min-height: 200px;
+  background-color: $inputBackgroundColor;
 }
 
 .ql-editor {
+  font-size: 16px;
   u {
     text-decoration: underline !important;
   }

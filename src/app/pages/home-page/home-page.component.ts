@@ -1,5 +1,5 @@
 import { VisualTripCardComponent } from 'components/Molecules/Card-ready-to-use/visual-trip-card/visual-trip-card.component';
-import { FooterComponent } from './../../components/footer/footer.component';
+import { FooterComponent } from 'components/Molecules/footer/footer.component';
 import { Component } from '@angular/core';
 import { CardComponent } from 'components/Atoms/Card/card.component';
 import { ButtonComponent } from 'components/Atoms/Button/button.component';
@@ -24,7 +24,7 @@ export class HomePageComponent {
   articleContent = '';
 
   saveContent() {
-    console.log(this.articleContent);
+    console.info(this.articleContent);
     this.articleContent = '';
   }
 }

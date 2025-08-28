@@ -13,7 +13,7 @@ export type EditorProps = {
 export const editorDefaultProps: Required<Omit<EditorProps, 'content' | 'customConfig' | 'label'>> =
   {
     placeholder: 'Écris ton texte ici...',
-    maxLength: 50,
+    maxLength: 5000,
     readonly: false,
     theme: 'snow',
   };
