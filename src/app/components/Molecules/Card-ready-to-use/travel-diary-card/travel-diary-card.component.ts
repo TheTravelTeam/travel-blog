@@ -1,9 +1,9 @@
-import { BreakpointService } from '@service/breakpoint.service';
 import { Component, inject, Input } from '@angular/core';
 import { VariantTripCard } from '@model/visual-trip-card.model';
 import { CardBodyComponent } from 'components/Atoms/Card/card-body/card-body.component';
 import { CardComponent } from 'components/Atoms/Card/card.component';
 import { IconComponent } from 'components/Atoms/Icon/icon.component';
+import { BreakpointService } from '@service/breakpoint.service';
 import { CommonModule } from '@angular/common';
 
 @Component({

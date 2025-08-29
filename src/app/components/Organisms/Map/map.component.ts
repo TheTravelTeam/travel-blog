@@ -256,7 +256,6 @@ export class MapComponent implements AfterViewInit, OnChanges {
     this.stepService.getAllDiaries().subscribe((diaries: TravelDiary[]) => {
       // Émettre l'événement d'initialisation
       this.mapInitialized.emit({ diaries });
-      console.log(diaries);
 
       diaries.forEach((diary: TravelDiary) => {
         const fileUrl = diary.coverMedia?.fileUrl ?? '/icon/logo.svg';

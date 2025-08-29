@@ -4,6 +4,7 @@ import { WorldMapPageComponent } from './pages/world-map-page/world-map-page.com
 import { MyTravelsPageComponent } from './pages/my-travels-page/my-travels-page.component';
 import { TravelMapLayoutPageComponent } from './pages/travel-map-layout-page/travel-map-layout-page.component';
 import { FilterPageComponent } from './pages/filter-page/filter-page.component';
+import { TestPageComponent } from 'pages/test-page/test-page.component';
 
 export const routes: Routes = [
   {
@@ -23,4 +24,5 @@ export const routes: Routes = [
       { path: 'users/:id', component: MyTravelsPageComponent },
     ],
   },
+  { path: 'test', component: TestPageComponent },
 ];

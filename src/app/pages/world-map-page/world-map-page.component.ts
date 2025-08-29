@@ -119,10 +119,10 @@ export class WorldMapPageComponent implements OnInit {
 
   handleButtonClick(action: string, step: Step): void {
     if (action === 'like') {
-      console.log(`Step ${step.id} liké ! Total : ${step.likes}`);
+      console.info(`Step ${step.id} liké ! Total : ${step.likes}`);
       // Logique d'ajout de like dans le step -- Si pas déjà aimé en fonction de l'user
     } else if (action === 'comment') {
-      console.log(`Afficher les commentaires du step ${step.id}`);
+      console.info(`Afficher les commentaires du step ${step.id}`);
       // Gérer l'ouverture d'une section commentaires ou autre
       this.state.openedCommentStepId.set(
         this.state.openedCommentStepId() === step.id ? null : step.id
