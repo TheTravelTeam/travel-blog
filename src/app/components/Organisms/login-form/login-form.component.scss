@@ -1,6 +1,6 @@
 // register-form.component.scss
-@use './../styles/variables' as *;
-@use './../styles/utilities' as *;
+@use 'variables' as *;
+@use 'utilities' as *;
 
 .login-form {
   min-height: 100vh;
@@ -141,9 +141,4 @@
   }
 }
 
-// Pour s'assurer que le body et html n'ont pas de margins/padding
-:host {
-  display: block;
-  margin: 0;
-  padding: 0;
-}
+

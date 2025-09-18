@@ -12,7 +12,7 @@ import { ToastService } from '../../../shared/services/toast.service';
   templateUrl: './login-form.component.html',
   styleUrl: './login-form.component.scss',
 })
-export class LoginFormComponent implements  OnInit {
+export class LoginFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private authservice = inject(AuthService);
@@ -28,7 +28,7 @@ export class LoginFormComponent implements  OnInit {
   private initializeForm(): void {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      password: ['', [Validators.required, Validators.minLength(8)]],
     });
   }
 
@@ -45,7 +45,7 @@ export class LoginFormComponent implements  OnInit {
         break;
       case 'password':
         if (errors['required']) return 'Le mot de passe est requis';
-        if (errors['minlength']) return 'Le mot de passe doit contenir au moins 6 caractères';
+        if (errors['minlength']) return 'Le mot de passe doit contenir au moins 8 caractères';
         break;
     }
 
@@ -61,7 +61,7 @@ export class LoginFormComponent implements  OnInit {
         next: () => this.router.navigate(['travels']),
         error: () => {
           this.isSubmitting = false;
-          this.toast.error("Échec de la connexion, veuillez vérifier vos identifiants.");
+          this.toast.error('Échec de la connexion, veuillez vérifier vos identifiants.');
         },
       });
     } else {
