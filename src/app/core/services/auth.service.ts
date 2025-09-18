@@ -20,6 +20,10 @@ export class AuthService {
       );
   }
 
+  register(email: string, password: string, pseudo: string) {
+    return this.http.post(`${this.apiUrl}/register`, { email, password, pseudo });
+  }
+
   saveToken(token: string) {
     localStorage.setItem('authToken', token);
   }

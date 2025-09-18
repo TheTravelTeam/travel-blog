@@ -6,6 +6,7 @@ import { TravelMapLayoutPageComponent } from './pages/travel-map-layout-page/tra
 import { FilterPageComponent } from './pages/filter-page/filter-page.component';
 import { TestPageComponent } from 'pages/test-page/test-page.component';
 import { LoginFormComponent } from './components/Organisms/login-form/login-form.component';
+import { RegisterFormComponent } from './components/Organisms/register-form/register-form.component';
 
 export const routes: Routes = [
   {
@@ -14,6 +15,7 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   { path: 'login', component: LoginFormComponent },
+  { path: 'register', component: RegisterFormComponent },
   {
     path: 'travels',
     component: TravelMapLayoutPageComponent,
