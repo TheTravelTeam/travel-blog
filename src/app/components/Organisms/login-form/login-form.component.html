@@ -1,0 +1,68 @@
+<div class="login-form">
+  <div class="login-form__container">
+    <div class="login-form__header">
+      <h1 class="login-form__title">Connexion</h1>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form__form">
+      <div class="login-form__fields">
+        <app-text-input
+          label="Email"
+          placeholder="Entrez votre email"
+          type="email"
+          size="large"
+          variant="outlined"
+          formControlName="email"
+          [isRequired]="true"
+          (inputBlur)="loginForm.get('email')?.markAsTouched()"
+          [errorMessage]="getErrorMessage('email')">
+        </app-text-input>
+
+        <app-text-input
+          label="Mot de passe"
+          placeholder="Entrez votre mot de passe"
+          type="password"
+          size="large"
+          variant="outlined"
+          formControlName="password"
+          [isRequired]="true"
+          iconPosition="right"
+          (inputBlur)="loginForm.get('password')?.markAsTouched()"
+          [errorMessage]="getErrorMessage('password')">
+        </app-text-input>
+      </div>
+
+      <div class="login-form__forgot-password">
+        <a
+          type="button"
+          class="login-form__forgot-link"
+          (click)="navigateToForgotPassword()">
+          Mot de passe oublié ?
+        </a>
+      </div>
+
+      <div class="login-form__actions">
+        <app-button
+          color="primary"
+          size="lg"
+          radius="border_lg"
+          text="Se connecter"
+          [isDisabled]="isSubmitting"
+          type="standard">
+        </app-button>
+      </div>
+
+      <div class="login-form__footer">
+        <p class="login-form__link-text">
+          Pas de compte ?
+          <button
+            type="button"
+            class="login-form__link"
+            (click)="navigateToSignup()">
+            Créer un compte
+          </button>
+        </p>
+      </div>
+    </form>
+  </div>
+</div>

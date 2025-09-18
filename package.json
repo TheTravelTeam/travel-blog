@@ -36,6 +36,7 @@
     "@enzedonline/quill-blot-formatter2": "^3.0.0",
     "dotenv": "^16.6.1",
     "json-server": "^1.0.0-beta.3",
+    "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
     "ngx-quill": "^28.0.1",
     "quill": "^2.0.3",
@@ -44,9 +45,7 @@
     "zone.js": "~0.15.1"
   },
   "devDependencies": {
-    "eslint": "^9.33.0",
     "@angular-eslint/builder": "^19.8.1",
-    "eslint-config-prettier": "^10.1.8",
     "@angular-eslint/eslint-plugin": "^19.8.1",
     "@angular-eslint/eslint-plugin-template": "^19.8.1",
     "@angular-eslint/schematics": "^19.8.1",
@@ -58,6 +57,8 @@
     "@types/leaflet": "^1.9.20",
     "@typescript-eslint/eslint-plugin": "^8.40.0",
     "@typescript-eslint/parser": "^8.40.0",
+    "eslint": "^9.33.0",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-define-config": "^2.1.0",
     "eslint-plugin-prettier": "^5.5.4",
     "husky": "^8.0.3",

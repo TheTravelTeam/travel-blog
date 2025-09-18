@@ -5,6 +5,7 @@ import { MyTravelsPageComponent } from './pages/my-travels-page/my-travels-page.
 import { TravelMapLayoutPageComponent } from './pages/travel-map-layout-page/travel-map-layout-page.component';
 import { FilterPageComponent } from './pages/filter-page/filter-page.component';
 import { TestPageComponent } from 'pages/test-page/test-page.component';
+import { LoginFormComponent } from './components/Organisms/login-form/login-form.component';
 
 export const routes: Routes = [
   {
@@ -12,6 +13,7 @@ export const routes: Routes = [
     component: HomePageComponent,
     pathMatch: 'full',
   },
+  { path: 'login', component: LoginFormComponent },
   {
     path: 'travels',
     component: TravelMapLayoutPageComponent,
