@@ -1,9 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '@service/auth.service';
 import { TextInputComponent } from '../../Atoms/text-input/text-input.component';
 import { ButtonComponent } from '../../Atoms/Button/button.component';
+import { ToastService } from '../../../shared/services/toast.service';
 
 @Component({
   selector: 'app-login-form',
@@ -11,10 +12,11 @@ import { ButtonComponent } from '../../Atoms/Button/button.component';
   templateUrl: './login-form.component.html',
   styleUrl: './login-form.component.scss',
 })
-export class LoginFormComponent {
+export class LoginFormComponent implements  OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private authservice = inject(AuthService);
+  private toast = inject(ToastService);
 
   loginForm!: FormGroup;
   isSubmitting = false;
@@ -57,7 +59,10 @@ export class LoginFormComponent {
 
       this.authservice.login(email, password).subscribe({
         next: () => this.router.navigate(['travels']),
-        error: () => alert('Échec de la connexion, veuillez vérifier vos identifiants.'),
+        error: () => {
+          this.isSubmitting = false;
+          this.toast.error("Échec de la connexion, veuillez vérifier vos identifiants.");
+        },
       });
     } else {
       this.markFormGroupTouched();
