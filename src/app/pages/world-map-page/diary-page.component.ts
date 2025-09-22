@@ -22,10 +22,10 @@ import { ActivatedRoute } from '@angular/router';
     DividerComponent,
     AvatarComponent,
   ],
-  templateUrl: './world-map-page.component.html',
-  styleUrl: './world-map-page.component.scss',
+  templateUrl: './diary-page.component.html',
+  styleUrl: './diary-page.component.scss',
 })
-export class WorldMapPageComponent implements OnInit {
+export class DiaryPageComponent implements OnInit {
   readonly state = inject(TravelMapStateService);
 
   private breakpointService = inject(BreakpointService);

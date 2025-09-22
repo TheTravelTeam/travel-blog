@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { WorldMapPageComponent } from './world-map-page.component';
+import { WorldMapPageComponent } from './diary-page.component';
 import { provideRouter } from '@angular/router';
 
 describe('WorldMapPageComponent', () => {
