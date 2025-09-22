@@ -82,7 +82,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
   public currentUser: User | null = null;
   public userLoc: L.LatLng | null = null;
   public isFirstCall = true;
-  private currentSteps: Step[] = [];
+
 
   @Input() viewMode: MapConfig['modeView'] = mapConfigDefault['modeView'];
   @Input() isDiary: MapConfig['isDiary'] = mapConfigDefault['isDiary'];
@@ -213,7 +213,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
         description: 'Diary ajouté depuis la carte',
         latitude: lat,
         longitude: lng,
-        coverMedia: {
+        media: {
           fileUrl:
             'https://www.echosciences-grenoble.fr/uploads/article/image/attachment/1005418938/xl_lens-1209823_1920.jpg',
           mediaType: 'PHOTO',
@@ -258,7 +258,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
       this.mapInitialized.emit({ diaries });
 
       diaries.forEach((diary: TravelDiary) => {
-        const fileUrl = diary.coverMedia?.fileUrl ?? '/icon/logo.svg';
+        const fileUrl = this.state.getDiaryCoverUrl(diary) || '/icon/logo.svg';
         const html = `
           <div class="custom-marker">
             <img src="${fileUrl}" class="size-md" alt="avatar" />
@@ -305,10 +305,11 @@ export class MapComponent implements AfterViewInit, OnChanges {
       this.diarySelected.emit({ diary, steps });
 
       steps.forEach((step, index) => {
+        const medias = this.state.getStepMediaList(step);
         this.addMarkerWithComponent(
           step.latitude,
           step.longitude,
-          step.medias,
+          medias,
           currentUser,
           step,
           index

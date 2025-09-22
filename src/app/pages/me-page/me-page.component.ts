@@ -18,6 +18,7 @@ import { AuthService } from '@service/auth.service';
 import { ArticleService } from '@service/article.service';
 import { ThemeService } from '@service/theme.service';
 import { StepService } from '@service/step.service';
+import { TravelMapStateService } from '@service/travel-map-state.service';
 import { TravelDiary } from '@model/travel-diary.model';
 import { UserProfile } from '@model/user-profile.model';
 import { Article } from '@model/article.model';
@@ -68,6 +69,7 @@ export class MePageComponent implements OnInit, OnDestroy {
   private readonly articleService = inject(ArticleService);
   private readonly themeService = inject(ThemeService);
   private readonly stepService = inject(StepService);
+  private readonly travelMapState = inject(TravelMapStateService);
   private readonly router = inject(Router);
 
   private readonly destroy$ = new Subject<void>();
@@ -687,12 +689,17 @@ export class MePageComponent implements OnInit, OnDestroy {
   }
 
   private createManagedDiarySummary(diary: TravelDiary): ManagedDiarySummary {
+    /**
+     * On réutilise la normalisation utilisateur pour conserver un traitement
+     * homogène (steps, médias) puis on délègue la résolution d'image au service
+     * partagé afin d'éviter les divergences entre `/me`, `/travels` et `/travels/users/:id`.
+     */
     const normalized = this.normalizeDiary(diary);
     return {
       id: normalized.id,
       title: normalized.title,
       destination: this.getDiaryDestination(normalized),
-      coverUrl: this.getDiaryCover(normalized),
+      coverUrl: this.travelMapState.getDiaryCoverUrl(normalized) ?? this.defaultDiaryCover,
       durationLabel: undefined,
       stepCount: normalized.steps.length,
       isPrivate: normalized.private,
@@ -891,16 +898,17 @@ export class MePageComponent implements OnInit, OnDestroy {
     this.profileFormError.set(null);
   }
 
-  /** Calcule l'image d'aperçu à afficher pour un carnet. */
-  getDiaryCover(diary: NormalizedDiary | ManagedDiarySummary): string {
-    if ('medias' in diary) {
-      const normalized = diary as NormalizedDiary;
-      return (
-        normalized.coverMedia?.fileUrl || normalized.medias[0]?.fileUrl || this.defaultDiaryCover
-      );
-    }
+  /**
+   * Couverture utilisée dans la section "Mes carnets".
+   * Le helper centralise la récupération de l'URL (média principal ou fallback étape).
+   */
+  getUserDiaryCover(diary: NormalizedDiary): string {
+    return this.travelMapState.getDiaryCoverUrl(diary) || this.defaultDiaryCover;
+  }
 
-    return diary.coverUrl || this.defaultDiaryCover;
+  /** Couverture utilisée pour les carnets affichés dans le panneau admin. */
+  getManagedDiaryCover(summary: ManagedDiarySummary): string {
+    return summary.coverUrl ?? this.defaultDiaryCover;
   }
 
   /** Retourne une description prête à afficher pour un carnet utilisateur. */
@@ -943,12 +951,10 @@ export class MePageComponent implements OnInit, OnDestroy {
 
   /** Garantit que les tableaux optionnels des carnets sont toujours définis. */
   private normalizeDiary(diary: TravelDiary): NormalizedDiary {
-    const medias = Array.isArray(diary.medias) ? diary.medias : [];
     const steps = Array.isArray(diary.steps) ? diary.steps : [];
 
     return {
       ...diary,
-      medias,
       steps,
     };
   }
@@ -1009,7 +1015,7 @@ export class MePageComponent implements OnInit, OnDestroy {
   deleteDiary(diaryId: number): void {
     const snapshotDiaries = this.diaries().map((diary) => ({
       ...diary,
-      medias: [...diary.medias],
+      media: diary.media ? { ...diary.media } : null,
       steps: [...diary.steps],
     }));
 
@@ -1034,7 +1040,7 @@ export class MePageComponent implements OnInit, OnDestroy {
   deleteManagedDiary(userId: number, diaryId: number): void {
     const snapshotUsers = this.managedUsers().map((user) => ({
       ...user,
-      diaries: [...user.diaries],
+      diaries: user.diaries.map((diary) => ({ ...diary })),
     }));
     const snapshotSelected = (() => {
       const current = this.selectedManagedUser();
@@ -1043,7 +1049,7 @@ export class MePageComponent implements OnInit, OnDestroy {
       }
       return {
         ...current,
-        diaries: [...current.diaries],
+        diaries: current.diaries.map((diary) => ({ ...diary })),
       };
     })();
 
