@@ -19,7 +19,7 @@
     <div class="my-diaries__detail-panel__header">
       <!-- <div
           class="diary__cover"
-          [style]="`background-image: url(${state.currentDiary()?.coverMedia?.fileUrl})`"
+          [style]="`background-image: url(${state.getDiaryCoverUrl(state.currentDiary())})`"
         > -->
       <!-- <app-avatar label="" picture="toto" class="diary__avatar"></app-avatar> -->
       <h1 class="my-diaries__detail-panel__header--title">Mes carnets de voyage</h1>
@@ -47,7 +47,7 @@
           [ngClass]="{ 'alt-background': $index % 2 === 1 }"
           [id]="diary.id"
           [title]="diary.title"
-          [image]="diary.coverMedia?.fileUrl || ''"
+          [image]="state.getDiaryCoverUrl(diary)"
           [description]="diary.description"
         ></app-travel-diary-card>
       }

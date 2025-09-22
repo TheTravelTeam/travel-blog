@@ -13,7 +13,7 @@
       <div class="worldMap__detail-panel__header worldMap__header__diary">
         <div
           class="diary__cover"
-          [style]="`background-image: url(${state.currentDiary()?.coverMedia?.fileUrl})`"
+          [style]="`background-image: url(${getDiaryCover()})`"
         >
           <app-avatar
             label=""
@@ -37,6 +37,7 @@
       }
       <div class="worldMap__detail-panel__body--steps-container">
         @for (step of state.steps(); track $index) {
+          @let medias = getStepMedias(step);
           <app-accordion
             [id]="step.id"
             [title]="step.title"
@@ -53,7 +54,7 @@
               <p>{{ step.description }}</p>
 
               <div class="step__media__wrapper">
-                @if (step.medias && step.medias.length > 1) {
+                @if (medias.length > 1) {
                   <button
                     class="scroll-btn scroll-btn--left"
                     (click)="scrollMediaContainer(step.id, 'left')"
@@ -63,12 +64,12 @@
                 }
 
                 <div class="step__media__container" [attr.data-id]="step.id">
-                  @for (media of step.medias; track $index) {
+                  @for (media of medias; track $index) {
                     <img [src]="media.fileUrl" />
                   }
                 </div>
 
-                @if (step.medias && step.medias.length > 1) {
+                @if (medias.length > 1) {
                   <button
                     class="scroll-btn scroll-btn--right"
                     (click)="scrollMediaContainer(step.id, 'right')"

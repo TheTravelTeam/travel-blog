@@ -3,6 +3,7 @@ import { ProgressBarComponent } from '../../components/Atoms/progress-bar/progre
 import { AccordionComponent } from '../../components/Atoms/accordion/accordion.component';
 import { FormsModule } from '@angular/forms';
 import { Step } from '@model/step.model';
+import { Media } from '@model/media.model';
 import { ButtonComponent } from 'components/Atoms/Button/button.component';
 import { CommonModule } from '@angular/common';
 import { DividerComponent } from 'components/Atoms/Divider/divider.component';
@@ -145,5 +146,16 @@ export class DiaryPageComponent implements OnInit {
     } else {
       container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
+  }
+
+  /** URL de couverture pour le panneau latéral (alias pratique pour le template). */
+  getDiaryCover(): string {
+    const diary = this.state.currentDiary();
+    return diary ? this.state.getDiaryCoverUrl(diary) : '';
+  }
+
+  /** Renvoie les médias d'une étape via le service partagé. */
+  getStepMedias(step: Step): Media[] {
+    return this.state.getStepMediaList(step);
   }
 }

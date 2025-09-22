@@ -188,12 +188,11 @@
                   @if (diaries().length) {
                     <ul class="me-page__diary-grid">
                       @for (diary of diaries(); track diary.id) {
-                        @let coverUrl = getDiaryCover(diary);
                         <li class="me-page__diary-card">
                           <app-travel-diary-card
                             [id]="diary.id"
                             [title]="diary.title"
-                            [image]="coverUrl"
+                            [image]="getUserDiaryCover(diary)"
                             [description]="getDiaryDescription(diary)"
                             [showInlineActions]="false"
                             (cardClick)="openDiary(diary.id)"
@@ -601,7 +600,7 @@
                                   <app-travel-diary-card
                                     [id]="diary.id"
                                     [title]="diary.title"
-                                    [image]="getDiaryCover(diary)"
+                                    [image]="getManagedDiaryCover(diary)"
                                     [description]="getManagedDiarySubtitle(diary)"
                                     [showInlineActions]="false"
                                     (cardClick)="openManagedDiary(selectedUser.id, diary.id)"
