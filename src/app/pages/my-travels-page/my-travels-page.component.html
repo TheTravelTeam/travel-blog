@@ -41,6 +41,9 @@
     </div>
 
     <div class="my-diaries__detail-panel__body">
+      @if (panelError) {
+        <p class="my-diaries__error-message">{{ panelError }}</p>
+      }
       @for (diary of diariesList; track $index) {
         <app-travel-diary-card
           [isAltBackground]="$index % 2 === 1 && !isTabletOrMobile()"
@@ -49,6 +52,9 @@
           [title]="diary.title"
           [image]="state.getDiaryCoverUrl(diary)"
           [description]="diary.description"
+          (cardClick)="onDiaryCardClick(diary)"
+          (edit)="onDiaryEdit(diary)"
+          (delete)="onDiaryDelete(diary)"
         ></app-travel-diary-card>
       }
     </div>
