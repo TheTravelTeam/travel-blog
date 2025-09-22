@@ -7,7 +7,8 @@ import { TravelDiary } from '@model/travel-diary.model';
 import { TravelMapStateService } from '@service/travel-map-state.service';
 import { BreakpointService } from '@service/breakpoint.service';
 import { UserService } from '@service/user.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { StepService } from '@service/step.service';
 import { Subject, of } from 'rxjs';
 import { map, switchMap, takeUntil } from 'rxjs/operators';
 
@@ -21,8 +22,11 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private readonly route = inject(ActivatedRoute);
   private readonly userService = inject(UserService);
+  private readonly stepService = inject(StepService);
+  private readonly router = inject(Router);
 
   diariesList: TravelDiary[] = [];
+  panelError: string | null = null;
   readonly state = inject(TravelMapStateService);
 
   private breakpointService = inject(BreakpointService);
@@ -71,10 +75,13 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (diaries) => {
           this.diariesList = Array.isArray(diaries) ? diaries : [];
+          this.state.setAllDiaries(this.diariesList);
+          this.panelError = null;
         },
         error: (err) => {
           console.error('Failed to load user diaries', err);
           this.diariesList = [];
+          this.panelError = "Impossible de charger les carnets pour cet utilisateur.";
         },
       });
   }
@@ -108,5 +115,63 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
         this.state.panelHeight.set('collapsed');
         break;
     }
+  }
+
+  /**
+   * Sélectionne un carnet dans la liste et redirige vers la page dédiée.
+   */
+  onDiaryCardClick(diary: TravelDiary): void {
+    if (!diary) {
+      return;
+    }
+
+    this.panelError = null;
+    this.state.setCurrentDiaryId(diary.id);
+    this.state.setCurrentDiary(null);
+    void this.router.navigate(['/travels', diary.id]);
+  }
+
+  /**
+   * Redirige vers la page détaillée d'un carnet pour modification.
+   */
+  onDiaryEdit(diary: TravelDiary): void {
+    if (!diary) {
+      return;
+    }
+
+    void this.router.navigate(['/travels', diary.id], { queryParams: { mode: 'edit' } });
+  }
+
+  /**
+   * Supprime un carnet et remet l'état partagé en cohérence avec la carte.
+   */
+  onDiaryDelete(diary: TravelDiary): void {
+    if (!diary) {
+      return;
+    }
+
+    const snapshot = [...this.diariesList];
+    this.panelError = null;
+
+    this.diariesList = this.diariesList.filter((item) => item.id !== diary.id);
+    this.state.setAllDiaries(this.state.allDiaries().filter((item) => item.id !== diary.id));
+
+    if (this.state.currentDiaryId() === diary.id) {
+      this.state.reset();
+      this.state.panelHeight.set('collapsed');
+    }
+
+    this.stepService
+      .deleteDiary(diary.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => undefined,
+        error: (err) => {
+          console.error('Failed to delete diary', err);
+          this.diariesList = snapshot;
+          this.state.setAllDiaries(snapshot);
+          this.panelError = "Impossible de supprimer ce carnet pour le moment.";
+        },
+      });
   }
 }
