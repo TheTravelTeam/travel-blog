@@ -1,0 +1,107 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MePageComponent } from './me-page.component';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { UserService } from '@service/user.service';
+import { BreakpointService } from '@service/breakpoint.service';
+import { AuthService } from '@service/auth.service';
+import { of } from 'rxjs';
+import { TravelDiary } from '@model/travel-diary.model';
+import { UserProfile } from '@model/user-profile.model';
+import { environment } from '../../../environments/environment';
+
+class MockUserService {
+  getCurrentUserProfile = jasmine
+    .createSpy()
+    .and.returnValue(of(mockProfile));
+}
+
+class MockBreakpointService {
+  isMobileOrTablet = () => false;
+}
+
+class MockAuthService {
+  clearToken = jasmine.createSpy();
+}
+
+const mockDiaries: TravelDiary[] = [
+  {
+    id: 1,
+    title: 'Tour du monde',
+    latitude: 0,
+    longitude: 0,
+    private: false,
+    published: true,
+    status: 'IN_PROGRESS',
+    description: 'Une belle aventure',
+    steps: [],
+    user: {
+      id: 42,
+      avatar: '',
+      biography: 'Passionnée de voyages',
+      enabled: true,
+      status: 'ACTIVE',
+      userName: 'Alice',
+      username: 'alice@example.com',
+    },
+    medias: [],
+    coverMedia: null,
+  },
+];
+
+const mockProfile: UserProfile = {
+  id: 42,
+  pseudo: 'Alice',
+  email: 'alice@example.com',
+  biography: 'Passionnée de voyages',
+  avatar: '',
+  roles: ['USER'],
+  enabled: true,
+  travelDiaries: mockDiaries,
+};
+
+describe('MePageComponent', () => {
+  let component: MePageComponent;
+  let fixture: ComponentFixture<MePageComponent>;
+  let httpMock: HttpTestingController;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [MePageComponent],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        { provide: UserService, useClass: MockUserService },
+        { provide: BreakpointService, useClass: MockBreakpointService },
+        { provide: AuthService, useClass: MockAuthService },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(MePageComponent);
+    component = fixture.componentInstance;
+    httpMock = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+
+    httpMock.expectOne(`${environment.apiUrl}/themes`).flush([]);
+    httpMock.expectOne(`${environment.apiUrl}/articles`).flush([]);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+  });
+
+  it('should create the profile page', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should hydrate profile data and visible sections', () => {
+    expect(component.isLoading()).toBeFalse();
+    expect(component.profile()).toEqual(mockProfile);
+    expect(component.diaries().length).toBe(1);
+    expect(component.sections().map((section) => section.id)).toEqual([
+      'info',
+      'diaries',
+      'articles',
+    ]);
+  });
+});

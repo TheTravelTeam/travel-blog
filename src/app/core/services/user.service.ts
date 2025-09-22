@@ -41,6 +41,47 @@ export class UserService {
   }
 
   /**
+   * Récupère l'ensemble des utilisateurs (profil + carnets éventuels) pour l'administration.
+   */
+  getAllUsers(): Observable<UserProfile[]> {
+    return this.http
+      .get<UserProfileDto[]>(`${this.apiUrl}/users`)
+      .pipe(map((dtos) => dtos.map((dto) => this.mapProfile(dto))));
+  }
+
+  /** Met à jour les informations d'un utilisateur existant. */
+  updateUser(userId: number, payload: Partial<UserProfileDto>): Observable<UserProfile> {
+    return this.http
+      .put<UserProfileDto>(`${this.apiUrl}/users/${userId}`, payload)
+      .pipe(map((dto) => this.mapProfile(dto)));
+  }
+
+  /**
+   * Supprime un utilisateur via l'API.
+   *
+   * @param userId identifiant numerique de l'utilisateur a supprimer.
+   * @returns Observable qui complete des la suppression confirmee.
+   */
+  deleteUser(userId: number): Observable<void> {
+    return this.http
+      .delete(`${this.apiUrl}/users/${userId}`, { responseType: 'text' })
+      .pipe(map(() => void 0));
+  }
+
+  /**
+   * Met a jour le statut administrateur d'un utilisateur via l'API.
+   *
+   * @param userId identifiant numerique de l'utilisateur cible.
+   * @param admin valeur booleenne indiquant si le compte doit posseder le role admin.
+   * @returns Profil utilisateur mis a jour avec les roles synchronises.
+   */
+  setAdminRole(userId: number, admin: boolean): Observable<UserProfile> {
+    return this.http
+      .patch<UserProfileDto>(`${this.apiUrl}/users/${userId}/roles`, { admin })
+      .pipe(map((dto) => this.mapProfile(dto)));
+  }
+
+  /**
    * Décode l'identifiant stocké dans le JWT.
    * Retourne `null` si aucun token n'est présent ou si celui-ci n'est pas exploitable.
    */
@@ -67,8 +108,7 @@ export class UserService {
    * Transforme la structure brute (`UserProfileDto`) en modèle simplifié consommé par les composants.
    */
   private mapProfile(dto: UserProfileDto): UserProfile {
-    const roles = (dto.roles ?? [])
-      .map((role) => role.replace(/^ROLE_/, '').toUpperCase());
+    const roles = (dto.roles ?? []).map((role) => role.replace(/^ROLE_/, '').toUpperCase());
 
     return {
       id: dto.id,

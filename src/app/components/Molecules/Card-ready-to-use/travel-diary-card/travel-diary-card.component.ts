@@ -1,4 +1,4 @@
-import { Component, inject, Input } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { VariantTripCard } from '@model/visual-trip-card.model';
 import { CardBodyComponent } from 'components/Atoms/Card/card-body/card-body.component';
 import { CardComponent } from 'components/Atoms/Card/card.component';
@@ -18,6 +18,11 @@ export class TravelDiaryCardComponent {
   @Input({ required: true }) image!: VariantTripCard['image'];
   @Input({ required: true }) description!: VariantTripCard['description'];
   @Input() isAltBackground = false;
+  @Input() showInlineActions = true;
+
+  @Output() cardClick = new EventEmitter<number>();
+  @Output() edit = new EventEmitter<number>();
+  @Output() delete = new EventEmitter<number>();
 
   private breakpointService = inject(BreakpointService);
   isTablet = this.breakpointService.isTablet;
@@ -25,16 +30,14 @@ export class TravelDiaryCardComponent {
   isMobileOrTablet = this.breakpointService.isMobileOrTablet;
 
   onEdit(): void {
-    //
+    this.edit.emit(this.id);
   }
 
   onDelete(): void {
-    //
+    this.delete.emit(this.id);
   }
 
   onCardClick(): void {
-    // if (this.route) {
-    //   this.router.navigate([this.route]);
-    // }
+    this.cardClick.emit(this.id);
   }
 }

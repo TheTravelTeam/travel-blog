@@ -7,9 +7,11 @@ import {
   EventEmitter,
   inject,
   Input,
+  OnChanges,
   Output,
   QueryList,
   signal,
+  SimpleChanges,
   ViewChildren,
 } from '@angular/core';
 import { ItemProps, selectDefaultProps, SelectProps } from '@model/select.model';
@@ -31,7 +33,7 @@ interface Item {
   providers: [SelectService],
   animations: [verticalSlide],
 })
-export class SelectComponent {
+export class SelectComponent implements OnChanges {
   /*********region Inputs *********/
   @Input({ required: true }) itemsList!: SelectProps['itemsList'];
   @Input({ required: true }) label!: SelectProps['label'];
@@ -41,6 +43,7 @@ export class SelectComponent {
   @Input() placeholder: SelectProps['placeholder'] = selectDefaultProps['placeholder'];
   @Input() withMutipleSelect: SelectProps['withMultipleSelect'] =
     selectDefaultProps['withMultipleSelect'];
+  @Input() selectedId: number | null = null;
   /*********endregion Inputs *********/
 
   // *********region Ouput *********
@@ -75,6 +78,12 @@ export class SelectComponent {
   readonly id = crypto.randomUUID();
   /********endregion internal property *********/
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['selectedId'] || changes['itemsList']) {
+      this.syncSelectionFromInputs();
+    }
+  }
+
   /********region getters *********/
   get inputValue() {
     if (this.withMutipleSelect) {
@@ -83,6 +92,25 @@ export class SelectComponent {
     return this.oneItemSelected() ? this.oneItemSelected()?.label : '';
   }
   /********endregion getters *********/
+
+  private syncSelectionFromInputs(): void {
+    if (this.withMutipleSelect) {
+      return;
+    }
+
+    if (!Array.isArray(this.itemsList) || !this.itemsList.length) {
+      this.oneItemSelected.set(undefined);
+      return;
+    }
+
+    if (this.selectedId == null) {
+      this.oneItemSelected.set(undefined);
+      return;
+    }
+
+    const matchingItem = this.itemsList.find((item) => item.id === this.selectedId);
+    this.oneItemSelected.set(matchingItem);
+  }
 
   /*********region dropdown controls ***********/
   private focusItem(index: number) {
@@ -149,6 +177,7 @@ export class SelectComponent {
       this.selectOnChange.emit(this.oneItemSelected());
     } else {
       this.oneItemSelected.set(item);
+      this.selectedId = item.id;
       this.selectOnChange.emit(item);
       this.closeDropDown();
     }
