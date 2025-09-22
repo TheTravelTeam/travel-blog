@@ -10,7 +10,6 @@ import { IconComponent } from '../Icon/icon.component';
   styleUrl: './button.component.scss',
 })
 export class ButtonComponent {
-  private buttonService: ButtonService = inject(ButtonService);
 
   @Input() color: Btn['color'] = btnDefault['color'];
   @Input() radius: Btn['radius'] = btnDefault['radius'];
@@ -22,6 +21,7 @@ export class ButtonComponent {
   @Input() isActionBtn: Btn['isActionBtn'] = btnDefault['isActionBtn'];
   @Input() type: Btn['type'] = btnDefault['type'];
   @Input() icon: Btn['icon'] = btnDefault['icon'];
+  @Input() htmlType: NonNullable<Btn['htmlType']> = btnDefault['htmlType']!;
 
   @Output() btnClick = new EventEmitter<string>();
 

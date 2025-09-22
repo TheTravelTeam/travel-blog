@@ -39,4 +39,10 @@ export class StepService {
   addDiary(newDiary: CreateDiaryDto): Observable<TravelDiary> {
     return this.http.post<TravelDiary>(`${this.baseUrl}/travel-diaries`, newDiary);
   }
+
+  deleteDiary(diaryId: number): Observable<void> {
+    return this.http
+      .delete(`${this.baseUrl}/travel-diaries/${diaryId}`, { responseType: 'text' })
+      .pipe(map(() => void 0));
+  }
 }

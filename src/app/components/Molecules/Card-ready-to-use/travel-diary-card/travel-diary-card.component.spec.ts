@@ -13,6 +13,10 @@ describe('TravelDiaryCardComponent', () => {
 
     fixture = TestBed.createComponent(TravelDiaryCardComponent);
     component = fixture.componentInstance;
+    component.id = 1;
+    component.title = 'Titre';
+    component.image = 'https://example.com/image.jpg';
+    component.description = 'Description';
     fixture.detectChanges();
   });
 

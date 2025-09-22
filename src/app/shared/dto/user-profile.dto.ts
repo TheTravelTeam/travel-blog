@@ -15,6 +15,8 @@ export interface UserProfileDto {
   lastName: string;
   /** Adresse e-mail principale, si fournie. */
   email?: string;
+  /** Mot de passe lors des mises à jour ciblées. */
+  password?: string;
   /** Texte libre pour présenter l'utilisateur dans son espace public. */
   biography?: string | null;
   /** URL de l'avatar ; peut être `null` si aucun visuel n'est défini. */

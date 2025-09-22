@@ -1,0 +1,881 @@
+@use '../../../styles/variables' as *;
+
+:host {
+  display: block;
+  min-height: 100%;
+  background:
+    linear-gradient(180deg, rgba($backgroundColor, 0.92), rgba($backgroundColor, 0.92)),
+    url('/Images/paysage.jpg') center/cover no-repeat fixed;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.me-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.me-page--compact {
+  padding-top: 0.75rem;
+}
+
+.me-page__state {
+  padding: 2.5rem 1.5rem;
+  border-radius: 1.5rem;
+  background: rgba(255, 255, 255, 0.92);
+  text-align: center;
+  color: $textColor;
+  line-height: 1.5;
+  box-shadow: 0 14px 38px rgba(7, 91, 93, 0.14);
+
+  &--error {
+    border: 1px solid rgba($secondaryColor, 0.4);
+    color: $secondaryColor;
+  }
+}
+
+.me-page__form-error {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: rgba($secondaryColor, 0.08);
+  color: $secondaryColor;
+  font-weight: 600;
+}
+
+.me-page__error-block {
+  margin-bottom: 1rem;
+}
+
+.me-page__error-actions {
+  margin-top: 0.5rem;
+}
+
+.me-page__loading {
+  margin: 0 0 1rem;
+  color: rgba($textColor, 0.75);
+  font-style: italic;
+}
+
+.me-page__retry {
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  border: none;
+  background: $primaryColor;
+  color: $secondaryTextColor;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.me-page__card {
+  padding: 2.75rem 3rem;
+}
+
+.me-page__layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) auto minmax(0, 1fr); // 3 colonnes
+  gap: 1rem;
+  align-items: start;
+}
+
+.me-page__aside {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  color: $textColor;
+}
+
+.me-page__aside-title {
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: $secondaryColor;
+}
+
+.me-page__menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.me-page__menu-button,
+.me-page__logout-button {
+  width: 100%;
+  display: block;
+}
+
+.me-page__menu-button::ng-deep .btn,
+.me-page__logout-button::ng-deep .btn {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 0.8rem 1.6rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: none;
+  box-shadow: 0 12px 24px rgba(161, 14, 19, 0.18);
+  background: linear-gradient(135deg, #5d0000 0%, #bb1212 100%);
+}
+
+.me-page__menu-button--active::ng-deep .btn {
+  background: linear-gradient(135deg, #034f4b 0%, #0a7b74 100%);
+  box-shadow: 0 12px 24px rgba(7, 91, 93, 0.22);
+}
+
+.me-page__logout-button::ng-deep .btn {
+  justify-content: center;
+  background: linear-gradient(135deg, #bb1212 0%, #ff1f1f 100%);
+  box-shadow: 0 14px 30px rgba(189, 18, 18, 0.28);
+}
+
+.divider_container {
+  height: 100%;
+  width: 100%;
+}
+
+//.me-page__aside-divider {
+//  margin: 0;
+//  justify-content: flex-start;
+//}
+
+
+.me-page__content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  padding-left: 3rem;
+}
+
+.me-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: $secondaryColor;
+  }
+}
+
+.me-page__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.me-page__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  border: none;
+  background: rgba($secondaryColor, 0.12);
+  color: $secondaryColor;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+
+  &:hover {
+    background: rgba($secondaryColor, 0.25);
+  }
+}
+
+.me-page__icon-btn--ghost {
+  background: transparent;
+  color: $textColor;
+
+  &:hover {
+    background: rgba($primaryColor, 0.12);
+    color: $primaryColor;
+  }
+}
+
+.me-page__icon-btn--danger {
+  background: rgba($secondaryColor, 0.1);
+  color: $secondaryColor;
+  width: 2.4rem;
+  height: 2.4rem;
+}
+
+.me-page__profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  text-align: center;
+}
+
+.me-page__avatar-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.me-page__avatar {
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.12);
+}
+
+.me-page__avatar ::ng-deep .avatar__content {
+  width: 100%;
+  height: 100%;
+}
+
+.me-page__avatar-edit {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  transform: translate(25%, 25%);
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  background: $secondaryColor;
+  border: 4px solid white;
+  color: $secondaryTextColor;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.me-page__profile-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  .me-page__profile-name {
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: $textColor;
+  }
+
+  .me-page__profile-username {
+    color: $commentTextColor;
+    font-size: 0.95rem;
+  }
+}
+
+.me-page__role {
+  align-self: center;
+  padding: 0.35rem 1.1rem;
+  border-radius: 999px;
+  background: rgba($secondaryColor, 0.12);
+  color: $secondaryColor;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.me-page__content-divider {
+  margin: 0;
+  justify-content: flex-start;
+}
+
+.me-page__content-divider::ng-deep .divider {
+  max-width: 160px;
+}
+
+.me-page__section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.me-page__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  h2 {
+    font-size: 1.85rem;
+    font-weight: 700;
+    color: $secondaryColor;
+  }
+}
+
+.me-page__section-action::ng-deep .btn {
+  font-weight: 600;
+  padding-inline: 1.5rem;
+  text-transform: none;
+  box-shadow: 0 12px 24px rgba(7, 91, 93, 0.22);
+}
+
+.me-page__form,
+.me-page__article-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.me-page__section app-editor {
+  width: 100%;
+}
+
+.me-page__section app-editor ::ng-deep .editor__container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.me-page__form-row,
+.me-page__form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.me-page__form-actions,
+.me-page__article-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.me-page__section app-button::ng-deep .btn {
+  min-width: 8.5rem;
+  text-transform: none;
+}
+
+.me-page__media {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  span {
+    color: $commentTextColor;
+    font-size: 0.85rem;
+  }
+}
+
+.me-page__media-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.me-page__media-btn,
+.me-page__add-media {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  border: 1.5px dashed rgba($primaryColor, 0.7);
+  background: transparent;
+  color: $primaryColor;
+  font-size: 1.2rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.me-page__add-media {
+  border-style: solid;
+}
+
+.me-page__diary-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.me-page__diary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 1.5rem;
+  overflow: hidden;
+  box-shadow: 0 16px 32px rgba(7, 91, 93, 0.18);
+}
+
+.me-page__diary-card app-travel-diary-card {
+  width: 100%;
+  border-bottom: 1px solid rgba($primaryColor, 0.08);
+}
+
+.me-page__diary-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem 1.25rem;
+}
+
+.me-page__diary-visibility {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  background: rgba($primaryColor, 0.12);
+  color: $primaryColor;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.me-page__diary-visibility--private {
+  background: rgba($secondaryColor, 0.12);
+  color: $secondaryColor;
+}
+
+.me-page__diary-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  color: $commentTextColor;
+  font-size: 0.85rem;
+  align-items: center;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+}
+
+.me-page__diary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.me-page__diary-actions app-button::ng-deep .btn {
+  min-width: 8rem;
+}
+
+.me-page__diary-actions--compact {
+  gap: 0.5rem;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+
+  app-button::ng-deep .btn {
+    min-width: 0;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+  }
+}
+
+.me-page__empty {
+  text-align: center;
+  color: $commentTextColor;
+}
+
+.me-page__search {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  border: 1.5px solid rgba($primaryColor, 0.35);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 10px 24px rgba(7, 91, 93, 0.12);
+
+  input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 0.95rem;
+    padding: 0;
+    outline: none;
+    color: $textColor;
+  }
+
+  &--wide {
+    min-width: min(400px, 100%);
+  }
+}
+
+.me-page__panel-search {
+  margin-top: 0.75rem;
+}
+
+.me-page__panel {
+  background: rgba(255, 255, 255, 0.94);
+  border-radius: 1.5rem;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  box-shadow: 0 16px 28px rgba(7, 91, 93, 0.15);
+}
+
+.me-page__panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: $secondaryColor;
+  }
+}
+
+.me-page__article-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.me-page__article-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 1.5rem;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 14px 28px rgba(7, 91, 93, 0.14);
+}
+
+.me-page__article-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: $textColor;
+  }
+}
+
+.me-page__article-category {
+  display: inline-block;
+  margin-top: 0.35rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: rgba($primaryColor, 0.12);
+  color: $primaryColor;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.me-page__article-intro {
+  margin: 0;
+  font-size: 0.9rem;
+  color: $commentTextColor;
+}
+
+.me-page__article-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  font-size: 0.85rem;
+  color: $commentTextColor;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+}
+
+.me-page__article-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.me-page__pagination {
+  align-self: center;
+  font-size: 0.85rem;
+  color: $commentTextColor;
+}
+
+.me-page__article-editor {
+  background: rgba(255, 255, 255, 0.94);
+  border-radius: 1.5rem;
+  padding: 1.75rem;
+  box-shadow: 0 16px 28px rgba(7, 91, 93, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.me-page__ghost-link {
+  border: none;
+  background: transparent;
+  color: $primaryColor;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.me-page__ghost-link:hover {
+  text-decoration: underline;
+}
+
+.me-page__section--users .me-page__section-header h2,
+.me-page__section--articles .me-page__section-header h2,
+.me-page__section--diaries .me-page__section-header h2 {
+  margin: 0;
+}
+
+.me-page__panel--users {
+  gap: 1.25rem;
+}
+
+.me-page__user-table {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.me-page__user-card {
+  border: 1px solid rgba($primaryColor, 0.15);
+  border-radius: 1.25rem;
+  padding: 1.1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 24px rgba(7, 91, 93, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.me-page__user-card-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.me-page__user-name {
+  font-weight: 600;
+  color: $textColor;
+}
+
+.me-page__user-email {
+  font-size: 0.85rem;
+  color: $commentTextColor;
+}
+
+.me-page__user-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  background: rgba($primaryColor, 0.12);
+  color: $primaryColor;
+  font-weight: 600;
+}
+
+.me-page__user-badge--admin {
+  background: rgba($secondaryColor, 0.12);
+  color: $secondaryColor;
+}
+
+.me-page__user-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.me-page__panel-head--back {
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.me-page__user-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  h4 {
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+}
+
+.me-page__user-detail-diaries {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+
+.me-page__user-detail-diaries li {
+  list-style: none;
+}
+
+.me-page__user-detail-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  color: $commentTextColor;
+
+  app-icon {
+    color: rgba($primaryColor, 0.5);
+  }
+}
+
+@media (max-width: 1024px) {
+  :host {
+    padding: 1.25rem 0.75rem 2.5rem;
+  }
+
+  .me-page__card {
+    padding: 2.25rem;
+  }
+
+  //.me-page__layout {
+  //  grid-template-columns: minmax(220px, 280px) auto minmax(0, 1fr); // 3 colonnes
+  //  gap: 2.25rem;
+  //}
+
+  .me-page__header h1 {
+    font-size: 1.9rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .me-page__layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  .me-page__panel-head {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .me-page__aside {
+    padding-bottom: 1.5rem;
+  }
+
+  //.me-page__menu {
+  //  display: grid;
+  //  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  //  gap: 0.85rem;
+  //}
+
+  //.me-page__aside-divider {
+  //  display: none;
+  //}
+
+  .me-page__content {
+    border-left: none;
+    padding-left: 0;
+    padding-top: 1.5rem;
+  }
+
+  .me-page__form-row,
+  .me-page__form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .me-page__section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .me-page__user-card-main {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .me-page__user-card-actions {
+    justify-content: flex-start;
+  }
+
+  .me-page__article-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .me-page__article-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 600px) {
+  .me-page__card {
+    padding: 0;
+    border-radius: 1.5rem;
+  }
+
+  .me-page__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .me-page__menu-button::ng-deep .btn {
+    justify-content: center;
+  }
+
+  .me-page__form-actions,
+  .me-page__article-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .me-page__section app-button::ng-deep .btn {
+    width: 100%;
+  }
+
+  .me-page__diary-meta {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.5rem 0.75rem;
+  }
+
+  .me-page__diary-actions {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .me-page__article-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .me-page__user-card-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .me-page__article-card {
+    padding: 1rem 1.1rem;
+  }
+
+  .me-page__panel {
+    padding: 1.15rem 1rem;
+  }
+
+  .me-page--compact {
+    padding-top: 0.5rem;
+  }
+}

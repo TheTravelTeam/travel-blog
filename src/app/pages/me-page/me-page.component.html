@@ -1,0 +1,692 @@
+<!-- Conteneur principal qui ajuste la densité en fonction du viewport -->
+<div class="me-page" [ngClass]="{ 'me-page--compact': isMobileOrTablet() }">
+  <!-- Gestion explicite des trois états possibles : chargement, erreur ou profil -->
+  @if (isLoading()) {
+    <div class="me-page__state">
+      <p>Chargement du profil…</p>
+    </div>
+  } @else if (error()) {
+    <div class="me-page__state me-page__state--error">
+      <p>{{ error() }}</p>
+      <button type="button" class="me-page__retry" (click)="reload()">Réessayer</button>
+    </div>
+  } @else if (profile()) {
+    <div class="me-page__card">
+      <div class="me-page__layout">
+
+        <!-- Barre latérale : navigation entre les sections du compte -->
+        <aside class="me-page__aside" aria-label="Navigation compte">
+          <!-- Résumé d'identité : avatar + rôles détectés -->
+
+            <div class="me-page__profile">
+              <div class="me-page__avatar-wrapper">
+                <app-avatar
+                  class="me-page__avatar"
+                  [label]="profile()!.pseudo"
+                  [picture]="profile()!.avatar ?? undefined"
+                ></app-avatar>
+                <button type="button" class="me-page__avatar-edit" aria-label="Modifier l'avatar">
+                  <app-icon name="edit" size="sm"></app-icon>
+                </button>
+              </div>
+              <div class="me-page__profile-details">
+                <!--              <p class="me-page__profile-name">{{ profile()!.pseudo }}</p>  rajouter le fistname lastname si besoin V2 ?-->
+                <p class="me-page__profile-username">@{{ profile()!.pseudo }}</p>
+                <span class="me-page__role">{{ userRoleLabel() }}</span>
+              </div>
+            </div>
+
+          <div class="me-page__aside-title">Mon compte</div>
+          <div class="me-page__menu">
+            <!-- Chaque bouton ouvre une section "panel" pilotée par les signaux -->
+            @for (section of sections(); track section.id) {
+              <app-button
+                class="me-page__menu-button"
+                [ngClass]="{ 'me-page__menu-button--active': isSectionOpen(section.id) }"
+                [text]="section.label"
+                radius="border_lg"
+                size="auto"
+                [color]="isSectionOpen(section.id) ? 'secondary' : 'danger'"
+                (btnClick)="setActiveSection(section.id)"
+              ></app-button>
+            }
+            <app-button
+              class="me-page__logout-button"
+              text="Se déconnecter"
+              color="danger"
+              size="auto"
+              radius="border_lg"
+              (btnClick)="logout()"
+            ></app-button>
+          </div>
+
+
+        </aside>
+        <div class="divider_container">
+          <app-divider class="me-page__aside-divider" orientation="vertical" color="primary" size="100" thickness="medium"></app-divider>
+        </div>
+        <!-- Zone centrale qui affiche l'entête et le contenu de la section active -->
+        <section class="me-page__content">
+
+
+          <!-- Contenu dynamique rendu selon la section active -->
+          <div class="me-page__section">
+            @switch (openSection()) {
+              @case ('info') {
+                <!-- Formulaire d'édition des données de profil -->
+                <form class="me-page__form" (submit)="$event.preventDefault(); saveProfileChanges()">
+                  @if (profileFormError()) {
+                    <p class="me-page__form-error">{{ profileFormError() }}</p>
+                  }
+                  <div class="me-page__form-row">
+                    <app-text-input
+                      label="Nom"
+                      [placeholder]="profile()!.lastName || 'Votre nom'"
+                      name="userLastname"
+                      size="large"
+                      variant="outlined"
+                      iconPosition="left"
+                      [ngModel]="profileForm().lastName"
+                      (ngModelChange)="onProfileFieldChange('lastName', $event)"
+                    ></app-text-input>
+                    <app-text-input
+                      label="Prénom"
+                      name="userfirstName"
+                      [placeholder]="profile()!.firstName || 'Votre prénom'"
+                      size="large"
+                      variant="outlined"
+                      iconPosition="left"
+                      [ngModel]="profileForm().firstName"
+                      (ngModelChange)="onProfileFieldChange('firstName', $event)"
+                    ></app-text-input>
+                  </div>
+                  <app-text-input
+                    label="Pseudo"
+                    name="userPseudo"
+                    placeholder="Votre pseudo"
+                    size="large"
+                    variant="outlined"
+                    iconPosition="left"
+                    [ngModel]="profileForm().pseudo"
+                    (ngModelChange)="onProfileFieldChange('pseudo', $event)"
+                  ></app-text-input>
+                  <app-text-input
+                    label="Mail"
+                    name="userEmail"
+                    [placeholder]="profile()!.email ?? 'trip@trip.com'"
+                    type="email"
+                    size="large"
+                    variant="outlined"
+                    iconPosition="left"
+                    [ngModel]="profileForm().email"
+                    (ngModelChange)="onProfileFieldChange('email', $event)"
+                  ></app-text-input>
+                  <app-text-input
+                    label="Modifier mon mot de passe"
+                    name="password"
+                    placeholder="Modifier mon mot de passe"
+                    type="password"
+                    size="large"
+                    variant="outlined"
+                    iconPosition="right"
+                    autocomplete="new-password"
+                    [ngModel]="profileForm().password"
+                    (ngModelChange)="onProfileFieldChange('password', $event)"
+                  ></app-text-input>
+                  <app-text-input
+                    label="Confirmer la modification du mot de passe"
+                    name="confirmPassword"
+                    placeholder="Confirmer la modification du mot de passe"
+                    type="password"
+                    size="large"
+                    variant="outlined"
+                    iconPosition="right"
+                    autocomplete="new-password"
+                    [ngModel]="profileForm().confirmPassword"
+                    (ngModelChange)="onProfileFieldChange('confirmPassword', $event)"
+                  ></app-text-input>
+                  <div class="me-page__form-actions">
+                    <app-button
+                      text="Valider les modifications"
+                      color="secondary"
+                      size="auto"
+                      radius="border_lg"
+                      [isDisabled]="profileFormSubmitting()"
+                      (btnClick)="saveProfileChanges()"
+                    ></app-button>
+                    <app-button
+                      text="Supprimer mon compte"
+                      color="danger"
+                      size="auto"
+                      radius="border_lg"
+                      [isDisabled]="profileDeleteSubmitting()"
+                      (btnClick)="deleteAccount()"
+                    ></app-button>
+                  </div>
+                  @if (profileDeleteError()) {
+                    <p class="me-page__form-error">{{ profileDeleteError() }}</p>
+                  }
+                </form>
+              }
+              @case ('diaries') {
+                <div class="me-page__section me-page__section--diaries">
+                  <div class="me-page__section-header">
+                    <h2>Mes carnets</h2>
+                    <app-button
+                      class="me-page__section-action"
+                      text="Créer un carnet"
+                      color="secondary"
+                      radius="border_lg"
+                      size="auto"
+                      [startIcon]="true"
+                      icon="add"
+                    ></app-button>
+                  </div>
+                  @if (diariesError()) {
+                    <p class="me-page__form-error">{{ diariesError() }}</p>
+                  }
+                  @if (diaries().length) {
+                    <ul class="me-page__diary-grid">
+                      @for (diary of diaries(); track diary.id) {
+                        @let coverUrl = getDiaryCover(diary);
+                        <li class="me-page__diary-card">
+                          <app-travel-diary-card
+                            [id]="diary.id"
+                            [title]="diary.title"
+                            [image]="coverUrl"
+                            [description]="getDiaryDescription(diary)"
+                            [showInlineActions]="false"
+                            (cardClick)="openDiary(diary.id)"
+                          ></app-travel-diary-card>
+                          <div class="me-page__diary-footer">
+                            <div class="me-page__diary-meta">
+                              @if (getDiaryCountry(diary)) {
+                                <span>
+                                  <app-icon name="location_on" size="sm"></app-icon>
+                                  {{ getDiaryCountry(diary) }}
+                                </span>
+                              }
+                              <span>
+                                <app-icon name="calendar_today" size="sm"></app-icon>
+                                {{ getDiaryStepLabel(diary) }}
+                              </span>
+                              <span class="me-page__diary-visibility" [ngClass]="{
+                                'me-page__diary-visibility--private': diary.private
+                              }">
+                                {{ diary.private ? 'Privé' : 'Public' }}
+                              </span>
+                            </div>
+                            <div
+                              class="me-page__diary-actions"
+                              [ngClass]="{ 'me-page__diary-actions--compact': isMobile() }"
+                            >
+                              @if (isMobile()) {
+                                <app-button
+                                  [isActionBtn]="true"
+                                  icon="edit"
+                                  color="secondary"
+                                  (btnClick)="openDiary(diary.id)"
+                                ></app-button>
+                                <app-button
+                                  [isActionBtn]="true"
+                                  [icon]="diary.private ? 'visibility' : 'visibility_off'"
+                                  color="danger"
+                                  (btnClick)="toggleDiaryPrivacy(diary.id)"
+                                ></app-button>
+                                <app-button
+                                  [isActionBtn]="true"
+                                  icon="delete"
+                                  color="danger"
+                                  (btnClick)="deleteDiary(diary.id)"
+                                ></app-button>
+                              } @else {
+                                <app-button
+                                  text="Modifier"
+                                  color="secondary"
+                                  size="auto"
+                                  radius="border_lg"
+                                  icon="edit"
+                                  [startIcon]="true"
+                                  (btnClick)="openDiary(diary.id)"
+                                ></app-button>
+                                <app-button
+                                  [text]="diary.private ? 'Rendre public' : 'Rendre privé'"
+                                  color="danger"
+                                  size="auto"
+                                  radius="border_lg"
+                                  [startIcon]="true"
+                                  [icon]="diary.private ? 'visibility' : 'visibility_off'"
+                                  (btnClick)="toggleDiaryPrivacy(diary.id)"
+                                ></app-button>
+                                <app-button
+                                  text="Supprimer"
+                                  color="danger"
+                                  size="auto"
+                                  radius="border_lg"
+                                  icon="delete"
+                                  [startIcon]="true"
+                                  (btnClick)="deleteDiary(diary.id)"
+                                ></app-button>
+                              }
+                            </div>
+                          </div>
+                        </li>
+                      }
+                    </ul>
+                  } @else {
+                    <p class="me-page__empty">Aucun carnet pour le moment.</p>
+                  }
+                </div>
+              }
+              @case ('articles') {
+                <div class="me-page__section me-page__section--articles">
+                  @if (articleEditorView() === 'list') {
+                    <div class="me-page__section-header">
+                      <h2>Gestion des articles</h2>
+                      <app-button
+                        class="me-page__section-action"
+                        text="Ajouter un article"
+                        color="secondary"
+                        radius="border_lg"
+                        size="auto"
+                        [startIcon]="true"
+                        icon="add"
+                        (btnClick)="startArticleCreation()"
+                      ></app-button>
+                    </div>
+                    <div class="me-page__panel">
+                      <div class="me-page__panel-head">
+                        <h3>Liste des articles</h3>
+                      </div>
+                      <div class="me-page__panel-search">
+                        <div class="me-page__search me-page__search--wide">
+                          <app-icon name="search" size="sm"></app-icon>
+                          <input
+                            type="search"
+                            placeholder="Rechercher un article"
+                            [value]="articleSearchTerm()"
+                            (input)="onArticleSearch(($any($event.target)).value)"
+                          />
+                        </div>
+                      </div>
+                      @if (articlesLoading()) {
+                        <p class="me-page__loading">Chargement des articles…</p>
+                      } @else {
+                        @if (articlesError()) {
+                          <p class="me-page__form-error">{{ articlesError() }}</p>
+                        }
+                        @if (filteredArticles().length) {
+                          <ul class="me-page__article-list">
+                            @for (article of filteredArticles(); track article.id) {
+                              <li class="me-page__article-card">
+                                <div class="me-page__article-header">
+                                  <h3>{{ article.title }}</h3>
+                                  @if (article.category) {
+                                    <span class="me-page__article-category">{{ article.category }}</span>
+                                  }
+                                </div>
+                              <p class="me-page__article-intro">{{ getArticlePreview(article.content) }}</p>
+                                <div class="me-page__article-meta">
+                                  <span>
+                                    <app-icon name="calendar_today" size="sm"></app-icon>
+                                    {{ article.publishedAt | date: 'dd/MM/yyyy' }}
+                                  </span>
+                                  <span>
+                                    <app-icon name="account_circle" size="sm"></app-icon>
+                                    {{ article.author }}
+                                  </span>
+                                </div>
+                                <div class="me-page__article-actions">
+                                  <app-button
+                                    text="Modifier"
+                                    color="secondary"
+                                    radius="border_lg"
+                                    size="auto"
+                                    icon="edit"
+                                    [startIcon]="true"
+                                    (btnClick)="startArticleEdition(article.id)"
+                                  ></app-button>
+                                  <app-button
+                                    text="Supprimer"
+                                    color="danger"
+                                    radius="border_lg"
+                                    size="auto"
+                                    icon="delete"
+                                    [startIcon]="true"
+                                    (btnClick)="deleteArticle(article.id)"
+                                  ></app-button>
+                                </div>
+                              </li>
+                            }
+                          </ul>
+                        } @else {
+                          <p class="me-page__empty">Aucun article ne correspond à votre recherche.</p>
+                        }
+                      }
+                      <p class="me-page__pagination">Page 1 · 2 · 3 · 4 · 5</p>
+                    </div>
+                  } @else {
+                    <div class="me-page__article-editor">
+                      <div class="me-page__section-header">
+                        <button
+                          type="button"
+                          class="me-page__ghost-link"
+                          (click)="showArticleList()"
+                          aria-label="Retour à la liste des articles"
+                        >
+                          ← Retour à la liste
+                        </button>
+                        <h2>
+                          {{ articleFormMode() === 'edit' ? "Modifier l'article" : "Créer un article" }}
+                        </h2>
+                      </div>
+                      <form class="me-page__article-form" (submit)="$event.preventDefault(); submitArticle()">
+                        @if (articleFormError()) {
+                          <p class="me-page__form-error">{{ articleFormError() }}</p>
+                        }
+                        <div class="me-page__form-grid">
+                          <app-text-input
+                            label="Titre de l'article"
+                            name="articleTitle"
+                            placeholder="Titre de l'article"
+                            size="large"
+                            variant="outlined"
+                            iconPosition="left"
+                            [ngModel]="articleDraft().title"
+                            (ngModelChange)="updateDraft('title', $event)"
+                          ></app-text-input>
+                          <app-text-input
+                            label="Auteur"
+                            name="authorName"
+                            placeholder="Auteur"
+                            size="large"
+                            variant="outlined"
+                            iconPosition="left"
+                            [ngModel]="articleDraft().author"
+                            (ngModelChange)="updateDraft('author', $event)"
+                          ></app-text-input>
+                        </div>
+                        <app-select
+                          label="Catégorie de l'article"
+                          [itemsList]="themeOptions()"
+                          placeholder="Sélectionnez une catégorie"
+                          [disabled]="!themeOptions().length"
+                          [selectedId]="articleDraft().themeId"
+                          (selectOnChange)="onThemeSelect($event)"
+                        ></app-select>
+                        <app-editor
+                          label="Contenu de l'article"
+                          [content]="articleDraft().content || ''"
+                          placeholder="Rédigez votre article"
+                          [maxLength]="4000"
+                          (contentChange)="updateDraft('content', $event)"
+                        ></app-editor>
+                        <div class="me-page__media">
+                          <span>Ajout de média</span>
+                          <div class="me-page__media-grid">
+                            @for (slot of mediaSlotIndexes(); track slot) {
+                              <button type="button" class="me-page__media-btn" aria-label="Ajouter un média">+</button>
+                            }
+                            <button
+                              type="button"
+                              class="me-page__add-media"
+                              (click)="addMediaSlot()"
+                              aria-label="Ajouter un champ média"
+                            >
+                              <app-icon name="add" size="sm"></app-icon>
+                            </button>
+                          </div>
+                        </div>
+                        <div class="me-page__article-actions">
+                          <app-button
+                            [text]="articleSubmitLabel()"
+                            color="secondary"
+                            size="auto"
+                            radius="border_lg"
+                            [isDisabled]="articleFormSubmitting()"
+                            (btnClick)="submitArticle()"
+                          ></app-button>
+                          <app-button
+                            text="Annuler"
+                            color="primary"
+                            size="auto"
+                            radius="border_lg"
+                            htmlType="button"
+                            (btnClick)="showArticleList()"
+                          ></app-button>
+                        </div>
+                      </form>
+                    </div>
+                  }
+                </div>
+              }
+              @case ('users') {
+                <div class="me-page__section me-page__section--users">
+                  <div class="me-page__section-header">
+                    <h2>Gestion des utilisateurs</h2>
+                  </div>
+                  @if (!selectedManagedUser()) {
+                    <div class="me-page__panel me-page__panel--users">
+                      <div class="me-page__panel-head">
+                        <h3>Liste des utilisateurs</h3>
+                      </div>
+                      <div class="me-page__panel-search">
+                        <div class="me-page__search">
+                          <app-icon name="search" size="sm"></app-icon>
+                          <input
+                            type="search"
+                            placeholder="Rechercher un utilisateur"
+                            [value]="searchTerm()"
+                            (input)="onSearch(($any($event.target)).value)"
+                          />
+                        </div>
+                      </div>
+                      @if (managedUsersLoading()) {
+                        <p class="me-page__loading">Chargement des utilisateurs…</p>
+                      } @else {
+                        @if (managedUsersError()) {
+                          <div class="me-page__error-block">
+                            <p class="me-page__form-error">{{ managedUsersError() }}</p>
+                            <div class="me-page__error-actions">
+                              <app-button
+                                text="Réessayer"
+                                color="secondary"
+                                radius="border_lg"
+                                size="auto"
+                                icon="travel_explore"
+                                [startIcon]="true"
+                                (btnClick)="reloadManagedUsers()"
+                              ></app-button>
+                            </div>
+                          </div>
+                        }
+                        @if (filteredManagedUsers().length) {
+                          <ul class="me-page__user-table">
+                            @for (user of filteredManagedUsers(); track user.id) {
+                              <li class="me-page__user-card">
+                                <div class="me-page__user-card-main">
+                                  <div>
+                                    <p class="me-page__user-name">{{ user.name }}</p>
+                                    <span class="me-page__user-email">{{ user.email }}</span>
+                                  </div>
+                                  <span
+                                    class="me-page__user-badge"
+                                    [ngClass]="{ 'me-page__user-badge--admin': user.isAdmin }"
+                                  >
+                                    {{ user.isAdmin ? 'Admin' : 'Voyageur' }}
+                                  </span>
+                                </div>
+                                <div class="me-page__user-card-actions">
+                                  <app-button
+                                    text="Voir les carnets"
+                                    color="primary"
+                                    radius="border_lg"
+                                    size="auto"
+                                    [startIcon]="true"
+                                    icon="import_contacts"
+                                    (btnClick)="onSelectManagedUser(user.id)"
+                                  ></app-button>
+                                  <app-button
+                                    [text]="user.isAdmin ? 'Retirer admin' : 'Définir admin'"
+                                    color="secondary"
+                                    radius="border_lg"
+                                    size="auto"
+                                    icon="edit_square"
+                                    [startIcon]="true"
+                                    [isDisabled]="isManagedUserActionPending(user.id)"
+                                    (btnClick)="toggleAdmin(user.id)"
+                                  ></app-button>
+                                  <button
+                                    type="button"
+                                    class="me-page__icon-btn me-page__icon-btn--danger"
+                                    aria-label="Supprimer l'utilisateur"
+                                    [disabled]="isManagedUserActionPending(user.id)"
+                                    (click)="removeManagedUser(user.id)"
+                                  >
+                                    <app-icon name="delete" size="sm"></app-icon>
+                                  </button>
+                                </div>
+                              </li>
+                            }
+                          </ul>
+                        } @else if (!managedUsersError()) {
+                          <p class="me-page__empty">Aucun utilisateur ne correspond à votre recherche.</p>
+                        }
+                      }
+                    </div>
+                  } @else {
+                    @if (selectedManagedUser(); as selectedUser) {
+                      <div class="me-page__panel me-page__panel--users">
+                        <div class="me-page__panel-head me-page__panel-head--back">
+                          <button
+                            type="button"
+                            class="me-page__ghost-link"
+                            (click)="clearSelectedManagedUser()"
+                            aria-label="Retour à la liste des utilisateurs"
+                          >
+                            ← Retour à la liste
+                          </button>
+                          <div>
+                            <h3>Détails de l'utilisateur</h3>
+                            <p class="me-page__user-name">{{ selectedUser.name }}</p>
+                            <span class="me-page__user-email">{{ selectedUser.email }}</span>
+                          </div>
+                        </div>
+                        <div class="me-page__user-detail-body">
+                          @if (managedUserDetailsLoading()) {
+                            <p class="me-page__loading">Chargement des carnets…</p>
+                          } @else {
+                            @if (managedUserDetailsError()) {
+                              <div class="me-page__error-block">
+                                <p class="me-page__form-error">{{ managedUserDetailsError() }}</p>
+                                <div class="me-page__error-actions">
+                                  <app-button
+                                    text="Réessayer"
+                                    color="secondary"
+                                    radius="border_lg"
+                                    size="auto"
+                                    icon="travel_explore"
+                                    [startIcon]="true"
+                                    (btnClick)="onSelectManagedUser(selectedUser.id)"
+                                  ></app-button>
+                                </div>
+                              </div>
+                            }
+                          }
+                          <h4>Listes des carnets</h4>
+                          @if (!managedUserDetailsLoading() && !managedUserDetailsError() && selectedUser.diaries.length) {
+                            <ul class="me-page__user-detail-diaries">
+                              @for (diary of selectedUser.diaries; track diary.id) {
+                                <li class="me-page__diary-card">
+                                  <app-travel-diary-card
+                                    [id]="diary.id"
+                                    [title]="diary.title"
+                                    [image]="getDiaryCover(diary)"
+                                    [description]="getManagedDiarySubtitle(diary)"
+                                    [showInlineActions]="false"
+                                    (cardClick)="openManagedDiary(selectedUser.id, diary.id)"
+                                  ></app-travel-diary-card>
+                                <div class="me-page__diary-footer">
+                                  <div class="me-page__diary-meta">
+                                    @if (diary.destination) {
+                                      <span>
+                                        <app-icon name="location_on" size="sm"></app-icon>
+                                        {{ diary.destination }}
+                                      </span>
+                                    }
+                                    @if (diary.durationLabel) {
+                                      <span>
+                                        <app-icon name="calendar_today" size="sm"></app-icon>
+                                        {{ diary.durationLabel }}
+                                      </span>
+                                    }
+                                    @if (typeof diary.stepCount === 'number') {
+                                      <span>
+                                        <app-icon name="travel_explore" size="sm"></app-icon>
+                                        {{ diary.stepCount }} étape{{ diary.stepCount > 1 ? 's' : '' }}
+                                      </span>
+                                    }
+                                    <span class="me-page__diary-visibility" [ngClass]="{
+                                      'me-page__diary-visibility--private': diary.isPrivate
+                                    }">
+                                      {{ diary.isPrivate ? 'Privé' : 'Public' }}
+                                    </span>
+                                  </div>
+                                  <div
+                                    class="me-page__diary-actions"
+                                    [ngClass]="{ 'me-page__diary-actions--compact': isMobile() }"
+                                  >
+                                    @if (isMobile()) {
+                                      <app-button
+                                        [isActionBtn]="true"
+                                        [icon]="diary.isPrivate ? 'visibility' : 'visibility_off'"
+                                        color="danger"
+                                        (btnClick)="toggleManagedDiaryPrivacy(selectedUser.id, diary.id)"
+                                      ></app-button>
+                                      <app-button
+                                        [isActionBtn]="true"
+                                        icon="delete"
+                                        color="danger"
+                                        (btnClick)="deleteManagedDiary(selectedUser.id, diary.id)"
+                                      ></app-button>
+                                    } @else {
+                                      <app-button
+                                        [text]="diary.isPrivate ? 'Rendre public' : 'Rendre privé'"
+                                        color="danger"
+                                        radius="border_lg"
+                                        size="auto"
+                                        [startIcon]="true"
+                                        [icon]="diary.isPrivate ? 'visibility' : 'visibility_off'"
+                                        (btnClick)="toggleManagedDiaryPrivacy(selectedUser.id, diary.id)"
+                                      ></app-button>
+                                      <app-button
+                                        text="Supprimer"
+                                        color="danger"
+                                        radius="border_lg"
+                                        size="auto"
+                                        icon="delete"
+                                        [startIcon]="true"
+                                        (btnClick)="deleteManagedDiary(selectedUser.id, diary.id)"
+                                      ></app-button>
+                                    }
+                                  </div>
+                                </div>
+                              </li>
+                            }
+                          </ul>
+                          } @else if (!managedUserDetailsLoading() && !managedUserDetailsError()) {
+                            <p class="me-page__empty">Aucun carnet associé pour le moment.</p>
+                          }
+                        </div>
+                      </div>
+                    }
+                  }
+                </div>
+              }
+            }
+          </div>
+        </section>
+      </div>
+    </div>
+  }
+</div>
