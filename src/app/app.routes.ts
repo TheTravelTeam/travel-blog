@@ -7,6 +7,7 @@ import { FilterPageComponent } from './pages/filter-page/filter-page.component';
 import { TestPageComponent } from 'pages/test-page/test-page.component';
 import { LoginFormComponent } from './components/Organisms/login-form/login-form.component';
 import { RegisterFormComponent } from './components/Organisms/register-form/register-form.component';
+import { MePageComponent } from './pages/me-page/me-page.component';
 
 export const routes: Routes = [
   {
@@ -16,6 +17,7 @@ export const routes: Routes = [
   },
   { path: 'login', component: LoginFormComponent },
   { path: 'register', component: RegisterFormComponent },
+  { path: 'me', component: MePageComponent },
   {
     path: 'travels',
     component: TravelMapLayoutPageComponent,

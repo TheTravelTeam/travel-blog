@@ -1,5 +1,5 @@
 import { DividerService } from './divider.service';
-import { Component, Input, inject } from '@angular/core';
+import { Component, HostBinding, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Divider, dividerDefault } from '@model/divider.model';
 
@@ -11,6 +11,13 @@ import { Divider, dividerDefault } from '@model/divider.model';
 })
 export class DividerComponent {
   dividerService = inject(DividerService);
+  @HostBinding('class.divider-host') readonly dividerHostClass = true;
+  @HostBinding('class.divider-host--horizontal') get isHorizontalHost(): boolean {
+    return this.orientation === 'horizontal';
+  }
+  @HostBinding('class.divider-host--vertical') get isVerticalHost(): boolean {
+    return this.orientation === 'vertical';
+  }
   @Input()
   orientation: Divider['orientation'] = dividerDefault['orientation'];
   @Input() color: Divider['color'] = dividerDefault['color'];

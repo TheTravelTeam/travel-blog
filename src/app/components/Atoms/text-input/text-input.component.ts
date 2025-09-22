@@ -34,6 +34,7 @@ export class TextInputComponent implements OnChanges {
   @Input() showCharCount: TextInput['showCharCount'] = textInputDefault['showCharCount'];
   @Input() icon?: IconName;
   @Input() iconPosition: TextInput['iconPosition'] = textInputDefault['iconPosition'];
+  @Input() autocomplete: TextInput['autocomplete'] = textInputDefault['autocomplete'];
 
   @Output() valueChange = new EventEmitter<string>();
   @Output() inputFocus = new EventEmitter<FocusEvent>();

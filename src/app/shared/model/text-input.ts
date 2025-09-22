@@ -17,6 +17,7 @@ export interface TextInput {
   showCharCount?: boolean;
   icon?: string;
   iconPosition: IconPosition;
+  autocomplete?: string;
 }
 
 export const textInputDefault: Required<
@@ -30,4 +31,5 @@ export const textInputDefault: Required<
   showCharCount: false,
   iconPosition: 'left',
   helperText: '',
+  autocomplete: '',
 };

@@ -1,5 +1,6 @@
 <!-- <button type="button" (click)="onClick()">click</button> -->
 <button
+  [attr.type]="htmlType"
   [ngClass]="[
     'btn',
     'btn--' + color,

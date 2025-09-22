@@ -75,6 +75,31 @@ describe('UserService', () => {
     expect(roles).toEqual(['ADMIN', 'USER']);
   });
 
+  it('should send a boolean to toggle admin role', () => {
+    let receivedRoles: string[] | undefined;
+
+    userService.setAdminRole(12, true).subscribe((profile) => {
+      receivedRoles = profile.roles;
+    });
+
+    const request = httpMock.expectOne(`${environment.apiUrl}/users/12/roles`);
+    expect(request.request.method).toBe('PATCH');
+    expect(request.request.body).toEqual({ admin: true });
+
+    const dto: UserProfileDto = {
+      id: 12,
+      pseudo: 'globetrotter',
+      firstName: 'Alicia',
+      lastName: 'Keys',
+      roles: ['ROLE_USER', 'ROLE_ADMIN'],
+      travelDiaries: [],
+    };
+
+    request.flush(dto);
+
+    expect(receivedRoles).toEqual(['USER', 'ADMIN']);
+  });
+
   it('should emit an error when requesting current user profile without authentication', (done) => {
     authService.saveToken(null);
 

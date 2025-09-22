@@ -3,57 +3,92 @@
 :host {
   display: block;
   width: 100%;
-  box-sizing: border-box;
+}
 
-  ::ng-deep app-card {
-    height: 75%;
-  }
+.travel-diary-card {
+  position: relative;
+  overflow: hidden;
+  color: $secondaryTextColor;
+}
 
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.travel-diary-card__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(7, 20, 40, 0.15) 0%, rgba(7, 20, 40, 0.55) 100%);
+  pointer-events: none;
+}
+
+.travel-diary-card__body {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+  padding: 0 !important;
+}
+
+.travel-diary-card__content {
+  width: 100%;
+  padding: 1.25rem 1.75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  backdrop-filter: blur(0.5px);
+}
+
+.travel-diary-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: inherit;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
   }
+}
+
+.travel-diary-card__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+
   button {
     all: unset;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+
     &:hover {
       opacity: 0.7;
     }
   }
 }
 
-.informations--mobile {
+.travel-diary-card__actions-btn--hidden {
+  display: none;
+}
+
+.travel-diary-card__description {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.travel-diary-card__content--mobile {
+  padding: 1.1rem 1.25rem 1.25rem;
   color: $secondaryTextColor;
-  -webkit-text-stroke: 0.2px black; /* Épaisseur et couleur du contour */
-  text-stroke: 0.3px black; /* Pour compatibilité (peu supporté sans prefix) */
-  padding-left: 12px;
-  justify-content: space-around;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
 }
 
-.informations {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-
-  .title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .description {
-    margin-top: 8px;
-    font-size: 0.875rem;
-  }
-}
-
-@media screen and (min-width: 768px) {
-  .informations {
-    padding-left: 24px;
-  }
-
-  .informations--mobile {
-    justify-content: flex-start;
+@media screen and (min-width: 1024px) {
+  .travel-diary-card__content {
+    padding: 1.5rem 2.25rem 1.85rem;
   }
 }

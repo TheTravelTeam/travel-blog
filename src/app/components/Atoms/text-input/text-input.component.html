@@ -25,6 +25,7 @@
       [placeholder]="placeholder"
       [disabled]="isDisabled || false"
       [attr.maxlength]="maxLength"
+      [attr.autocomplete]="autocomplete || null"
       [value]="value"
       (input)="onInputChange($event)"
       [ngClass]="inputClasses"
