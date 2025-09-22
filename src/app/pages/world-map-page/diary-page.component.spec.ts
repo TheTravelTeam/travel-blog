@@ -1,19 +1,19 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { WorldMapPageComponent } from './diary-page.component';
+import { DiaryPageComponent } from './diary-page.component';
 import { provideRouter } from '@angular/router';
 
-describe('WorldMapPageComponent', () => {
-  let component: WorldMapPageComponent;
-  let fixture: ComponentFixture<WorldMapPageComponent>;
+describe('DiaryPageComponent', () => {
+  let component: DiaryPageComponent;
+  let fixture: ComponentFixture<DiaryPageComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [WorldMapPageComponent],
+      imports: [DiaryPageComponent],
       providers: [provideRouter([])],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(WorldMapPageComponent);
+    fixture = TestBed.createComponent(DiaryPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
