@@ -44,8 +44,7 @@ const mockDiaries: TravelDiary[] = [
       userName: 'Alice',
       username: 'alice@example.com',
     },
-    medias: [],
-    coverMedia: null,
+    media: null,
   },
 ];
 

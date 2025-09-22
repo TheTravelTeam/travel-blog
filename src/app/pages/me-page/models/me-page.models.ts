@@ -1,5 +1,4 @@
 import { TravelDiary } from '@model/travel-diary.model';
-import { Media } from '@model/media.model';
 import { Step } from '@model/step.model';
 import { Theme } from '@model/theme.model';
 
@@ -59,7 +58,7 @@ export interface ProfileFormState {
   confirmPassword: string;
 }
 
-export type NormalizedDiary = TravelDiary & { medias: Media[]; steps: Step[] };
+export type NormalizedDiary = TravelDiary & { steps: Step[] };
 
 export const INITIAL_ARTICLE_DRAFT: ArticleDraft = {
   title: '',
