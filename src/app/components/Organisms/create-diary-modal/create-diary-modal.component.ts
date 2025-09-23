@@ -126,9 +126,9 @@ export class CreateDiaryModalComponent {
   private buildStepForm(): FormGroup {
     return this.fb.group({
       title: this.fb.control('', [Validators.required, Validators.maxLength(150)]),
-      city: this.fb.control('', [Validators.required, Validators.maxLength(200)]),
-      country: this.fb.control('', [Validators.required, Validators.maxLength(200)]),
-      continent: this.fb.control('', [Validators.required, Validators.maxLength(200)]),
+      city: this.fb.control('', [Validators.required, Validators.minLength(2), Validators.maxLength(200)]),
+      country: this.fb.control('', [Validators.required, Validators.minLength(2), Validators.maxLength(200)]),
+      continent: this.fb.control('', [Validators.required, Validators.minLength(2), Validators.maxLength(200)]),
       latitude: this.fb.control('', [Validators.required]),
       longitude: this.fb.control('', [Validators.required]),
       description: this.fb.control('', [Validators.required, Validators.minLength(10)]),
@@ -210,7 +210,6 @@ export class CreateDiaryModalComponent {
     }
 
     const raw = this.stepForm.getRawValue();
-    console.log('raw step', raw)
     const latitude = raw.latitude ? parseFloat(raw.latitude.toString()) : NaN;
     const longitude = raw.longitude ? parseFloat(raw.longitude.toString()) : NaN;
 
@@ -242,12 +241,10 @@ export class CreateDiaryModalComponent {
       longitude,
       description: raw.description ?? '',
       mediaUrl: raw.mediaUrl?.toString().trim() || null,
-      startDate: raw.startDate?.toString().trim() || null,
-      endDate: raw.endDate?.toString().trim() || null,
+      startDate: this.normalizeDateInput(raw.startDate),
+      endDate: this.normalizeDateInput(raw.endDate),
       themeId: raw.themeId ?? null,
     };
-    console.log('step payload dnas le create diray', stepPayload)
-
     this.submitDiary.emit({ diary: diaryPayload, step: stepPayload });
   }
 
@@ -257,6 +254,40 @@ export class CreateDiaryModalComponent {
     }
     this.cancel.emit();
     this.resetForms();
+  }
+
+  /**
+   * Returns a localized validation message for the embedded step form.
+   * Mirrors the behaviour of the standalone step form so both flows stay consistent.
+   */
+  getStepControlError(controlName: string): string | undefined {
+    const control = this.stepForm.get(controlName);
+    if (!control || !control.invalid || (!control.touched && !control.dirty)) {
+      return undefined;
+    }
+
+    if (control.errors?.['required']) {
+      return 'Champ obligatoire';
+    }
+
+    if (control.errors?.['minlength']) {
+      const requiredLength = control.errors['minlength'].requiredLength;
+      return `Saisissez au moins ${requiredLength} caractères`;
+    }
+
+    if (control.errors?.['maxlength']) {
+      const maxLength = control.errors['maxlength'].requiredLength;
+      return `Maximum ${maxLength} caractères autorisés`;
+    }
+
+    if (control.errors?.['invalid']) {
+      if (controlName === 'latitude' || controlName === 'longitude') {
+        return 'Valeur numérique invalide';
+      }
+      return 'Valeur invalide';
+    }
+
+    return undefined;
   }
 
   onThemeChange(selection: ItemProps | ItemProps[]): void {
@@ -304,5 +335,26 @@ export class CreateDiaryModalComponent {
       endDate: '',
       themeId: null,
     });
+  }
+
+  private normalizeDateInput(value: unknown): string | null {
+    if (value == null) {
+      return null;
+    }
+
+    const raw = value.toString().trim();
+    if (!raw) {
+      return null;
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+      return raw;
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}T/.test(raw)) {
+      return raw.slice(0, 10);
+    }
+
+    return raw;
   }
 }

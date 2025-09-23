@@ -279,7 +279,6 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
      */
     this.isCreateModalSubmitting = true;
     this.createModalError = null;
-    console.log('payload', payload);
 
     const currentUserId = this.userService.currentUserId();
 
@@ -320,22 +319,20 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
             continent: (payload.step as any).continent ?? null,
           };
 
-          console.log(stepPayload)
-
           return this.stepService
             .addStepToTravel(createdDiary.id, stepPayload)
-            .pipe(switchMap((createdStep) =>
-            this.stepService.getDiaryWithSteps(createdDiary.id) // ← récupère le Diary à jour
-              .pipe(map((diary) => ({ diary, createdStep })))
-          )
-        );
+            .pipe(
+              switchMap((createdStep) =>
+                this.stepService
+                  .getDiaryWithSteps(createdDiary.id) // ← récupère le Diary à jour
+                  .pipe(map((diary) => ({ diary, createdStep })))
+              )
+            );
         }),
         takeUntil(this.destroy$)
       )
       .subscribe({
         next: ({ diary, createdStep }) => {
-          console.log('diary', diary)
-          console.log('createdStep', { createdStep });
           this.diariesList = [...this.diariesList, diary];
           this.state.setAllDiaries(this.diariesList);
           this.isCreateModalSubmitting = false;
@@ -345,7 +342,8 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
           this.state.setCurrentDiary(diary);
           this.state.setCurrentDiaryId(diary.id);
           this.state.setSteps(diary.steps ?? []);
-          this.state.setOpenedStepId(createdStep.steps?.[0]?.id ?? null);
+          const createdStepId = diary.steps?.find((step) => step.id === createdStep.id)?.id ?? null;
+          this.state.setOpenedStepId(createdStepId);
           this.state.panelHeight.set('collapsedDiary');
 
           void this.router.navigate(['/travels', diary.id]);

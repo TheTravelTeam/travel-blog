@@ -131,23 +131,30 @@
               label="Nom de l'étape"
               placeholder="Nom de l'étape"
               [isRequired]="true"
+              [errorMessage]="getStepControlError('title')"
             ></app-text-input>
 
             <app-text-input
               formControlName="city"
               label="ville"
               placeholder="Ville"
+              [isRequired]="true"
+              [errorMessage]="getStepControlError('city')"
             ></app-text-input>
             <app-text-input
               formControlName="country"
               label="pays"
               placeholder="Pays"
+              [isRequired]="true"
+              [errorMessage]="getStepControlError('country')"
             ></app-text-input>
 
             <app-text-input
               formControlName="continent"
               label="continent"
               placeholder="Continent"
+              [isRequired]="true"
+              [errorMessage]="getStepControlError('continent')"
             ></app-text-input>
 
 
@@ -181,12 +188,14 @@
                 label="Latitude"
                 placeholder="Ex: 48.8566"
                 [isRequired]="true"
+                [errorMessage]="getStepControlError('latitude')"
               ></app-text-input>
               <app-text-input
                 formControlName="longitude"
                 label="Longitude"
                 placeholder="Ex: 2.3522"
                 [isRequired]="true"
+                [errorMessage]="getStepControlError('longitude')"
               ></app-text-input>
             </div>
 
