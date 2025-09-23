@@ -17,11 +17,10 @@
   gap: 0.5rem;
   font-family: $font-text;
   height: 2.5rem;
-  // &--standard {
-  //   // width: 10.25rem;
-  //   // height: 2.5rem;
-  // }
 
+  &--standard {
+    min-width: 8rem;
+  }
   &__icon {
     // font-size: 1rem;
     background-size: contain;
@@ -31,6 +30,7 @@
 
   &--icon-only {
     max-width: 2.5rem;
+    min-width: none;
     padding: 10px 10px !important;
     justify-content: center;
     gap: 0;
@@ -49,15 +49,6 @@
         color: inherit;
       }
     }
-
-    &:disabled {
-      background-color: $commentTextColor;
-      color: $secondaryTextColor;
-      opacity: 0.5;
-      cursor: not-allowed;
-      filter: blur(1px);
-      pointer-events: none;
-    }
   }
 
   &--secondary {
@@ -73,20 +64,35 @@
         color: inherit;
       }
     }
-
-    &:disabled {
-      background-color: $commentTextColor;
-      color: $secondaryTextColor;
-      opacity: 0.5;
-      cursor: not-allowed;
-      filter: blur(1px);
-      pointer-events: none;
-    }
   }
 
   &--danger {
-    background-color: red;
-    color: white;
+    background-color: $secondaryColor;
+    color: $secondaryTextColor;
+    &:hover:not(:disabled) {
+      color: $secondaryColor;
+      background-color: $secondaryTextColor;
+      border: 1px solid $secondaryColor;
+    }
+  }
+  &--white {
+    background-color: $secondaryTextColor;
+    color: $primaryColor;
+    border: 1px solid $primaryColor;
+    &:hover:not(:disabled) {
+      background-color: $primaryColor;
+      color: $secondaryTextColor;
+    }
+
+    &-danger {
+      background-color: $secondaryTextColor;
+      color: $secondaryColor;
+      border: 1px solid $secondaryColor;
+      &:hover:not(:disabled) {
+        background-color: $secondaryColor;
+        color: $secondaryTextColor;
+      }
+    }
   }
 
   &--sm {
@@ -105,13 +111,13 @@
   &--lg {
     font-size: 16px;
     padding: 1.125rem 1rem;
-    width: 10.25rem;
+    // width: 10.25rem;
   }
 
   &--auto {
     font-size: 0.8rem;
+    padding-inline: 1rem;
     width: auto;
-    min-width: 8rem;
   }
 
   &--border_lg {
@@ -157,5 +163,9 @@
         border: $secondaryTextColor 1px solid;
       }
     }
+  }
+  &--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }

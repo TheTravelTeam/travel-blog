@@ -1,7 +1,42 @@
-<dialog #dialog id="modal">
-  <div>
-    <h2>Mon Modal</h2>
-    <p>Ceci est une boîte de dialogue avec la balise native &lt;dialog&gt;.</p>
+<dialog
+  #modalWrapper
+  id="modal"
+  [@modalAnimation]="isOpen() ? 'open' : 'close'"
+  class="modal__wrapper"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="modal-title"
+  aria-describedby="modal-description"
+>
+  <div class="modal__title" [class]="{ 'modal__title--danger': isDangerModal }">
+    <h3 id="modal-title">{{ truncatedTitle }}</h3>
+    <app-button
+      [isActionBtn]="true"
+      [color]="isDangerModal ? 'danger' : 'primary'"
+      icon="close"
+      (click)="close()"
+    />
   </div>
-  <button (click)="close()">Fermer</button>
+  <div class="modal__body" [class]="{ 'modal__body--danger': isDangerModal }">
+    @if (!isDangerModal) {
+      <app-icon name="info" size="lg" color="primary" />
+    } @else {
+      <app-icon name="warning" size="lg" color="danger" />
+    }
+    <p id="modal-description">{{ description }}</p>
+    <div style="display: flex; justify-content: space-between; padding-top: 2rem">
+      <app-button
+        size="lg"
+        [color]="isDangerModal ? 'white-danger' : 'white'"
+        [text]="leftButtonLabel"
+        (click)="close()"
+      />
+      <app-button
+        size="lg"
+        [color]="isDangerModal ? 'danger' : 'primary'"
+        [text]="rightButtonLabel"
+        (click)="confirmAction()"
+      />
+    </div>
+  </div>
 </dialog>

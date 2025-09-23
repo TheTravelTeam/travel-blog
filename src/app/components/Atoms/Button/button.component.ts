@@ -1,5 +1,4 @@
-import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
-import { ButtonService } from './button.service';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Btn, btnDefault } from '@model/btn.model';
 import { IconComponent } from '../Icon/icon.component';
@@ -10,7 +9,6 @@ import { IconComponent } from '../Icon/icon.component';
   styleUrl: './button.component.scss',
 })
 export class ButtonComponent {
-
   @Input() color: Btn['color'] = btnDefault['color'];
   @Input() radius: Btn['radius'] = btnDefault['radius'];
   @Input() size: Btn['size'] = btnDefault['size'];
