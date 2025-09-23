@@ -1,4 +1,12 @@
-export type TextInputType = 'text' | 'password' | 'email' | 'tel' | 'url' | 'search';
+export type TextInputType =
+  | 'text'
+  | 'password'
+  | 'email'
+  | 'tel'
+  | 'url'
+  | 'search'
+  | 'datetime-local'
+  | 'date';
 export type TextInputSize = 'small' | 'medium' | 'large';
 export type TextInputVariant = 'outlined' | 'filled';
 export type IconPosition = 'left' | 'right';

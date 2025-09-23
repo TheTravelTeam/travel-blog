@@ -199,6 +199,36 @@ export class MePageComponent implements OnInit, OnDestroy {
     this.openSection.set(id);
   }
 
+  /**
+   * Redirige vers la page des voyages de l'utilisateur pour créer un carnet.
+   * La création se fait toujours sur `/travels/users/{userId}`.
+   */
+  openMyTravelsForCreation(): void {
+    const current = this.profile();
+    const userId = current?.id ?? this.userService.currentUserId();
+    if (typeof userId !== 'number' || Number.isNaN(userId)) {
+      console.warn('Impossible de déterminer userId pour la création de carnet');
+      return;
+    }
+    // Demande l'ouverture auto de la modale côté page voyages
+    this.travelMapState.requestCreateModal();
+    void this.router.navigate(['/travels', 'users', userId]);
+  }
+
+  /**
+   * Ouvre la page voyages utilisateur et demande l'édition du carnet donné.
+   */
+  openDiaryForEdit(diaryId: number): void {
+    const current = this.profile();
+    const userId = current?.id ?? this.userService.currentUserId();
+    if (typeof userId !== 'number' || Number.isNaN(userId)) {
+      console.warn('Impossible de déterminer userId pour éditer le carnet');
+      return;
+    }
+    this.travelMapState.requestEditDiary(diaryId);
+    void this.router.navigate(['/travels', 'users', userId]);
+  }
+
   /** Vérifie si une section donnée est actuellement sélectionnée. */
   isSectionOpen(id: SectionId): boolean {
     return this.openSection() === id;

@@ -10,4 +10,10 @@ export interface CreateDiaryDto {
   latitude: number;
   longitude: number;
   media: CoverMediaDto;
+  user: number | null;
+  isPrivate?: boolean;
+  isPublished?: boolean;
+  status?: string;
+  canComment?: boolean;
+  steps?: number[];
 }

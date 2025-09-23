@@ -36,6 +36,7 @@ import { AvatarComponent } from 'components/Atoms/avatar/avatar.component';
 import { BreakpointService } from '@service/breakpoint.service';
 import { Router } from '@angular/router';
 import { TravelMapStateService } from '@service/travel-map-state.service';
+import { UserService } from '@service/user.service';
 
 // Interface pour les événements
 export interface MapDiarySelectedEvent {
@@ -66,6 +67,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
       const diaryId = this.state.currentDiaryId();
       if (diaryId && this.map) {
         this.currentDiaryId = diaryId;
+        console.log('je suis appelé dans le effect')
         this.loadStepsForCurrentDiary();
       }
     });
@@ -76,6 +78,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
   private breakpointService = inject(BreakpointService);
   private router = inject(Router);
   public state = inject(TravelMapStateService);
+  private userService = inject(UserService);
 
   private map!: L.Map;
   public currentDiaryId: number | null = null;
@@ -112,6 +115,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
     // 💡 Si currentDiaryId est déjà là, on recharge (permet de déclencher l’effet ci-dessus)
     if (this.state.currentDiaryId()) {
       this.currentDiaryId = this.state.currentDiaryId();
+      console.log('je suis apppelé dans afterinit')
       this.loadStepsForCurrentDiary(); // ce sera ignoré si déjà appelé par l'effet
     }
   }
@@ -199,11 +203,19 @@ export class MapComponent implements AfterViewInit, OnChanges {
     }
   }
 
+
   /**
    * Gérer les clics sur la carte
    */
   private handleCreateOnMapClick(e: L.LeafletMouseEvent): void {
     const { lat, lng } = e.latlng;
+    const coordStr = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+
+    // Affiche les coordonnées dans un popup
+    L.popup({ closeOnClick: true, autoClose: true })
+      .setLatLng([lat, lng])
+      .setContent(`<b>GPS</b><br>${coordStr}`)
+      .openOn(this.map);
 
     if (this.viewMode) return;
 
@@ -218,11 +230,18 @@ export class MapComponent implements AfterViewInit, OnChanges {
             'https://www.echosciences-grenoble.fr/uploads/article/image/attachment/1005418938/xl_lens-1209823_1920.jpg',
           mediaType: 'PHOTO',
         },
+        user: this.userService.currentUserId(),
+        isPrivate: false,
+        isPublished: true,
+        status: 'DRAFT',
+        canComment: true,
+        steps: [],
       };
 
       this.stepService.addDiary(newDiary).subscribe((diary) => {
         L.marker([lat, lng]).addTo(this.map).bindPopup(diary.title).openPopup();
         this.currentDiaryId = diary.id;
+        console.log('je suis appeler dans le create on clikc')
         this.loadStepsForCurrentDiary();
         this.isStep = true;
         this.isDiary = false;
@@ -282,6 +301,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
           });
           // 🧭 Naviguer proprement avec Angular :
           this.router.navigate(['/travels', diary.id]);
+          console.log('je suis appeler dans le loadalldiaries')
           this.loadStepsForCurrentDiary();
         });
       });
@@ -414,6 +434,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
    */
   private fetchAddress(lat: number, lng: number): void {
     const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`;
+    console.log('url', url)
     this.http.get<NominatimResponse>(url).subscribe((data) => {
       const address = data.display_name || 'Adresse non trouvée';
       L.popup().setLatLng([lat, lng]).setContent(address).openOn(this.map);
@@ -425,10 +446,12 @@ export class MapComponent implements AfterViewInit, OnChanges {
    */
   private saveStep(lat: number, lng: number): void {
     const newStep: CreateStepDto = {
-      name: `Step ${Date.now()}`,
+      title: `Step ${Date.now()}`,
       description: 'Ajouté depuis carte',
       latitude: lat,
       longitude: lng,
+      travelDiaryId: this.currentDiaryId!,
+      status: 'IN_PROGRESS',
     };
 
     this.stepService.addStepToTravel(this.currentDiaryId!, newStep).subscribe((travel) => {

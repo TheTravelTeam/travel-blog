@@ -7,6 +7,13 @@ import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angul
 import { environment } from '../../../environments/environment';
 import { TravelDiary } from '@model/travel-diary.model';
 import { StepService } from '@service/step.service';
+import { importProvidersFrom } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import {
+  CreateDiaryModalComponent,
+  } from 'components/Organisms/create-diary-modal/create-diary-modal.component';
+import { UserService } from '@service/user.service';
+import { ThemeService } from '@service/theme.service';
 
 describe('MyTravelsPageComponent', () => {
   let component: MyTravelsPageComponent;
@@ -14,12 +21,26 @@ describe('MyTravelsPageComponent', () => {
   let httpMock: HttpTestingController;
   let router: Router;
   let stepServiceSpy: jasmine.SpyObj<StepService>;
+  let themeServiceSpy: jasmine.SpyObj<ThemeService>;
 
   const paramMap$ = new BehaviorSubject(convertToParamMap({ id: '1' }));
 
   beforeEach(async () => {
-    stepServiceSpy = jasmine.createSpyObj<StepService>('StepService', ['deleteDiary']);
+    stepServiceSpy = jasmine.createSpyObj<StepService>('StepService', [
+      'deleteDiary',
+      'addDiary',
+      'addStepToTravel',
+    ]);
     stepServiceSpy.deleteDiary.and.returnValue(of(void 0));
+    themeServiceSpy = jasmine.createSpyObj<ThemeService>('ThemeService', ['getThemes']);
+    themeServiceSpy.getThemes.and.returnValue(of([]));
+
+    TestBed.overrideComponent(CreateDiaryModalComponent, {
+      set: {
+        template: '',
+        imports: [],
+      },
+    });
 
     await TestBed.configureTestingModule({
       imports: [MyTravelsPageComponent],
@@ -27,6 +48,7 @@ describe('MyTravelsPageComponent', () => {
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
+        importProvidersFrom(ReactiveFormsModule),
         {
           provide: ActivatedRoute,
           useValue: {
@@ -34,6 +56,7 @@ describe('MyTravelsPageComponent', () => {
           },
         },
         { provide: StepService, useValue: stepServiceSpy },
+        { provide: ThemeService, useValue: themeServiceSpy },
       ],
     }).compileComponents();
 
@@ -41,6 +64,9 @@ describe('MyTravelsPageComponent', () => {
     component = fixture.componentInstance;
     httpMock = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
+    const userService = TestBed.inject(UserService);
+    spyOn(userService, 'currentUserId').and.returnValue(1);
+
     fixture.detectChanges();
 
     const mockDiaries: TravelDiary[] = [
@@ -106,14 +132,39 @@ describe('MyTravelsPageComponent', () => {
     expect(component.panelError).toBeNull();
   });
 
-  it('should navigate to diary page on edit action', async () => {
+  it('should open edit modal with prefilled data on edit action', () => {
     const diary = component.diariesList[0];
+
+    // On espionne la navigation pour vérifier qu'elle n'est PAS appelée
     const navigateSpy = spyOn(router, 'navigate').and.resolveTo(true);
 
-    await component.onDiaryEdit(diary);
+    // Act
+    component.onDiaryEdit(diary);
 
-    expect(navigateSpy).toHaveBeenCalledWith(['/travels', diary.id], { queryParams: { mode: 'edit' } });
+    // Assert: pas de navigation
+    expect(navigateSpy).not.toHaveBeenCalled();
+
+    // Assert: ouverture de la modale en mode édition
+    expect(component.isEditMode).toBeTrue();
+    expect(component.isCreateModalOpen).toBeTrue();
+    expect(component.createModalError).toBeNull();
+    expect(component.isCreateModalSubmitting).toBeFalse();
+
+    // Assert: pré-remplissage des champs de la modale
+    expect(component.editInitialDiary).toEqual({
+      title: diary.title ?? '',
+      description: diary.description ?? '',
+      coverUrl: diary.media?.fileUrl ?? null, // ton mock a media: null => null ici
+    });
+
+    // Assert: le state courant est positionné sur le diary édité
+    expect(component.state.currentDiaryId()).toBe(diary.id);
+    expect(component.state.currentDiary()).toBe(diary);
+
+    // Optionnel: si ensureThemesLoaded() doit charger les thèmes, on peut vérifier l'appel
+    expect(themeServiceSpy.getThemes).toHaveBeenCalled();
   });
+
 
   it('should delete a diary and call the service', () => {
     const diary = component.diariesList[0];
@@ -135,4 +186,5 @@ describe('MyTravelsPageComponent', () => {
     expect(component.diariesList.length).toBe(1);
     expect(component.panelError).toBe('Impossible de supprimer ce carnet pour le moment.');
   });
-});
+
+})
