@@ -11,7 +11,7 @@
 - `src/app/core/services/user.service.{ts,spec.ts}` : endpoint `/roles`, delete texte, tests ajustes.
 - `src/app/shared/dto/user-profile.dto.ts` : champ `password` optionnel.
 - `src/app/shared/model/btn.model.ts` : ajout du champ `htmlType`.
-- `src/app/shared/model/text-input.ts` : ajout `autocomplete`.
+- `src/app/shared/model/text-input.model.ts` : ajout `autocomplete`.
 
 ## Nouveaux fichiers
 - `src/app/core/interceptors/auth.interceptor.ts` : interception du header Authorization (`docs/auth-http-interceptor.md`).
