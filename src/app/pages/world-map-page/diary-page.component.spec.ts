@@ -2,6 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { DiaryPageComponent } from './diary-page.component';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 describe('DiaryPageComponent', () => {
   let component: DiaryPageComponent;
@@ -10,7 +12,7 @@ describe('DiaryPageComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [DiaryPageComponent],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(DiaryPageComponent);
