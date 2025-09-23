@@ -15,11 +15,25 @@
           class="diary__cover"
           [style]="`background-image: url(${getDiaryCover()})`"
         >
-          <app-avatar
-            label=""
-            picture="{{ state.currentDiary()?.user?.avatar }}"
-            class="diary__avatar"
-          ></app-avatar>
+          @let diaryOwner = diaryOwnerInfo();
+          @if (diaryOwner) {
+            <button
+              type="button"
+              class="diary__avatar"
+              (click)="onOwnerNavigate(diaryOwner)"
+              [attr.aria-label]="getOwnerLinkAriaLabel(diaryOwner)"
+            >
+              <app-avatar
+                [label]="diaryOwner.label || 'Utilisateur'"
+                [picture]="diaryOwner.avatar ?? undefined"
+                [style.cursor]="'pointer'"
+              ></app-avatar>
+            </button>
+          } @else {
+            <div class="diary__avatar">
+              <app-avatar label="Utilisateur"></app-avatar>
+            </div>
+          }
           <h1 class="worldMap__detail-panel__header--title">{{ state.currentDiary()?.title }}</h1>
           <p>Mettre des stats ?</p>
         </div>
@@ -36,6 +50,7 @@
         </div>
       }
       <div class="worldMap__detail-panel__body--steps-container">
+        @let viewerIsOwner = isDiaryOwner();
         @for (step of state.steps(); track $index) {
           @let medias = getStepMedias(step);
           <app-accordion
@@ -47,7 +62,7 @@
             (toggleOpen)="onAccordionToggle(step.id, $event)"
             (stepClicked)="onStepClicked($event)"
             (remove)="onDeleteSteps(step.id)"
-            role="admin"
+            [role]="viewerIsOwner ? 'owner' : 'reader'"
             [(isEditing)]="step.isEditing"
           >
             <div class="step__content__container">

@@ -1,4 +1,14 @@
-import { Component, effect, ElementRef, inject, ViewChild, OnInit } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { ProgressBarComponent } from '../../components/Atoms/progress-bar/progress-bar.component';
 import { AccordionComponent } from '../../components/Atoms/accordion/accordion.component';
 import { FormsModule } from '@angular/forms';
@@ -10,7 +20,17 @@ import { DividerComponent } from 'components/Atoms/Divider/divider.component';
 import { BreakpointService } from '@service/breakpoint.service';
 import { AvatarComponent } from '../../components/Atoms/avatar/avatar.component';
 import { TravelMapStateService } from '@service/travel-map-state.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { UserService } from '@service/user.service';
+import { User } from '@model/user.model';
+import { Subscription } from 'rxjs';
+import { take } from 'rxjs/operators';
+
+type DiaryOwnerInfo = {
+  id: number;
+  avatar?: string | null;
+  label: string;
+};
 
 @Component({
   selector: 'app-world-map-page',
@@ -26,15 +46,20 @@ import { ActivatedRoute } from '@angular/router';
   templateUrl: './diary-page.component.html',
   styleUrl: './diary-page.component.scss',
 })
-export class DiaryPageComponent implements OnInit {
+export class DiaryPageComponent implements OnInit, OnDestroy {
   readonly state = inject(TravelMapStateService);
+  private userService = inject(UserService);
 
   private breakpointService = inject(BreakpointService);
   isTabletOrMobile = this.breakpointService.isMobileOrTablet;
 
   private activatedRoute = inject(ActivatedRoute);
+  private router = inject(Router);
 
   @ViewChild('detailPanel') detailPanelRef!: ElementRef<HTMLDivElement>;
+
+  private readonly diaryOwner = signal<DiaryOwnerInfo | null>(null);
+  private ownerFetchSub: Subscription | null = null;
 
   // Reset du scroll avec des signals & un sélector via Angular ci dessus
   constructor() {
@@ -45,6 +70,40 @@ export class DiaryPageComponent implements OnInit {
           this.detailPanelRef?.nativeElement.scrollTo({ top: 0 });
         });
       }
+    });
+
+    effect(
+      () => {
+        this.resolveDiaryOwner(this.state.currentDiary());
+      },
+      { allowSignalWrites: true }
+    );
+  }
+
+  readonly diaryOwnerInfo = computed<DiaryOwnerInfo | null>(() => this.diaryOwner());
+
+  readonly isDiaryOwner = computed(() => {
+    const owner = this.diaryOwnerInfo();
+    if (!owner) {
+      return false;
+    }
+
+    const current = this.userService.currentUserId();
+    return typeof current === 'number' && owner.id === current;
+  });
+
+  getOwnerLinkAriaLabel(owner: DiaryOwnerInfo): string {
+    const label = owner.label?.trim();
+    return label ? `Voir les carnets de ${label}` : 'Voir les carnets de cet utilisateur';
+  }
+
+  onOwnerNavigate(owner: DiaryOwnerInfo | null): void {
+    if (!owner) {
+      return;
+    }
+
+    this.router.navigate(['/travels', 'users', owner.id]).catch(() => {
+      /* Navigation errors ignored */
     });
   }
 
@@ -58,6 +117,70 @@ export class DiaryPageComponent implements OnInit {
       }
     });
   }
+
+  ngOnDestroy(): void {
+    this.ownerFetchSub?.unsubscribe();
+  }
+
+  private resolveDiaryOwner(diary: unknown) {
+    this.ownerFetchSub?.unsubscribe();
+    this.ownerFetchSub = null;
+
+    if (!diary || typeof diary !== 'object') {
+      this.diaryOwner.set(null);
+      return;
+    }
+
+    const diaryWithUser = diary as { user?: unknown; userId?: number };
+    const userField = diaryWithUser.user;
+    const fallbackId = typeof diaryWithUser.userId === 'number' ? diaryWithUser.userId : undefined;
+
+    if (userField && typeof userField === 'object') {
+      const user = userField as Partial<User>;
+      const id = typeof user.id === 'number' ? user.id : fallbackId;
+
+      if (typeof id !== 'number') {
+        this.diaryOwner.set(null);
+        return;
+      }
+
+      this.diaryOwner.set({
+        id,
+        avatar: user.avatar ?? null,
+        label: user.username ?? user.userName ?? '',
+      });
+      return;
+    }
+
+    const ownerId = typeof userField === 'number' ? userField : fallbackId;
+
+    if (typeof ownerId !== 'number') {
+      this.diaryOwner.set(null);
+      return;
+    }
+
+    this.diaryOwner.set({ id: ownerId, avatar: null, label: '' });
+    this.fetchDiaryOwner(ownerId);
+  }
+
+  private fetchDiaryOwner(ownerId: number) {
+    this.ownerFetchSub = this.userService
+      .getUserProfile(ownerId)
+      .pipe(take(1))
+      .subscribe({
+        next: (profile) => {
+          this.diaryOwner.set({
+            id: profile.id,
+            avatar: profile.avatar ?? null,
+            label: profile.pseudo || profile.email || '',
+          });
+        },
+        error: () => {
+          this.diaryOwner.set({ id: ownerId, avatar: null, label: '' });
+        },
+      });
+  }
+
   togglePanel() {
     if (!this.state.currentDiary()) {
       // Si pas de diary, toggle simple entre collapsed/expanded

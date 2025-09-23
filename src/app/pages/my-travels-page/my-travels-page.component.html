@@ -59,6 +59,7 @@
           [title]="diary.title"
           [image]="state.getDiaryCoverUrl(diary)"
           [description]="diary.description"
+          [showInlineActions]="isOwner()"
           (cardClick)="onDiaryCardClick(diary)"
           (edit)="onDiaryEdit(diary)"
           (delete)="onDiaryDelete(diary)"

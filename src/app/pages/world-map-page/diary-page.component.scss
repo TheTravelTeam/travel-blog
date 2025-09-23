@@ -116,6 +116,21 @@ app-accordion {
 .diary__avatar {
   position: absolute;
   right: 1rem;
+  top: 1rem;
+  display: inline-flex;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  line-height: 0;
+}
+
+.diary__avatar app-avatar {
+  display: block;
+  cursor: pointer;
 }
 
 .filter__container {
