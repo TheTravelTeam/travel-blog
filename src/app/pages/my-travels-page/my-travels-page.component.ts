@@ -55,6 +55,9 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
   private breakpointService = inject(BreakpointService);
   isTabletOrMobile = this.breakpointService.isMobileOrTablet;
 
+  // Conserve l'id utilisateur du profil affiché (utilisé comme fallback owner)
+  private currentProfileUserId: number | null = null;
+
   @ViewChild('detailPanel') detailPanelRef!: ElementRef<HTMLDivElement>;
 
   // Reset du scroll avec des signals & un sélector via Angular ci dessus
@@ -77,44 +80,57 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.route.paramMap
       .pipe(
-        map((params) => {
-          const rawId = params.get('id');
-          const parsed = rawId != null ? Number(rawId) : NaN;
-          if (!Number.isNaN(parsed)) {
-            return parsed;
+        map(params => {
+          const raw = params.get('id');
+          const parsed = raw !== null ? Number(raw) : NaN;
+          if (Number.isFinite(parsed) && parsed > 0) {
+            return parsed; // un id valide dans l’URL
           }
-          return this.userService.currentUserId();
+          return this.userService.currentUserId(); // peut être number | null
         }),
         switchMap((userId) => {
-          if (typeof userId !== 'number' || Number.isNaN(userId)) {
-            return of<TravelDiary[]>([]);
+          if (userId == null) {
+            // Cas où aucun utilisateur n’est dispo
+            return of({ diaries: [], userId: null });
           }
-          return this.userService
-            .getUserProfile(userId)
-            .pipe(map((profile) => profile.travelDiaries ?? []));
+
+          // Cas normal : on charge le profil du user
+          return this.userService.getUserProfile(userId).pipe(
+            map(profile => ({
+              diaries: profile.travelDiaries ?? [],
+              userId: profile.id,
+            }))
+          );
         }),
         takeUntil(this.destroy$)
       )
       .subscribe({
-        next: (diaries) => {
-          this.diariesList = Array.isArray(diaries) ? diaries : [];
+        next: ({ diaries, userId }) => {
+          // Mémorise l'id du profil affiché pour isOwner
+          this.currentProfileUserId =
+            typeof userId === 'number' && Number.isFinite(userId) ? userId : null;
+
+          this.diariesList = diaries ?? [];
           this.state.setAllDiaries(this.diariesList);
           this.panelError = null;
 
-          // Ouvre automatiquement la modale de création si demandé
+          // Si on a demandé à ouvrir la modale de création
           if (this.state.consumeCreateModalRequest()) {
             this.openCreateModal();
           }
 
-          // Ouvre automatiquement la modale d'édition si demandé
+          // Si on a demandé à ouvrir la modale d’édition
           const editId = this.state.consumeRequestedEditDiary();
           if (editId != null) {
-            const diary = this.diariesList.find((d) => d.id === editId);
+            const diary = this.diariesList.find(d => d.id === editId);
             if (diary) {
               this.openEditModal(diary);
             }
           }
-        },
+          this.state.setAllDiaries(this.diariesList);
+          this.panelError = null;
+
+          },
         error: (err) => {
           console.error('Failed to load user diaries', err);
           this.diariesList = [];
@@ -122,6 +138,7 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
         },
       });
   }
+
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -434,4 +451,19 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
         },
       });
   }
-}
+
+  /**
+   * Indique si l'utilisateur connecté est propriétaire du carnet.
+   */
+  isOwner(): boolean {
+    const currentUserId = this.userService.currentUserId();
+    if (typeof currentUserId !== 'number' || Number.isNaN(currentUserId)) {
+      return false;
+    }
+    if (typeof this.currentProfileUserId !== 'number' || Number.isNaN(this.currentProfileUserId)) {
+      return false;
+    }
+    // Propriétaire si l'utilisateur connecté correspond à l'utilisateur de la page
+    return currentUserId === this.currentProfileUserId;
+  }
+   }

@@ -23,8 +23,10 @@ export interface TravelDiary {
   description: string;
   /** Liste normalisée des étapes. */
   steps: Step[];
-  /** Auteur du carnet. */
+  /** Auteur du carnet (objet) lorsque présent. */
   user: User;
   /** Média principal fourni par l'API (photo ou vidéo). */
   media: Media | null;
+  /** Identifiant simple de l'auteur lorsque l'API ne renvoie pas l'objet complet. */
+  userId?: number;
 }
