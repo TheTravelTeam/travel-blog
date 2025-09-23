@@ -36,6 +36,7 @@ export class ModalComponent {
   readonly isOpen = signal(false);
 
   get truncatedTitle() {
+    if (!this.title) return;
     return this.title.length > this.MAX_TITLE_LENGTH
       ? this.title.slice(0, this.MAX_TITLE_LENGTH) + '...'
       : this.title;
