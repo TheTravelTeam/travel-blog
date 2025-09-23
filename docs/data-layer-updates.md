@@ -25,7 +25,7 @@
 
 ## DTO / Modeles utilisateur
 - `UserProfileDto` expose desormais un champ optionnel `password` pour les mises a jour liees au formulaire profil.
-- `btn.model.ts` et `text-input.ts` refletent les entrees supplementaires (`htmlType`, `autocomplete`).
+- `btn.model.ts` et `text-input.model.ts` refletent les entrees supplementaires (`htmlType`, `autocomplete`).
 
 ## Pages & Raccrochement
 - `/me` (voir `docs/me-page-overview.md`) consomme ces services :

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { Component, EventEmitter, forwardRef, Input, OnChanges, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TextInput, textInputDefault } from '@model/text-input';
+import { TextInputModel, textInputDefault } from '@model/text-input.model';
 import { FormsModule, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { IconName } from '@model/icon.model';
 import { IconComponent } from '../Icon/icon.component';
@@ -21,20 +21,20 @@ import { IconComponent } from '../Icon/icon.component';
   ],
 })
 export class TextInputComponent implements OnChanges {
-  @Input() label?: TextInput['label'];
-  @Input() placeholder?: TextInput['placeholder'];
-  @Input() type: TextInput['type'] = textInputDefault['type'];
-  @Input() size: TextInput['size'] = textInputDefault['size'];
-  @Input() variant: TextInput['variant'] = textInputDefault['variant'];
-  @Input() isDisabled: TextInput['isDisabled'] = textInputDefault['isDisabled'];
-  @Input() isRequired: TextInput['isRequired'] = textInputDefault['isRequired'];
-  @Input() helperText?: TextInput['helperText'];
-  @Input() errorMessage?: TextInput['errorMessage'];
-  @Input() maxLength?: TextInput['maxLength'];
-  @Input() showCharCount: TextInput['showCharCount'] = textInputDefault['showCharCount'];
+  @Input() label?: TextInputModel['label'];
+  @Input() placeholder?: TextInputModel['placeholder'];
+  @Input() type: TextInputModel['type'] = textInputDefault['type'];
+  @Input() size: TextInputModel['size'] = textInputDefault['size'];
+  @Input() variant: TextInputModel['variant'] = textInputDefault['variant'];
+  @Input() isDisabled: TextInputModel['isDisabled'] = textInputDefault['isDisabled'];
+  @Input() isRequired: TextInputModel['isRequired'] = textInputDefault['isRequired'];
+  @Input() helperText?: TextInputModel['helperText'];
+  @Input() errorMessage?: TextInputModel['errorMessage'];
+  @Input() maxLength?: TextInputModel['maxLength'];
+  @Input() showCharCount: TextInputModel['showCharCount'] = textInputDefault['showCharCount'];
   @Input() icon?: IconName;
-  @Input() iconPosition: TextInput['iconPosition'] = textInputDefault['iconPosition'];
-  @Input() autocomplete: TextInput['autocomplete'] = textInputDefault['autocomplete'];
+  @Input() iconPosition: TextInputModel['iconPosition'] = textInputDefault['iconPosition'];
+  @Input() autocomplete: TextInputModel['autocomplete'] = textInputDefault['autocomplete'];
 
   @Output() valueChange = new EventEmitter<string>();
   @Output() inputFocus = new EventEmitter<FocusEvent>();

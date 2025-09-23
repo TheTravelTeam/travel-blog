@@ -11,7 +11,7 @@ export type TextInputSize = 'small' | 'medium' | 'large';
 export type TextInputVariant = 'outlined' | 'filled';
 export type IconPosition = 'left' | 'right';
 
-export interface TextInput {
+export interface TextInputModel {
   label?: string;
   placeholder: string;
   type: TextInputType;
@@ -29,7 +29,7 @@ export interface TextInput {
 }
 
 export const textInputDefault: Required<
-  Omit<TextInput, 'label' | 'placeholder' | 'errorMessage' | 'maxLength' | 'icon'>
+  Omit<TextInputModel, 'label' | 'placeholder' | 'errorMessage' | 'maxLength' | 'icon'>
 > = {
   type: 'text',
   size: 'medium',
