@@ -29,7 +29,8 @@ export class StepService {
   }
 
   addStepToTravel(travelId: number, newStep: CreateStepDto): Observable<TravelDiary> {
-    return this.http.post<TravelDiary>(`${this.baseUrl}/travel-diaries/${travelId}/steps`, newStep);
+    // Backend expects POST /steps with travelDiaryId in body
+    return this.http.post<TravelDiary>(`${this.baseUrl}/steps`, newStep);
   }
 
   getAllDiaries(): Observable<TravelDiary[]> {
@@ -38,6 +39,10 @@ export class StepService {
 
   addDiary(newDiary: CreateDiaryDto): Observable<TravelDiary> {
     return this.http.post<TravelDiary>(`${this.baseUrl}/travel-diaries`, newDiary);
+  }
+
+  updateDiary(diaryId: number, payload: Partial<CreateDiaryDto>): Observable<TravelDiary> {
+    return this.http.put<TravelDiary>(`${this.baseUrl}/travel-diaries/${diaryId}`, payload);
   }
 
   deleteDiary(diaryId: number): Observable<void> {

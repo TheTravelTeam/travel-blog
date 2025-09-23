@@ -34,7 +34,14 @@
           ></app-divider>
         </div>
         <div class="my-diaries__detail-panel__header--btn">
-          <app-button [isActionBtn]="true" size="md" color="primary" type="like"></app-button>
+          <app-button
+            [isActionBtn]="true"
+            size="md"
+            color="primary"
+            type="standard"
+            icon="add"
+            (btnClick)="openCreateModal()"
+          ></app-button>
           <p>Ajouter un carnet</p>
         </div>
       }
@@ -72,7 +79,22 @@
         icon="add"
         text="Ajouter"
         size="auto"
+        type="standard"
+        (btnClick)="openCreateModal()"
       ></app-button>
     </div>
   </div>
+
+  @if (isCreateModalOpen) {
+  <app-create-diary-modal
+    [isMobile]="isTabletOrMobile()"
+    [isSubmitting]="isCreateModalSubmitting"
+    [errorMessage]="createModalError"
+    [availableThemes]="themeOptions"
+    [mode]="isEditMode ? 'edit' : 'create'"
+    [initialDiary]="editInitialDiary"
+    (cancel)="closeCreateModal()"
+    (submitDiary)="onDiaryModalSubmit($event)"
+  ></app-create-diary-modal>
+  }
 </div>

@@ -180,6 +180,7 @@
                       size="auto"
                       [startIcon]="true"
                       icon="add"
+                      (btnClick)="openMyTravelsForCreation()"
                     ></app-button>
                   </div>
                   @if (diariesError()) {
@@ -196,6 +197,7 @@
                             [description]="getDiaryDescription(diary)"
                             [showInlineActions]="false"
                             (cardClick)="openDiary(diary.id)"
+                            (edit)="openDiaryForEdit(diary.id)"
                           ></app-travel-diary-card>
                           <div class="me-page__diary-footer">
                             <div class="me-page__diary-meta">
@@ -246,7 +248,7 @@
                                   radius="border_lg"
                                   icon="edit"
                                   [startIcon]="true"
-                                  (btnClick)="openDiary(diary.id)"
+                                  (btnClick)="openDiaryForEdit(diary.id)"
                                 ></app-button>
                                 <app-button
                                   [text]="diary.private ? 'Rendre public' : 'Rendre privé'"

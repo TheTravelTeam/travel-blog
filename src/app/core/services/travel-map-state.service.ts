@@ -30,6 +30,48 @@ export class TravelMapStateService {
 
   totalStepsCount = computed(() => this.steps().length);
 
+  // --- Ouverture automatique de la modale de création ---
+  shouldOpenCreateModal = signal(false);
+  /**
+   * Demande l'ouverture automatique de la modale de création
+   * au prochain chargement de la page `/travels`.
+   */
+  requestCreateModal() {
+    this.shouldOpenCreateModal.set(true);
+  }
+  /**
+   * Consomme le drapeau d'ouverture de la modale de création et le réinitialise.
+   * Retourne true si une ouverture a été demandée, false sinon.
+   */
+  consumeCreateModalRequest(): boolean {
+    const flag = this.shouldOpenCreateModal();
+    if (flag) {
+      this.shouldOpenCreateModal.set(false);
+    }
+    return flag;
+  }
+
+  // --- Ouverture automatique de la modale d'édition de carnet ---
+  requestedEditDiaryId = signal<number | null>(null);
+  /**
+   * Demande l'ouverture automatique de la modale d'édition pour un carnet donné.
+   * @param id Identifiant du carnet à éditer
+   */
+  requestEditDiary(id: number) {
+    this.requestedEditDiaryId.set(id);
+  }
+  /**
+   * Consomme l'id du carnet à éditer et le réinitialise.
+   * @returns L'id du carnet s'il existait, sinon null.
+   */
+  consumeRequestedEditDiary(): number | null {
+    const id = this.requestedEditDiaryId();
+    if (id != null) {
+      this.requestedEditDiaryId.set(null);
+    }
+    return id;
+  }
+
   // ✅ Méthodes utilitaires
   setSteps(steps: Step[]) {
     this.steps.set(steps);

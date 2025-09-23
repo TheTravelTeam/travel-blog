@@ -10,6 +10,8 @@ export interface Step {
   longitude: number;
   media: Media[];
   country: string;
+  city: string;
+  continent: string;
   startDate: Date;
   isEditing: boolean;
   comments?: Comment[];
