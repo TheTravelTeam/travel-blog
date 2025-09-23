@@ -29,7 +29,9 @@ app-accordion {
     flex: 8;
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 70px);
+
+    height: calc(100vh - 70.55px);
+
     padding-bottom: 1rem;
     overflow-y: auto;
     scrollbar-gutter: stable;
@@ -331,7 +333,8 @@ app-accordion {
 @media screen and (min-width: 1024px) {
   .worldMap {
     flex-direction: row;
-    height: calc(100vh - 70px);
+    height: calc(100vh - 70.55px);
+
   }
 
   .progress-bar--sticky {
@@ -345,7 +348,8 @@ app-accordion {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
     box-shadow: none;
-    height: calc(100vh - 70px);
+    height: calc(100vh - 70.55px);
+
     padding: 0 1rem 1rem 1rem;
     overflow-y: auto;
   }

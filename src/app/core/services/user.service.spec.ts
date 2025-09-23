@@ -1,9 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import {
-  HttpTestingController,
-  provideHttpClientTesting,
-} from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { UserService } from './user.service';
 import { AuthService } from './auth.service';
@@ -22,8 +19,7 @@ class AuthServiceStub {
   }
 }
 
-const TOKEN_WITH_NUMERIC_UID =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjQyfQ.signature';
+const TOKEN_WITH_NUMERIC_UID = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjQyfQ.signature';
 const TOKEN_WITH_NON_NUMERIC_UID =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJhYmMifQ.signature';
 const TOKEN_WITH_INVALID_STRUCTURE = 'invalid-token';

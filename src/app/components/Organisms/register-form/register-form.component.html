@@ -2,7 +2,9 @@
   <div class="register-form__container">
     <div class="register-form__header">
       <h1 class="register-form__title">Créer un compte</h1>
-      <p class="register-form__subtitle">Rejoignez la communauté des voyageurs en quelques secondes.</p>
+      <p class="register-form__subtitle">
+        Rejoignez la communauté des voyageurs en quelques secondes.
+      </p>
     </div>
 
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form__form">
@@ -16,7 +18,8 @@
           formControlName="pseudo"
           [isRequired]="true"
           (inputBlur)="registerForm.get('pseudo')?.markAsTouched()"
-          [errorMessage]="getErrorMessage('pseudo')">
+          [errorMessage]="getErrorMessage('pseudo')"
+        >
         </app-text-input>
 
         <app-text-input
@@ -28,7 +31,8 @@
           formControlName="email"
           [isRequired]="true"
           (inputBlur)="registerForm.get('email')?.markAsTouched()"
-          [errorMessage]="getErrorMessage('email')">
+          [errorMessage]="getErrorMessage('email')"
+        >
         </app-text-input>
 
         <app-text-input
@@ -41,7 +45,8 @@
           [isRequired]="true"
           iconPosition="right"
           (inputBlur)="registerForm.get('password')?.markAsTouched()"
-          [errorMessage]="getErrorMessage('password')">
+          [errorMessage]="getErrorMessage('password')"
+        >
         </app-text-input>
 
         <app-text-input
@@ -54,7 +59,8 @@
           [isRequired]="true"
           iconPosition="right"
           (inputBlur)="registerForm.get('confirmPassword')?.markAsTouched()"
-          [errorMessage]="getErrorMessage('confirmPassword')">
+          [errorMessage]="getErrorMessage('confirmPassword')"
+        >
         </app-text-input>
       </div>
 
@@ -65,17 +71,15 @@
           radius="border_lg"
           text="Créer un compte"
           [isDisabled]="isSubmitting"
-          type="standard">
+          type="standard"
+        >
         </app-button>
       </div>
 
       <div class="register-form__footer">
         <p class="register-form__link-text">
           Déjà inscrit ?
-          <button
-            type="button"
-            class="register-form__link"
-            (click)="navigateToLogin()">
+          <button type="button" class="register-form__link" (click)="navigateToLogin()">
             Se connecter
           </button>
         </p>

@@ -58,7 +58,9 @@ describe('RegisterFormComponent', () => {
     component.registerForm.updateValueAndValidity();
 
     expect(component.registerForm.hasError('passwordsMismatch')).toBeTrue();
-    expect(component.getErrorMessage('confirmPassword')).toBe('Les mots de passe ne correspondent pas');
+    expect(component.getErrorMessage('confirmPassword')).toBe(
+      'Les mots de passe ne correspondent pas'
+    );
   });
 
   it('should mark controls as touched when submitting invalid form', () => {

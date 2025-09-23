@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -19,7 +19,7 @@ import { ButtonComponent } from '../../Atoms/Button/button.component';
   templateUrl: './register-form.component.html',
   styleUrl: './register-form.component.scss',
 })
-export class RegisterFormComponent {
+export class RegisterFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private authService = inject(AuthService);
@@ -76,7 +76,8 @@ export class RegisterFormComponent {
         break;
       case 'confirmPassword':
         if (errors?.['required']) return 'La confirmation du mot de passe est requise';
-        if (this.registerForm.hasError('passwordsMismatch')) return 'Les mots de passe ne correspondent pas';
+        if (this.registerForm.hasError('passwordsMismatch'))
+          return 'Les mots de passe ne correspondent pas';
         break;
     }
 

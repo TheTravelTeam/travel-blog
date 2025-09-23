@@ -92,7 +92,9 @@ describe('LoginFormComponent', () => {
     component.onSubmit();
     tick(); // Simule la réponse async
 
-    expect(toastSpy.error).toHaveBeenCalledWith("Échec de la connexion, veuillez vérifier vos identifiants.");
+    expect(toastSpy.error).toHaveBeenCalledWith(
+      'Échec de la connexion, veuillez vérifier vos identifiants.'
+    );
     expect(component.isSubmitting).toBeFalse();
   }));
 

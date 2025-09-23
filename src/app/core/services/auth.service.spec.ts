@@ -9,8 +9,8 @@ describe('AuthService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),          // fournit HttpClient
-        provideHttpClientTesting(),   // remplace le backend par un mock
+        provideHttpClient(), // fournit HttpClient
+        provideHttpClientTesting(), // remplace le backend par un mock
       ],
     });
     service = TestBed.inject(AuthService);

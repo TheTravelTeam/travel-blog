@@ -1,11 +1,13 @@
 # User Service & DTOs
 
 ## Périmètre couvert
+
 Ce document décrit l'implémentation actuelle du service `UserService` (`src/app/core/services/user.service.ts`), des structures associées (`src/app/shared/dto/user-profile.dto.ts`, `src/app/shared/model/user-profile.model.ts`) ainsi que les tests unitaires situés dans `src/app/core/services/user.service.spec.ts`.
 
 ---
 
 ## Rôle du `UserService`
+
 Le service centralise tous les accès au profil utilisateur côté front.
 
 - **`getCurrentUserProfile()`**
@@ -25,6 +27,7 @@ Le service centralise tous les accès au profil utilisateur côté front.
 ---
 
 ## Structures de données associées
+
 - **`UserProfileDto`** (`src/app/shared/dto/user-profile.dto.ts`)
   - Reflète fidèlement la réponse brute de l'API (tous les champs optionnels et les `null` possibles sont conservés).
   - Contient la liste des carnets (`travelDiaries`) déjà typée avec `TravelDiary`.
@@ -36,6 +39,7 @@ Le service centralise tous les accès au profil utilisateur côté front.
 ---
 
 ## Stratégie de tests (`user.service.spec.ts`)
+
 Les tests unitaires utilisent un stub `AuthService` pour contrôler les tokens sans dépendre de `localStorage`.
 
 > ℹ️ Les tests s'appuient sur trois tokens JWT factices (`TOKEN_WITH_NUMERIC_UID`, `TOKEN_WITH_NON_NUMERIC_UID`, `TOKEN_WITH_INVALID_STRUCTURE`) afin d'exercer le vrai `jwtDecode` sans avoir recours à des espions Jasmine.
@@ -83,9 +87,11 @@ Dans tous les tests, `httpMock.verify()` en `afterEach` garantit qu'aucune requ�
 ---
 
 ## Lancer les tests
+
 ```bash
 npm run test -- --watch=false --browsers=ChromeHeadless
 ```
+
 > ⚠️ Le sandbox CI actuel bloque le port Karma (9876). Exécuter la commande sur une machine locale qui autorise l'ouverture du port pour valider la suite.
 
 ---

@@ -15,7 +15,8 @@
           formControlName="email"
           [isRequired]="true"
           (inputBlur)="loginForm.get('email')?.markAsTouched()"
-          [errorMessage]="getErrorMessage('email')">
+          [errorMessage]="getErrorMessage('email')"
+        >
         </app-text-input>
 
         <app-text-input
@@ -28,15 +29,13 @@
           [isRequired]="true"
           iconPosition="right"
           (inputBlur)="loginForm.get('password')?.markAsTouched()"
-          [errorMessage]="getErrorMessage('password')">
+          [errorMessage]="getErrorMessage('password')"
+        >
         </app-text-input>
       </div>
 
       <div class="login-form__forgot-password">
-        <a
-          type="button"
-          class="login-form__forgot-link"
-          (click)="navigateToForgotPassword()">
+        <a type="button" class="login-form__forgot-link" (click)="navigateToForgotPassword()">
           Mot de passe oublié ?
         </a>
       </div>
@@ -48,17 +47,15 @@
           radius="border_lg"
           text="Se connecter"
           [isDisabled]="isSubmitting"
-          type="standard">
+          type="standard"
+        >
         </app-button>
       </div>
 
       <div class="login-form__footer">
         <p class="login-form__link-text">
           Pas de compte ?
-          <button
-            type="button"
-            class="login-form__link"
-            (click)="navigateToSignup()">
+          <button type="button" class="login-form__link" (click)="navigateToSignup()">
             Créer un compte
           </button>
         </p>
