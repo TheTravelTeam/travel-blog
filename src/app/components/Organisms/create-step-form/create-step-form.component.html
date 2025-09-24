@@ -81,12 +81,12 @@
         <input type="hidden" formControlName="longitude" />
       </div>
 
-      <app-text-input
-        formControlName="mediaUrl"
-        label="Média principal (URL)"
-        placeholder="Ajouter un média"
-        icon="add"
-      ></app-text-input>
+      <app-media-grid-uploader
+        [items]="mediaItems"
+        [folder]="'travel-diaries/steps'"
+        (itemsChange)="onMediaItemsChange($event)"
+        (primaryChange)="onPrimaryMediaChange($event)">
+      </app-media-grid-uploader>
     </div>
 
     <div class="create-step__editor">

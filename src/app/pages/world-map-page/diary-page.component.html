@@ -126,7 +126,12 @@
 
                 <div class="step__media__container" [attr.data-id]="step.id">
                   @for (media of medias; track $index) {
-                    <img [src]="media.fileUrl" />
+                    <img
+                      [src]="getStepMediaUrl(media)"
+                      sizes="100vw"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   }
                 </div>
 

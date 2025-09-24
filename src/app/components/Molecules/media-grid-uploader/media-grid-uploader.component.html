@@ -1,0 +1,15 @@
+<div class="media-grid">
+  <div class="tile" *ngFor="let m of items; let i = index">
+    <img [src]="thumb(m.secureUrl)" alt="media" />
+    <button type="button" class="tile__remove" (click)="remove(i)" aria-label="Supprimer">×</button>
+    <span class="tile__badge" *ngIf="i === 0">Principal</span>
+  </div>
+
+  <label class="tile tile--add" *ngIf="items.length < maxItems">
+    <input type="file" multiple accept="image/*,video/*" (change)="onPickFiles($event)" hidden />
+    <span>+</span>
+  </label>
+</div>
+
+<p class="media-grid__status" *ngIf="uploading">Téléversement…</p>
+<p class="media-grid__error" *ngIf="error">{{ error }}</p>

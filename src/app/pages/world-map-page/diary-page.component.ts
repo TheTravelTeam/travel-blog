@@ -571,4 +571,41 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
   getStepMedias(step: Step): Media[] {
     return this.state.getStepMediaList(step);
   }
+
+  getStepMediaUrl(media: Media | null | undefined): string {
+    return this.injectCloudinaryTransform(media?.fileUrl ?? '', 'c_limit,w_auto:100:1000');
+  }
+
+  private injectCloudinaryTransform(source: string, transformation: string): string {
+    if (!source) {
+      return '';
+    }
+
+    const uploadToken = '/upload/';
+    const uploadIndex = source.indexOf(uploadToken);
+    if (uploadIndex === -1) {
+      return source;
+    }
+
+    const afterUpload = source.slice(uploadIndex + uploadToken.length);
+
+    if (!afterUpload) {
+      return source;
+    }
+
+    const [firstSegment, ...rest] = afterUpload.split('/');
+
+    if (firstSegment.startsWith('c_')) {
+      if (firstSegment.includes('w_auto')) {
+        return source;
+      }
+
+      const updatedFirstSegment = `${firstSegment},${transformation}`;
+      const rebuiltPath = [updatedFirstSegment, ...rest].join('/');
+      return source.slice(0, uploadIndex + uploadToken.length) + rebuiltPath;
+    }
+
+    const prefix = source.slice(0, uploadIndex + uploadToken.length);
+    return `${prefix}${transformation}/${afterUpload}`;
+  }
 }

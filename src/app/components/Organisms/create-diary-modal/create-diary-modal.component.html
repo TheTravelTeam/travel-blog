@@ -53,6 +53,34 @@
               icon="add"
             ></app-text-input>
 
+            <div class="create-diary-modal__upload">
+              <input
+                #coverFileInput
+                type="file"
+                accept="image/*"
+                (change)="onCoverFileSelected($event)"
+                hidden
+              />
+              <app-button
+                text="Importer une image"
+                color="secondary"
+                size="auto"
+                radius="border_lg"
+                htmlType="button"
+                [isDisabled]="isCoverUploading || isSubmitting"
+                (btnClick)="coverFileInput.click()"
+              ></app-button>
+              <p class="create-diary-modal__upload-hint">
+                Choisissez un fichier pour téléverser via Cloudinary. L'URL est mise à jour automatiquement.
+              </p>
+              @if (isCoverUploading) {
+                <p class="create-diary-modal__upload-status">Téléversement en cours…</p>
+              }
+              @if (coverUploadError) {
+                <p class="create-diary-modal__upload-error">{{ coverUploadError }}</p>
+              }
+            </div>
+
             <div class="create-diary-modal__toggles">
               <label class="toggle">
                 <input type="checkbox" formControlName="isPrivate" />
@@ -208,12 +236,13 @@
               <input type="hidden" formControlName="longitude" />
             </div>
 
-            <app-text-input
-              formControlName="mediaUrl"
-              label="Média principal (URL)"
-              placeholder="Ajouter un média"
-              icon="add"
-            ></app-text-input>
+            <app-media-grid-uploader
+              [items]="stepMediaItems"
+              [folder]="'travel-diaries/steps'"
+              (itemsChange)="onStepMediaItemsChange($event)"
+              (primaryChange)="onStepPrimaryMediaChange($event)"
+            ></app-media-grid-uploader>
+            <input type="hidden" formControlName="mediaUrl" />
           </div>
 
           <div class="create-diary-modal__editor">

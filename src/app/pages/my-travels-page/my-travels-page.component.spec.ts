@@ -7,7 +7,14 @@ import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angul
 import { environment } from '../../../environments/environment';
 import { TravelDiary } from '@model/travel-diary.model';
 import { StepService } from '@service/step.service';
+import { MediaService } from '@service/media.service';
+import { importProvidersFrom } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import {
+  CreateDiaryModalComponent,
+  DiaryCreationPayload,
+} from 'components/Organisms/create-diary-modal/create-diary-modal.component';
+import { UserService } from '@service/user.service';
   importProvidersFrom,
   runInInjectionContext,
   EnvironmentInjector,
@@ -34,6 +41,7 @@ describe('MyTravelsPageComponent', () => {
   let router: Router;
   let stepServiceSpy: jasmine.SpyObj<StepService>;
   let themeServiceSpy: jasmine.SpyObj<ThemeService>;
+  let mediaServiceSpy: jasmine.SpyObj<MediaService>;
   let authServiceStub: AuthServiceStub;
 
   const paramMap$ = new BehaviorSubject(convertToParamMap({ id: '1' }));
@@ -53,10 +61,25 @@ describe('MyTravelsPageComponent', () => {
       'deleteDiary',
       'addDiary',
       'addStepToTravel',
+      'updateDiary',
     ]);
     stepServiceSpy.deleteDiary.and.returnValue(of(void 0));
+    stepServiceSpy.updateDiary.and.returnValue(of({} as TravelDiary));
     themeServiceSpy = jasmine.createSpyObj<ThemeService>('ThemeService', ['getThemes']);
     themeServiceSpy.getThemes.and.returnValue(of([]));
+    mediaServiceSpy = jasmine.createSpyObj<MediaService>('MediaService', [
+      'createDiaryMedia',
+      'createStepMedia',
+    ]);
+    mediaServiceSpy.createDiaryMedia.and.returnValue(of({
+      id: 42,
+      fileUrl: 'https://example.com/new-cover.png',
+      mediaType: 'PHOTO',
+      createdAt: '',
+      updatedAt: '',
+      status: 'VISIBLE',
+    } as any));
+    mediaServiceSpy.createStepMedia.and.returnValue(of({} as any));
 
     TestBed.overrideComponent(CreateDiaryModalComponent, {
       set: {
@@ -80,6 +103,7 @@ describe('MyTravelsPageComponent', () => {
         },
         { provide: StepService, useValue: stepServiceSpy },
         { provide: ThemeService, useValue: themeServiceSpy },
+        { provide: MediaService, useValue: mediaServiceSpy },
         { provide: AuthService, useValue: authServiceStub },
       ],
     }).compileComponents();
@@ -209,4 +233,68 @@ describe('MyTravelsPageComponent', () => {
     expect(component.diariesList.length).toBe(1);
     expect(component.panelError).toBe('Impossible de supprimer ce carnet pour le moment.');
   });
-});
+
+  it('should include media payload when saving a diary edition with cover url', () => {
+    const diary = component.diariesList[0];
+    component.onDiaryEdit(diary);
+
+    const updatedCoverUrl = ' https://example.com/new-cover.png ';
+    const payload: DiaryCreationPayload = {
+      diary: {
+        title: 'Updated title',
+        travelPeriod: null,
+        coverUrl: updatedCoverUrl,
+        description: 'Updated description',
+        isPrivate: true,
+        isPublished: true,
+        status: 'COMPLETED',
+        canComment: true,
+      },
+      step: {
+        title: '',
+        city: null,
+        country: null,
+        continent: null,
+        latitude: diary.latitude,
+        longitude: diary.longitude,
+        description: '',
+        mediaUrl: null,
+        startDate: null,
+        endDate: null,
+        themeId: null,
+      },
+    };
+
+    stepServiceSpy.updateDiary.and.returnValue(
+      of({
+        ...diary,
+        title: payload.diary.title,
+        description: payload.diary.description,
+        media: {
+          createdAt: '',
+          updatedAt: '',
+          status: 'VISIBLE',
+          id: 1,
+          fileUrl: updatedCoverUrl.trim(),
+          mediaType: 'PHOTO',
+        },
+      })
+    );
+
+    component.onDiaryModalSubmit(payload);
+
+    expect(mediaServiceSpy.createDiaryMedia).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        fileUrl: updatedCoverUrl.trim(),
+        mediaType: 'PHOTO',
+        travelDiaryId: diary.id,
+      })
+    );
+
+    expect(stepServiceSpy.updateDiary).toHaveBeenCalledWith(
+      diary.id,
+      jasmine.objectContaining({ media: 42 })
+    );
+  });
+
+})
