@@ -67,7 +67,6 @@ export class MapComponent implements AfterViewInit, OnChanges {
       const diaryId = this.state.currentDiaryId();
       if (diaryId && this.map) {
         this.currentDiaryId = diaryId;
-        console.log('je suis appelé dans le effect')
         this.loadStepsForCurrentDiary();
       }
     });
@@ -115,7 +114,6 @@ export class MapComponent implements AfterViewInit, OnChanges {
     // 💡 Si currentDiaryId est déjà là, on recharge (permet de déclencher l’effet ci-dessus)
     if (this.state.currentDiaryId()) {
       this.currentDiaryId = this.state.currentDiaryId();
-      console.log('je suis apppelé dans afterinit')
       this.loadStepsForCurrentDiary(); // ce sera ignoré si déjà appelé par l'effet
     }
   }
@@ -241,7 +239,6 @@ export class MapComponent implements AfterViewInit, OnChanges {
       this.stepService.addDiary(newDiary).subscribe((diary) => {
         L.marker([lat, lng]).addTo(this.map).bindPopup(diary.title).openPopup();
         this.currentDiaryId = diary.id;
-        console.log('je suis appeler dans le create on clikc')
         this.loadStepsForCurrentDiary();
         this.isStep = true;
         this.isDiary = false;
@@ -301,7 +298,6 @@ export class MapComponent implements AfterViewInit, OnChanges {
           });
           // 🧭 Naviguer proprement avec Angular :
           this.router.navigate(['/travels', diary.id]);
-          console.log('je suis appeler dans le loadalldiaries')
           this.loadStepsForCurrentDiary();
         });
       });
@@ -434,7 +430,6 @@ export class MapComponent implements AfterViewInit, OnChanges {
    */
   private fetchAddress(lat: number, lng: number): void {
     const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`;
-    console.log('url', url)
     this.http.get<NominatimResponse>(url).subscribe((data) => {
       const address = data.display_name || 'Adresse non trouvée';
       L.popup().setLatLng([lat, lng]).setContent(address).openOn(this.map);
@@ -454,8 +449,14 @@ export class MapComponent implements AfterViewInit, OnChanges {
       status: 'IN_PROGRESS',
     };
 
-    this.stepService.addStepToTravel(this.currentDiaryId!, newStep).subscribe((travel) => {
-      console.info('✅ Step sauvegardé', travel);
+    this.stepService.addStepToTravel(this.currentDiaryId!, newStep).subscribe({
+      next: (createdStep) => {
+        console.info('✅ Step sauvegardé', createdStep);
+        this.loadStepsForCurrentDiary();
+      },
+      error: (err) => {
+        console.error('❌ Impossible de sauvegarder le step', err);
+      },
     });
   }
 

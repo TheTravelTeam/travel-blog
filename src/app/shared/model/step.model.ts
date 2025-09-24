@@ -12,7 +12,11 @@ export interface Step {
   country: string;
   city: string;
   continent: string;
-  startDate: Date;
+  startDate: string | Date | null;
+  endDate?: string | Date | null;
+  status?: 'IN_PROGRESS' | 'COMPLETED' | null;
+  themeId?: number | null;
+  travelDiaryId?: number | null;
   isEditing: boolean;
   comments?: Comment[];
   likes: number;

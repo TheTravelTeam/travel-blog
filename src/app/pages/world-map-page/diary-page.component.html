@@ -1,4 +1,37 @@
 <div class="worldMap">
+  @if (isStepFormVisible()) {
+    <div class="create-step-modal">
+      <div class="create-step-modal__panel">
+        <div class="create-step-modal__header">
+          <div>
+            @if (isEditingStep()) {
+              <h2>Modifier l'étape</h2>
+              <p>Mettez à jour les informations de cette étape.</p>
+            } @else {
+              <h2>Ajouter une étape</h2>
+              <p>Complétez les informations de votre nouvelle étape.</p>
+            }
+          </div>
+          <button
+            type="button"
+            class="create-step-modal__close"
+            (click)="onStepFormCancel()"
+            aria-label="Fermer la création d'étape"
+          >
+            <app-icon name="close"></app-icon>
+          </button>
+        </div>
+
+        <app-create-step-form
+          [isSubmitting]="isStepSubmitting()"
+          [errorMessage]="stepFormError()"
+          [availableThemes]="stepThemes()"
+          (cancel)="onStepFormCancel()"
+          (submitStep)="onStepFormSubmit($event)"
+        ></app-create-step-form>
+      </div>
+    </div>
+  }
   <div
     #detailPanel
     class="worldMap__detail-panel"
@@ -51,19 +84,32 @@
       }
       <div class="worldMap__detail-panel__body--steps-container">
         @let viewerIsOwner = isDiaryOwner();
+        @if (viewerIsOwner) {
+          <div class="diary__actions">
+            <app-button
+              text="Créer une étape"
+              color="primary"
+              size="auto"
+              radius="border_lg"
+              (btnClick)="onCreateStepClick()"
+              [isDisabled]="isStepFormVisible()"
+            ></app-button>
+          </div>
+        }
         @for (step of state.steps(); track $index) {
           @let medias = getStepMedias(step);
           <app-accordion
             [id]="step.id"
             [title]="step.title"
             [subTitle]="step.country"
-            [startDate]="step.startDate"
+            [startDate]="step.startDate ?? undefined"
             [isOpen]="state.openedStepId() === step.id"
             (toggleOpen)="onAccordionToggle(step.id, $event)"
             (stepClicked)="onStepClicked($event)"
             (remove)="onDeleteSteps(step.id)"
             [role]="viewerIsOwner ? 'owner' : 'reader'"
             [(isEditing)]="step.isEditing"
+            (isEditingChange)="onStepEditModeChange(step, $event)"
           >
             <div class="step__content__container">
               <p>{{ step.description }}</p>

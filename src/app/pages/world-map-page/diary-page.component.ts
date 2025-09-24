@@ -24,7 +24,15 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { UserService } from '@service/user.service';
 import { User } from '@model/user.model';
 import { Subscription } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { map, switchMap, take } from 'rxjs/operators';
+import { CreateStepFormComponent } from 'components/Organisms/create-step-form/create-step-form.component';
+import { StepService } from '@service/step.service';
+import { CreateStepDto } from '@dto/create-step.dto';
+import { ItemProps } from '@model/select.model';
+import { ThemeService } from '@service/theme.service';
+import { TravelDiary } from '@model/travel-diary.model';
+import { IconComponent } from 'components/Atoms/Icon/icon.component';
+import { StepFormResult } from '@model/stepFormResult.model';
 
 type DiaryOwnerInfo = {
   id: number;
@@ -42,6 +50,8 @@ type DiaryOwnerInfo = {
     CommonModule,
     DividerComponent,
     AvatarComponent,
+    CreateStepFormComponent,
+    IconComponent,
   ],
   templateUrl: './diary-page.component.html',
   styleUrl: './diary-page.component.scss',
@@ -49,6 +59,8 @@ type DiaryOwnerInfo = {
 export class DiaryPageComponent implements OnInit, OnDestroy {
   readonly state = inject(TravelMapStateService);
   private userService = inject(UserService);
+  private stepService = inject(StepService);
+  private themeService = inject(ThemeService);
 
   private breakpointService = inject(BreakpointService);
   isTabletOrMobile = this.breakpointService.isMobileOrTablet;
@@ -57,9 +69,18 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
   private router = inject(Router);
 
   @ViewChild('detailPanel') detailPanelRef!: ElementRef<HTMLDivElement>;
+  @ViewChild(CreateStepFormComponent) createStepForm?: CreateStepFormComponent;
 
   private readonly diaryOwner = signal<DiaryOwnerInfo | null>(null);
   private ownerFetchSub: Subscription | null = null;
+  private themeFetchSub: Subscription | null = null;
+  private stepCreationSub: Subscription | null = null;
+
+  readonly isStepFormVisible = signal(false);
+  readonly isStepSubmitting = signal(false);
+  readonly stepFormError = signal<string | null>(null);
+  readonly stepThemes = signal<ItemProps[]>([]);
+  readonly activeEditingStep = signal<Step | null>(null);
 
   // Reset du scroll avec des signals & un sélector via Angular ci dessus
   constructor() {
@@ -78,6 +99,15 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
       },
       { allowSignalWrites: true }
     );
+
+    effect(() => {
+      const editingStep = this.activeEditingStep();
+      const isVisible = this.isStepFormVisible();
+
+      if (editingStep && isVisible) {
+        queueMicrotask(() => this.createStepForm?.populateFromStep(editingStep));
+      }
+    });
   }
 
   readonly diaryOwnerInfo = computed<DiaryOwnerInfo | null>(() => this.diaryOwner());
@@ -91,6 +121,8 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     const current = this.userService.currentUserId();
     return typeof current === 'number' && owner.id === current;
   });
+
+  readonly isEditingStep = computed(() => this.activeEditingStep() !== null);
 
   getOwnerLinkAriaLabel(owner: DiaryOwnerInfo): string {
     const label = owner.label?.trim();
@@ -107,10 +139,168 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Opens the creation modal for the diary owner and ensures a clean form state.
+   */
+  onCreateStepClick(): void {
+    if (!this.isDiaryOwner()) {
+      return;
+    }
+
+    this.applyStepEditing(null);
+    this.activeEditingStep.set(null);
+    this.isStepFormVisible.set(true);
+    this.stepFormError.set(null);
+    this.ensureThemesLoaded();
+    queueMicrotask(() => this.createStepForm?.reset());
+  }
+
+  /**
+   * Hides the modal and reverts to the read-only view when the user aborts the flow.
+   */
+  onStepFormCancel(): void {
+    this.isStepFormVisible.set(false);
+    this.stepFormError.set(null);
+    this.createStepForm?.reset();
+    this.resetEditingState();
+  }
+
+  /**
+   * Handles both creation and edition flows depending on whether a step is currently selected.
+   * Normalises the payload before hitting the API and refreshes the diary to keep the UI in sync.
+   */
+  onStepFormSubmit(formValue: StepFormResult): void {
+    const diaryId = this.state.currentDiaryId() ?? this.state.currentDiary()?.id ?? null;
+    if (!diaryId) {
+      this.stepFormError.set("Impossible d'identifier le carnet cible.");
+      return;
+    }
+
+    const editingStep = this.activeEditingStep();
+
+    const payload: CreateStepDto = {
+      title: formValue.title,
+      description: formValue.description,
+      latitude: formValue.latitude,
+      longitude: formValue.longitude,
+      travelDiaryId: diaryId,
+      startDate: formValue.startDate,
+      endDate: formValue.endDate,
+      status: editingStep?.status ?? 'IN_PROGRESS',
+      city: formValue.city,
+      country: formValue.country,
+      continent: formValue.continent,
+    };
+
+    this.isStepSubmitting.set(true);
+    this.stepFormError.set(null);
+
+    this.stepCreationSub?.unsubscribe();
+    const stepRequest$ = editingStep
+      ? this.stepService.updateStep(editingStep.id, payload).pipe(
+          switchMap(() =>
+            this.stepService
+              .getDiaryWithSteps(diaryId)
+              .pipe(map((diary) => ({ diary, targetStepId: editingStep.id })))
+          )
+        )
+      : this.stepService.addStepToTravel(diaryId, payload).pipe(
+          switchMap((createdStep) =>
+            this.stepService
+              .getDiaryWithSteps(diaryId)
+              .pipe(map((diary) => ({ diary, targetStepId: createdStep.id })))
+          )
+        );
+
+    this.stepCreationSub = stepRequest$
+      .pipe(take(1))
+      .subscribe({
+        next: ({ diary, targetStepId }) => {
+          this.applyUpdatedDiary(diary);
+
+          if (targetStepId) {
+            this.state.openedStepId.set(targetStepId);
+          }
+
+          this.isStepSubmitting.set(false);
+          this.isStepFormVisible.set(false);
+          this.createStepForm?.reset();
+          this.resetEditingState();
+          this.stepCreationSub = null;
+        },
+        error: () => {
+          this.isStepSubmitting.set(false);
+          this.stepFormError.set(
+            editingStep
+              ? "Impossible de mettre à jour cette étape pour le moment."
+              : "Impossible d'ajouter cette étape pour le moment."
+          );
+          this.stepCreationSub = null;
+        },
+      });
+  }
+
+  private ensureThemesLoaded(): void {
+    if (this.stepThemes().length || this.themeFetchSub) {
+      return;
+    }
+
+    this.themeFetchSub = this.themeService
+      .getThemes()
+      .pipe(take(1))
+      .subscribe({
+        next: (themes) => {
+          const items = themes.map((theme) => ({ id: theme.id, label: theme.name } satisfies ItemProps));
+          this.stepThemes.set(items);
+        },
+        error: () => {
+          this.stepThemes.set([]);
+          this.themeFetchSub = null;
+        },
+        complete: () => {
+          this.themeFetchSub = null;
+        },
+      });
+  }
+
+  private applyUpdatedDiary(updatedDiary: TravelDiary): void {
+    const normalizedSteps = this.normalizeSteps(updatedDiary.steps);
+    const normalizedDiary: TravelDiary = {
+      ...updatedDiary,
+      steps: normalizedSteps,
+    };
+
+    this.state.setCurrentDiary(normalizedDiary);
+    this.state.setCurrentDiaryId(normalizedDiary.id);
+    this.state.setSteps(normalizedSteps);
+    this.state.openedCommentStepId.set(null);
+
+    const lastStepId = normalizedSteps.length ? normalizedSteps[normalizedSteps.length - 1].id : null;
+    this.state.openedStepId.set(lastStepId);
+
+    const diaries = this.state.allDiaries();
+    const diaryIndex = diaries.findIndex((diary) => diary.id === normalizedDiary.id);
+    if (diaryIndex !== -1) {
+      const updatedList = [...diaries];
+      updatedList[diaryIndex] = normalizedDiary;
+      this.state.setAllDiaries(updatedList);
+    }
+  }
+
+  private normalizeSteps(rawSteps: TravelDiary['steps']): Step[] {
+    if (!Array.isArray(rawSteps)) {
+      return [];
+    }
+
+    return rawSteps.map((step) => ({
+      ...step,
+      isEditing: typeof step?.isEditing === 'boolean' ? step.isEditing : false,
+    })) as Step[];
+  }
+
   ngOnInit(): void {
     this.activatedRoute.paramMap.subscribe((params) => {
       const id = params.get('id');
-      console.info(id);
       if (id) {
         // Met à jour l'état global avec l'id du carnet
         this.state.setCurrentDiaryId(+id); // <-- tu peux juste mettre un `TravelDiary` partiel ici
@@ -120,6 +310,8 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.ownerFetchSub?.unsubscribe();
+    this.themeFetchSub?.unsubscribe();
+    this.stepCreationSub?.unsubscribe();
   }
 
   private resolveDiaryOwner(diary: unknown) {
@@ -216,8 +408,40 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Removes a step from the backend then refreshes the diary so the timeline stays consistent.
+   * Keeps the UI responsive by resetting the edit state if the deleted step was being edited.
+   */
   onDeleteSteps(id: number | undefined) {
-    this.state.steps.set(this.state.steps().filter((step) => step.id !== id));
+    if (!id) {
+      return;
+    }
+
+    const diaryId = this.state.currentDiaryId() ?? this.state.currentDiary()?.id ?? null;
+    if (!diaryId) {
+      this.stepFormError.set("Impossible d'identifier le carnet cible.");
+      return;
+    }
+
+    this.stepService
+      .deleteStep(id)
+      .pipe(
+        switchMap(() => this.stepService.getDiaryWithSteps(diaryId)),
+        take(1)
+      )
+      .subscribe({
+        next: (diary) => {
+          this.applyUpdatedDiary(diary);
+          if (this.activeEditingStep()?.id === id) {
+            this.resetEditingState();
+            this.isStepFormVisible.set(false);
+            this.createStepForm?.reset();
+          }
+        },
+        error: () => {
+          this.stepFormError.set("Impossible de supprimer cette étape pour le moment.");
+        },
+      });
   }
 
   onStepClicked(stepId: number) {
@@ -251,6 +475,65 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
       this.state.openedCommentStepId.set(
         this.state.openedCommentStepId() === step.id ? null : step.id
       );
+    }
+  }
+
+  /**
+   * Toggles edit mode for a step. When enabling, shows the modal with pre-filled data.
+   * When cancelling, restores the default state and closes the modal if needed.
+   */
+  onStepEditModeChange(step: Step, isEditing: boolean): void {
+    if (!step?.id) {
+      return;
+    }
+
+    if (isEditing) {
+      this.activeEditingStep.set(step);
+      this.applyStepEditing(step.id);
+      this.isStepFormVisible.set(true);
+      this.stepFormError.set(null);
+      this.ensureThemesLoaded();
+    } else {
+      if (this.activeEditingStep()?.id === step.id) {
+        this.resetEditingState();
+        this.isStepFormVisible.set(false);
+        this.stepFormError.set(null);
+        this.createStepForm?.reset();
+      }
+      this.applyStepEditing(null);
+    }
+  }
+
+  /**
+   * Clears the editing flags and deselects the active step when an edition ends.
+   */
+  private resetEditingState(): void {
+    const current = this.activeEditingStep();
+    this.activeEditingStep.set(null);
+    if (current?.id) {
+      this.applyStepEditing(null);
+    }
+  }
+
+  /**
+   * Updates the shared state so the accordion reflects which step is currently being edited.
+   */
+  private applyStepEditing(stepId: number | null): void {
+    const steps = this.state.steps();
+    if (!steps.length) {
+      return;
+    }
+
+    const updatedSteps = steps.map((item) => ({
+      ...item,
+      isEditing: stepId != null && item.id === stepId,
+    }));
+
+    this.state.setSteps(updatedSteps);
+
+    const diary = this.state.currentDiary();
+    if (diary) {
+      this.state.setCurrentDiary({ ...diary, steps: updatedSteps });
     }
   }
 
