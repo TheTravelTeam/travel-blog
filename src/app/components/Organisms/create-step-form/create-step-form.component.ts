@@ -7,20 +7,7 @@ import { EditorComponent } from 'shared/editor/editor.component';
 import { SelectComponent } from 'components/Atoms/select/select.component';
 import { ItemProps } from '@model/select.model';
 import { Step } from '@model/step.model';
-
-export interface StepFormResult {
-  title: string;
-  city: string | null;
-  country: string | null;
-  continent: string | null;
-  latitude: number;
-  longitude: number;
-  description: string;
-  mediaUrl: string | null;
-  startDate: string | null;
-  endDate: string | null;
-  themeId: number | null;
-}
+import { StepFormResult } from '@model/stepFormResult.model';
 
 @Component({
   selector: 'app-create-step-form',

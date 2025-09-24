@@ -25,13 +25,14 @@ import { UserService } from '@service/user.service';
 import { User } from '@model/user.model';
 import { Subscription } from 'rxjs';
 import { map, switchMap, take } from 'rxjs/operators';
-import { CreateStepFormComponent, StepFormResult } from 'components/Organisms/create-step-form/create-step-form.component';
+import { CreateStepFormComponent } from 'components/Organisms/create-step-form/create-step-form.component';
 import { StepService } from '@service/step.service';
 import { CreateStepDto } from '@dto/create-step.dto';
 import { ItemProps } from '@model/select.model';
 import { ThemeService } from '@service/theme.service';
 import { TravelDiary } from '@model/travel-diary.model';
 import { IconComponent } from 'components/Atoms/Icon/icon.component';
+import { StepFormResult } from '@model/stepFormResult.model';
 
 type DiaryOwnerInfo = {
   id: number;
