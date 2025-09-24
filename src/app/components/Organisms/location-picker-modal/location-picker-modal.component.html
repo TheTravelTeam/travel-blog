@@ -1,0 +1,35 @@
+<div class="location-picker-modal" role="dialog" aria-modal="true">
+  <div class="location-picker-modal__backdrop" (click)="onCancel()"></div>
+  <div class="location-picker-modal__panel" role="document" (click)="$event.stopPropagation()">
+    <header class="location-picker-modal__header">
+      <h3>{{ title }}</h3>
+      <p>{{ description }}</p>
+    </header>
+    <div class="location-picker-modal__map" #mapContainer></div>
+    @if (isLocating) {
+      <p class="location-picker-modal__status">Recherche de votre position…</p>
+    }
+    @if (geolocationError) {
+      <p class="location-picker-modal__error">{{ geolocationError }}</p>
+    }
+    <footer class="location-picker-modal__footer">
+      <app-button
+        text="Annuler"
+        color="secondary"
+        size="auto"
+        radius="border_lg"
+        htmlType="button"
+        (btnClick)="onCancel()"
+      ></app-button>
+      <app-button
+        text="Valider"
+        color="primary"
+        size="auto"
+        radius="border_lg"
+        htmlType="button"
+        [isDisabled]="!hasSelection"
+        (btnClick)="onConfirm()"
+      ></app-button>
+    </footer>
+  </div>
+</div>

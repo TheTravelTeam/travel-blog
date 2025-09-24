@@ -2,6 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CreateStepFormComponent } from './create-step-form.component';
 import { Step } from '@model/step.model';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 describe('CreateStepFormComponent', () => {
   let component: CreateStepFormComponent;
@@ -10,7 +12,7 @@ describe('CreateStepFormComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [CreateStepFormComponent],
-      providers: [provideAnimations()]
+      providers: [provideAnimations(), provideHttpClient(), provideHttpClientTesting()]
     }).compileComponents();
 
     fixture = TestBed.createComponent(CreateStepFormComponent);

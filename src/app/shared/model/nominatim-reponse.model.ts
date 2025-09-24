@@ -18,14 +18,21 @@ export interface NominatimResponse {
 
 export interface Address {
   road?: string;
+  suburb?: string;
+  neighbourhood?: string;
+  city?: string;
+  town?: string;
   village?: string;
+  hamlet?: string;
   municipality?: string;
+  city_district?: string;
   county?: string;
   ISO3166_2_lvl6?: string;
   state?: string;
   ISO3166_2_lvl4?: string;
   region?: string;
   postcode?: string;
-  country: string;
-  country_code: string;
+  continent?: string;
+  country?: string;
+  country_code?: string;
 }

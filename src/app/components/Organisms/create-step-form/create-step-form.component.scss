@@ -25,10 +25,44 @@
   gap: 1rem;
 }
 
-.create-step__coordinates {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(120px, 1fr));
-  gap: 0.75rem;
+.create-step__location {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: rgba(12, 20, 33, 0.04);
+  border-radius: 0.75rem;
+}
+
+.create-step__location-label {
+  margin: 0;
+  font-weight: 600;
+  color: $textColor;
+}
+
+.create-step__location-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.create-step__location-summary {
+  color: rgba($textColor, 0.75);
+  font-size: 0.95rem;
+}
+
+.create-step__location-status {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba($textColor, 0.65);
+}
+
+.create-step__location-error {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--app-error-color, #d93025);
+  font-weight: 500;
 }
 
 .create-step__editor {

@@ -97,10 +97,44 @@
     }
   }
 
-  &__coordinates {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  &__location {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 12px;
+    background: rgba(12, 20, 33, 0.04);
+  }
+
+  &__location-label {
+    margin: 0;
+    font-weight: 600;
+    color: $textColor;
+  }
+
+  &__location-actions {
+    display: flex;
+    align-items: center;
     gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  &__location-summary {
+    font-size: 0.95rem;
+    color: rgba($textColor, 0.75);
+  }
+
+  &__location-status {
+    margin: 0;
+    font-size: 0.9rem;
+    color: rgba($textColor, 0.6);
+  }
+
+  &__location-error {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--app-error-color, #d93025);
+    font-weight: 500;
   }
 
   &__footer {
