@@ -12,8 +12,8 @@ const AUTH_HEADER = 'Authorization';
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const token = authService.getToken();
-
-  if (!token || req.headers.has(AUTH_HEADER) || req.url.includes('/auth/login')) {
+  const isNominatim = req.url.startsWith('https://nominatim.openstreetmap.org/');
+  if (!token || req.headers.has(AUTH_HEADER) || isNominatim  || req.url.includes('/auth/login')) {
     return next(req);
   }
 

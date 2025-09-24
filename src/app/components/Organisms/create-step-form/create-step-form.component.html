@@ -55,21 +55,30 @@
         (selectOnChange)="onThemeChange($event)"
       ></app-select>
 
-      <div class="create-step__coordinates">
-        <app-text-input
-          formControlName="latitude"
-          label="Latitude"
-          placeholder="Ex: 48.8566"
-          [isRequired]="true"
-          [errorMessage]="getControlError('latitude')"
-        ></app-text-input>
-        <app-text-input
-          formControlName="longitude"
-          label="Longitude"
-          placeholder="Ex: 2.3522"
-          [isRequired]="true"
-          [errorMessage]="getControlError('longitude')"
-        ></app-text-input>
+      <div class="create-step__location">
+        <p class="create-step__location-label">Localisation</p>
+        <div class="create-step__location-actions">
+          <app-button
+            text="Choisir sur la carte"
+            color="secondary"
+            size="auto"
+            radius="border_lg"
+            htmlType="button"
+            (btnClick)="openLocationModal()"
+          ></app-button>
+          <span class="create-step__location-summary">{{ locationEnrichmentSummary || selectedCoordinatesSummary }}</span>
+        </div>
+        @if (isGeocoding) {
+          <p class="create-step__location-status">Recherche de l'adresse…</p>
+        }
+        @if (geocodingError) {
+          <p class="create-step__location-error">{{ geocodingError }}</p>
+        }
+        @if (showLocationRequiredMessage) {
+          <p class="create-step__location-error">Sélectionnez un point sur la carte pour continuer.</p>
+        }
+        <input type="hidden" formControlName="latitude" />
+        <input type="hidden" formControlName="longitude" />
       </div>
 
       <app-text-input
@@ -113,3 +122,11 @@
     ></app-button>
   </div>
 </form>
+
+@if (isLocationModalOpen) {
+  <app-location-picker-modal
+    [initialCoordinates]="locationInitialCoordinates"
+    (cancel)="closeLocationModal()"
+    (confirm)="handleLocationConfirm($event)"
+  ></app-location-picker-modal>
+}

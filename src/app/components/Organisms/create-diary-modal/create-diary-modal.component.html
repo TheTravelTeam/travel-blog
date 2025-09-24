@@ -182,21 +182,30 @@
               (selectOnChange)="onThemeChange($event)"
             ></app-select>
 
-            <div class="create-diary-modal__coordinates">
-              <app-text-input
-                formControlName="latitude"
-                label="Latitude"
-                placeholder="Ex: 48.8566"
-                [isRequired]="true"
-                [errorMessage]="getStepControlError('latitude')"
-              ></app-text-input>
-              <app-text-input
-                formControlName="longitude"
-                label="Longitude"
-                placeholder="Ex: 2.3522"
-                [isRequired]="true"
-                [errorMessage]="getStepControlError('longitude')"
-              ></app-text-input>
+            <div class="create-diary-modal__location">
+              <p class="create-diary-modal__location-label">Localisation</p>
+              <div class="create-diary-modal__location-actions">
+                <app-button
+                  text="Choisir sur la carte"
+                  color="secondary"
+                  size="auto"
+                  radius="border_lg"
+                  htmlType="button"
+                  (btnClick)="openStepLocationModal()"
+                ></app-button>
+                <span class="create-diary-modal__location-summary">{{ stepLocationSummary || stepSelectedCoordinatesSummary }}</span>
+              </div>
+              @if (isStepGeocoding) {
+                <p class="create-diary-modal__location-status">Recherche de l'adresse…</p>
+              }
+              @if (stepGeocodingError) {
+                <p class="create-diary-modal__location-error">{{ stepGeocodingError }}</p>
+              }
+              @if (stepShowLocationRequiredMessage) {
+                <p class="create-diary-modal__location-error">Sélectionnez un point sur la carte pour continuer.</p>
+              }
+              <input type="hidden" formControlName="latitude" />
+              <input type="hidden" formControlName="longitude" />
             </div>
 
             <app-text-input
@@ -252,3 +261,11 @@
     }
   </div>
 </div>
+
+@if (isStepLocationModalOpen) {
+  <app-location-picker-modal
+    [initialCoordinates]="stepLocationInitialCoordinates"
+    (cancel)="closeStepLocationModal()"
+    (confirm)="handleStepLocationConfirm($event)"
+  ></app-location-picker-modal>
+}

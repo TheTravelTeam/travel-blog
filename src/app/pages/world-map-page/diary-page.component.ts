@@ -271,6 +271,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     };
 
     this.state.setCurrentDiary(normalizedDiary);
+    this.state.setCurrentDiaryId(null);
     this.state.setCurrentDiaryId(normalizedDiary.id);
     this.state.setSteps(normalizedSteps);
     this.state.openedCommentStepId.set(null);

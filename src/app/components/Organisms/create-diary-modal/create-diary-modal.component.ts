@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonComponent } from 'components/Atoms/Button/button.component';
 import { IconComponent } from 'components/Atoms/Icon/icon.component';
@@ -7,6 +7,12 @@ import { TextInputComponent } from 'components/Atoms/text-input/text-input.compo
 import { EditorComponent } from 'shared/editor/editor.component';
 import { SelectComponent } from 'components/Atoms/select/select.component';
 import { ItemProps } from '@model/select.model';
+import {
+  LocationPickerModalComponent,
+  LocationPickerResult,
+} from 'components/Organisms/location-picker-modal/location-picker-modal.component';
+import { GeocodingService, ReverseGeocodingResult } from '@service/geocoding.service';
+import { finalize, Subscription } from 'rxjs';
 
 export type CreationModalStage = 'diary' | 'step';
 
@@ -51,11 +57,16 @@ export interface DiaryCreationPayload {
     IconComponent,
     EditorComponent,
     SelectComponent,
+    LocationPickerModalComponent,
   ],
   templateUrl: './create-diary-modal.component.html',
   styleUrl: './create-diary-modal.component.scss',
 })
-export class CreateDiaryModalComponent {
+/**
+ * Two-step wizard used to create a travel diary and seed it with its first step.
+ * Shares the same location picker / reverse geocoding logic as the standalone step form.
+ */
+export class CreateDiaryModalComponent implements OnDestroy {
   @Input() isMobile = false;
   @Input() isSubmitting = false;
   @Input() errorMessage: string | null = null;
@@ -73,11 +84,22 @@ export class CreateDiaryModalComponent {
   stepEditorContent = '';
   stage: CreationModalStage = 'diary';
 
-  constructor(private readonly fb: FormBuilder) {
+  isStepLocationModalOpen = false;
+  isStepGeocoding = false;
+  stepGeocodingError: string | null = null;
+  private stepSubmitAttempted = false;
+  private stepGeocodingSub: Subscription | null = null;
+
+  constructor(private readonly fb: FormBuilder, private readonly geocodingService: GeocodingService) {
     this.diaryForm = this.buildDiaryForm();
     this.stepForm = this.buildStepForm();
   }
 
+  ngOnDestroy(): void {
+    this.clearStepGeocodingSubscription();
+  }
+
+  /** Rehydrate the diary form when editing an existing travel diary. */
   ngOnChanges(): void {
     /**
      * Lorsque le composant reçoit un mode 'edit' et des valeurs initiales,
@@ -91,6 +113,7 @@ export class CreateDiaryModalComponent {
   /**
    * Construit le formulaire pour la section 'carnet'.
    */
+  /** Build the FormGroup that stores the diary section. */
   private buildDiaryForm(): FormGroup {
     return this.fb.group({
       title: this.fb.control('', [Validators.required, Validators.maxLength(150)]),
@@ -107,6 +130,7 @@ export class CreateDiaryModalComponent {
   /**
    * Pré-remplit le formulaire carnet avec les données fournies.
    */
+  /** Apply initial values when the component is used in edit mode. */
   private patchDiaryForm(data: { title: string; description: string; coverUrl: string | null }): void {
     this.diaryEditorContent = data.description ?? '';
     this.diaryForm.patchValue(
@@ -123,6 +147,7 @@ export class CreateDiaryModalComponent {
   /**
    * Construit le formulaire pour la section 'étape'.
    */
+  /** Build the FormGroup that stores the first-step section. */
   private buildStepForm(): FormGroup {
     return this.fb.group({
       title: this.fb.control('', [Validators.required, Validators.maxLength(150)]),
@@ -139,18 +164,21 @@ export class CreateDiaryModalComponent {
     });
   }
 
+  /** Keep the diary rich-text editor synchronous with the form control. */
   onDiaryEditorChange(content: string): void {
     this.diaryEditorContent = content;
     this.diaryForm.patchValue({ description: content ?? '' }, { emitEvent: false });
     this.diaryForm.get('description')?.markAsDirty();
   }
 
+  /** Keep the step rich-text editor synchronous with the form control. */
   onStepEditorChange(content: string): void {
     this.stepEditorContent = content;
     this.stepForm.patchValue({ description: content ?? '' }, { emitEvent: false });
     this.stepForm.get('description')?.markAsDirty();
   }
 
+  /** Handle submission of the diary stage; switches to the step stage in create mode. */
   handleDiarySubmit(): void {
     /**
      * Soumission de l'étape 'carnet'.
@@ -199,11 +227,13 @@ export class CreateDiaryModalComponent {
     this.stage = 'step';
   }
 
+  /** Final submission of the wizard combining both diary and step payloads. */
   handleStepSubmit(): void {
     /**
      * Soumission de l'étape 'step' (création uniquement).
      * Construit le payload carnet+étape et le propage au parent.
      */
+    this.stepSubmitAttempted = true;
     if (this.stepForm.invalid || this.isSubmitting) {
       this.stepForm.markAllAsTouched();
       return;
@@ -248,6 +278,7 @@ export class CreateDiaryModalComponent {
     this.submitDiary.emit({ diary: diaryPayload, step: stepPayload });
   }
 
+  /** Cancel the wizard and reset both forms. */
   handleCancel(): void {
     if (this.isSubmitting) {
       return;
@@ -259,6 +290,10 @@ export class CreateDiaryModalComponent {
   /**
    * Returns a localized validation message for the embedded step form.
    * Mirrors the behaviour of the standalone step form so both flows stay consistent.
+   */
+  /**
+   * Return a translated validation message for the embedded step form.
+   * Mirrors the behaviour of the standalone component for consistency.
    */
   getStepControlError(controlName: string): string | undefined {
     const control = this.stepForm.get(controlName);
@@ -297,11 +332,133 @@ export class CreateDiaryModalComponent {
     this.stepForm.patchValue({ themeId });
   }
 
+  /** Navigate back to the diary stage (create mode only). */
   goBackToDiaryStage(): void {
     if (this.isSubmitting) {
       return;
     }
     this.stage = 'diary';
+    this.stepSubmitAttempted = false;
+    this.stepGeocodingError = null;
+    this.clearStepGeocodingSubscription();
+  }
+
+  /** Open the shared location picker modal for the step section. */
+  openStepLocationModal(): void {
+    this.stepGeocodingError = null;
+    this.isStepLocationModalOpen = true;
+  }
+
+  /** Close the step location picker modal. */
+  closeStepLocationModal(): void {
+    this.isStepLocationModalOpen = false;
+  }
+
+  /** Return the coordinates currently stored in the step form, if valid. */
+  get stepLocationInitialCoordinates(): LocationPickerResult | null {
+    const latitude = this.parseCoordinate(this.stepForm.get('latitude')?.value);
+    const longitude = this.parseCoordinate(this.stepForm.get('longitude')?.value);
+    if (latitude == null || longitude == null) {
+      return null;
+    }
+    return { lat: latitude, lng: longitude };
+  }
+
+  /** Combine the main address pieces for the badge displayed under the button. */
+  get stepLocationSummary(): string | null {
+    const city = this.stepForm.get('city')?.value?.toString().trim();
+    const country = this.stepForm.get('country')?.value?.toString().trim();
+    if (city && country) {
+      return `${city}, ${country}`;
+    }
+    return city || country || null;
+  }
+
+  /** Human-readable coordinate summary used as fallback when we have no address. */
+  get stepSelectedCoordinatesSummary(): string {
+    const coords = this.stepLocationInitialCoordinates;
+    if (!coords) {
+      return 'Aucun point sélectionné';
+    }
+    return `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`;
+  }
+
+  /** True when the user attempts to submit the step without selecting a location. */
+  get stepShowLocationRequiredMessage(): boolean {
+    return !this.stepLocationInitialCoordinates && this.stepSubmitAttempted;
+  }
+
+  /** Persist coordinates selected in the modal and trigger reverse geocoding. */
+  handleStepLocationConfirm(selection: LocationPickerResult): void {
+    this.closeStepLocationModal();
+    const formattedLat = selection.lat.toFixed(6);
+    const formattedLng = selection.lng.toFixed(6);
+
+    this.stepForm.patchValue({
+      latitude: formattedLat,
+      longitude: formattedLng,
+    });
+    this.stepForm.get('latitude')?.markAsDirty();
+    this.stepForm.get('longitude')?.markAsDirty();
+
+    this.fetchStepLocationDetails(selection.lat, selection.lng);
+  }
+
+  /** Call Nominatim to obtain address details for the chosen coordinate. */
+  private fetchStepLocationDetails(lat: number, lng: number): void {
+    this.clearStepGeocodingSubscription();
+    this.isStepGeocoding = true;
+    this.stepGeocodingError = null;
+
+    this.stepGeocodingSub = this.geocodingService
+      .reverseGeocode(lat, lng)
+      .pipe(
+        finalize(() => {
+          this.isStepGeocoding = false;
+        })
+      )
+      .subscribe({
+        next: (result) => this.applyStepGeocodingResult(result),
+        error: () => {
+          this.stepGeocodingError = "Impossible de récupérer l'adresse à partir de cette position.";
+        },
+      });
+  }
+
+  /** Update the step form with the structured address returned by Nominatim. */
+  private applyStepGeocodingResult(result: ReverseGeocodingResult): void {
+    const payload: Record<string, string> = {};
+
+    if (result.city) {
+      payload['city'] = result.city;
+    }
+    if (result.country) {
+      payload['country'] = result.country;
+    }
+    if (result.continent) {
+      payload['continent'] = result.continent;
+    }
+
+    if (Object.keys(payload).length > 0) {
+      this.stepForm.patchValue(payload);
+    }
+  }
+
+  /** Dispose the active geocoding subscription (modal may close before completion). */
+  private clearStepGeocodingSubscription(): void {
+    if (this.stepGeocodingSub) {
+      this.stepGeocodingSub.unsubscribe();
+      this.stepGeocodingSub = null;
+    }
+  }
+
+  /** Safely parse coordinates stored as strings in form controls. */
+  private parseCoordinate(value: unknown): number | null {
+    if (value == null) {
+      return null;
+    }
+    const parsed = Number.parseFloat(value.toString());
+    return Number.isFinite(parsed) ? parsed : null;
   }
 
   private resetForms(): void {
@@ -335,6 +492,9 @@ export class CreateDiaryModalComponent {
       endDate: '',
       themeId: null,
     });
+    this.stepGeocodingError = null;
+    this.stepSubmitAttempted = false;
+    this.clearStepGeocodingSubscription();
   }
 
   private normalizeDateInput(value: unknown): string | null {
