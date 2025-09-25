@@ -1,4 +1,13 @@
-import { Component, effect, ElementRef, inject, ViewChild, OnDestroy, OnInit } from '@angular/core';
+import {
+  Component,
+  effect,
+  ElementRef,
+  inject,
+  ViewChild,
+  OnDestroy,
+  OnInit,
+  computed,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DividerComponent } from 'components/Atoms/Divider/divider.component';
 import { TravelDiaryCardComponent } from 'components/Molecules/Card-ready-to-use/travel-diary-card/travel-diary-card.component';
@@ -10,6 +19,7 @@ import { UserService } from '@service/user.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { StepService } from '@service/step.service';
 import { Subject, of } from 'rxjs';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { map, switchMap, takeUntil } from 'rxjs/operators';
 import {
   CreateDiaryModalComponent,
@@ -19,6 +29,8 @@ import { CreateDiaryDto } from '@dto/create-diary.dto';
 import { CreateStepDto } from '@dto/create-step.dto';
 import { ThemeService } from '@service/theme.service';
 import { ItemProps } from '@model/select.model';
+import { UpdateDiaryDTO } from '@dto/update-diary.dto';
+import { AuthService } from '@service/auth.service';
 
 @Component({
   selector: 'app-my-travels-page',
@@ -39,6 +51,7 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
   private readonly stepService = inject(StepService);
   private readonly router = inject(Router);
   private readonly themeService = inject(ThemeService);
+  private readonly authService = inject(AuthService);
 
   diariesList: TravelDiary[] = [];
   panelError: string | null = null;
@@ -51,6 +64,8 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
   createModalError: string | null = null;
   themeOptions: ItemProps[] = [];
   private themesLoaded = false;
+
+  public currentUserId = computed(() => this.authService.currentUser()?.id ?? null);
 
   private breakpointService = inject(BreakpointService);
   isTabletOrMobile = this.breakpointService.isMobileOrTablet;
@@ -78,15 +93,16 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
    * via `TravelMapStateService.getDiaryCoverUrl`.
    */
   ngOnInit(): void {
+    const currentUserId$ = toObservable(this.currentUserId);
     this.route.paramMap
       .pipe(
-        map(params => {
+        switchMap((params) => {
           const raw = params.get('id');
           const parsed = raw !== null ? Number(raw) : NaN;
           if (Number.isFinite(parsed) && parsed > 0) {
-            return parsed; // un id valide dans l’URL
+            return of(parsed); // un id valide dans l’URL
           }
-          return this.userService.currentUserId(); // peut être number | null
+          return currentUserId$; // peut être number | null
         }),
         switchMap((userId) => {
           if (userId == null) {
@@ -96,7 +112,7 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
 
           // Cas normal : on charge le profil du user
           return this.userService.getUserProfile(userId).pipe(
-            map(profile => ({
+            map((profile) => ({
               diaries: profile.travelDiaries ?? [],
               userId: profile.id,
             }))
@@ -122,23 +138,21 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
           // Si on a demandé à ouvrir la modale d’édition
           const editId = this.state.consumeRequestedEditDiary();
           if (editId != null) {
-            const diary = this.diariesList.find(d => d.id === editId);
+            const diary = this.diariesList.find((d) => d.id === editId);
             if (diary) {
               this.openEditModal(diary);
             }
           }
           this.state.setAllDiaries(this.diariesList);
           this.panelError = null;
-
-          },
+        },
         error: (err) => {
           console.error('Failed to load user diaries', err);
           this.diariesList = [];
-          this.panelError = "Impossible de charger les carnets pour cet utilisateur.";
+          this.panelError = 'Impossible de charger les carnets pour cet utilisateur.';
         },
       });
   }
-
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -225,7 +239,7 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
           console.error('Failed to delete diary', err);
           this.diariesList = snapshot;
           this.state.setAllDiaries(snapshot);
-          this.panelError = "Impossible de supprimer ce carnet pour le moment.";
+          this.panelError = 'Impossible de supprimer ce carnet pour le moment.';
         },
       });
   }
@@ -280,7 +294,7 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
     this.isCreateModalSubmitting = true;
     this.createModalError = null;
 
-    const currentUserId = this.userService.currentUserId();
+    const currentUserId = this.currentUserId(); // récupère le number réel
 
     const diaryPayload: CreateDiaryDto = {
       title: payload.diary.title,
@@ -314,20 +328,18 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
             endDate: payload.step.endDate ?? null,
             status: 'IN_PROGRESS',
             // Optional location metadata if available in payload.step
-            city: (payload.step as any).city ?? null,
-            country: (payload.step as any).country ?? null,
-            continent: (payload.step as any).continent ?? null,
+            city: payload.step.city ?? null,
+            country: payload.step.country ?? null,
+            continent: payload.step.continent ?? null,
           };
 
-          return this.stepService
-            .addStepToTravel(createdDiary.id, stepPayload)
-            .pipe(
-              switchMap((createdStep) =>
-                this.stepService
-                  .getDiaryWithSteps(createdDiary.id) // ← récupère le Diary à jour
-                  .pipe(map((diary) => ({ diary, createdStep })))
-              )
-            );
+          return this.stepService.addStepToTravel(createdDiary.id, stepPayload).pipe(
+            switchMap((createdStep) =>
+              this.stepService
+                .getDiaryWithSteps(createdDiary.id) // ← récupère le Diary à jour
+                .pipe(map((diary) => ({ diary, createdStep })))
+            )
+          );
         }),
         takeUntil(this.destroy$)
       )
@@ -350,7 +362,7 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Failed to create diary', err);
-          this.createModalError = "Impossible de créer ce carnet pour le moment.";
+          this.createModalError = 'Impossible de créer ce carnet pour le moment.';
           this.isCreateModalSubmitting = false;
         },
       });
@@ -363,14 +375,14 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
      */
     if (!this.state.currentDiaryId() && !this.state.currentDiary()) {
       // Fallback: rien à éditer
-      this.createModalError = "Aucun carnet à modifier.";
+      this.createModalError = 'Aucun carnet à modifier.';
       return;
     }
 
     // On édite uniquement le carnet (pas les steps)
     const diaryId = this.state.currentDiaryId() ?? this.state.currentDiary()?.id ?? null;
     if (diaryId == null) {
-      this.createModalError = "Aucun carnet à modifier.";
+      this.createModalError = 'Aucun carnet à modifier.';
       return;
     }
 
@@ -378,7 +390,7 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
     this.createModalError = null;
 
     // Adapter au DTO backend UpdateTravelDiaryDTO (scalaires uniquement)
-    const updatePayload: any = {
+    const updatePayload: UpdateDiaryDTO = {
       title: payload.diary.title,
       description: payload.diary.description,
       isPrivate: payload.diary.isPrivate ?? undefined,
@@ -412,7 +424,7 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Failed to update diary', err);
-          this.createModalError = "Impossible de modifier ce carnet pour le moment.";
+          this.createModalError = 'Impossible de modifier ce carnet pour le moment.';
           this.isCreateModalSubmitting = false;
         },
       });
@@ -464,4 +476,4 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
     // Propriétaire si l'utilisateur connecté correspond à l'utilisateur de la page
     return currentUserId === this.currentProfileUserId;
   }
-   }
+}

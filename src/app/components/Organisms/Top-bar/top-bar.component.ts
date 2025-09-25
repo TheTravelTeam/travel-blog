@@ -1,12 +1,12 @@
 import { Component, computed, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { IconSize, Size } from '@model/variant.model';
 import { BreakpointService } from '@service/breakpoint.service';
 import { IconComponent } from 'components/Atoms/Icon/icon.component';
 import { ButtonComponent } from 'components/Atoms/Button/button.component';
 import { AvatarComponent } from 'components/Atoms/avatar/avatar.component';
-import { UserService } from '@service/user.service';
+import { AuthService } from '@service/auth.service';
 
 @Component({
   selector: 'app-top-bar',
@@ -17,11 +17,12 @@ import { UserService } from '@service/user.service';
 })
 export class TopBarComponent {
   @Input() isConnected = true;
-  private readonly userService = inject(UserService);
+
+  private readonly authService = inject(AuthService);
 
   constructor(
     public bp: BreakpointService,
-    public router: Router,
+    public router: Router
   ) {}
 
   // 💡 IconSize adapté automatiquement au device
@@ -52,12 +53,16 @@ export class TopBarComponent {
   }
 
   /** Identifiant de l'utilisateur connecté (null tant que non authentifié). */
-  get currentUserId(): number | null {
-    return this.userService.currentUserId();
-  }
+  currentUserId = computed(() => this.authService.currentUser()?.id ?? null);
 
   /** Indique si le lien "Carnet de voyage" doit être rendu. */
   get canDisplayDiariesLink(): boolean {
     return this.isConnected && this.currentUserId !== null;
+  }
+
+  onLogout(): void {
+    this.authService.logout().subscribe({
+      next: () => this.router.navigate(['/login']),
+    });
   }
 }

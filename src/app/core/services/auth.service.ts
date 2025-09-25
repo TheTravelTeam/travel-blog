@@ -1,58 +1,72 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { tap } from 'rxjs';
-import { jwtDecode } from 'jwt-decode';
+import { environment } from '../../../environments/environment';
+import { Observable, tap } from 'rxjs';
+import { UserProfileDto } from '@dto/user-profile.dto';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8080/auth';
+  private apiUrl = `${environment.apiUrl}/auth`;
   private http = inject(HttpClient);
 
-  login(email: string, password: string) {
+  // 🔑 Signal pour stocker l’utilisateur courant
+  currentUser = signal<UserProfileDto | null>(null);
+
+  /**
+   * Authentifie l’utilisateur.
+   * Charge ensuite l’utilisateur courant dans le signal.
+   */
+  login(email: string, password: string): Observable<string> {
     return this.http
-      .post(`${this.apiUrl}/login`, { email, password }, { responseType: 'text' })
+      .post(
+        `${this.apiUrl}/login`,
+        { email, password },
+        {
+          responseType: 'text',
+          withCredentials: environment.useCredentials,
+        }
+      )
+      .pipe(tap(() => this.loadCurrentUser().subscribe()));
+  }
+
+  /**
+   * Enregistre un nouvel utilisateur.
+   * Typé en void si on ne se sert pas de la réponse.
+   */
+  register(email: string, password: string, pseudo: string): Observable<void> {
+    return this.http.post<void>(
+      `${this.apiUrl}/register`,
+      { email, password, pseudo },
+      { withCredentials: environment.useCredentials }
+    );
+  }
+
+  /**
+   * Déconnecte l’utilisateur et vide le signal.
+   */
+  logout(): Observable<void> {
+    return this.http
+      .post<void>(`${this.apiUrl}/logout`, {}, { withCredentials: environment.useCredentials })
       .pipe(
-        tap((token: string) => {
-          this.saveToken(token);
-        })
+        tap(() => this.currentUser.set(null)) // 🔑 vide le signal
       );
   }
 
-  register(email: string, password: string, pseudo: string) {
-    return this.http.post(`${this.apiUrl}/register`, { email, password, pseudo });
-  }
-
-  saveToken(token: string) {
-    localStorage.setItem('authToken', token);
-  }
-
-  getToken(): string | null {
-    return localStorage.getItem('authToken');
-  }
-
-  clearToken() {
-    localStorage.removeItem('authToken');
-  }
-
-  verifyToken() {
-    const token = this.getToken();
-    if (!token) {
-      throw new Error('No token found');
-    }
-
-    try {
-      const decodeToken = jwtDecode(token);
-      const expirationDate = new Date((decodeToken.exp ?? 0) * 1000);
-      if (expirationDate < new Date()) {
-        this.clearToken();
-        return false;
-      }
-      return true;
-    } catch {
-      this.clearToken();
-      return false;
-    }
+  /**
+   * Charge l’utilisateur courant depuis le serveur et met à jour le signal.
+   */
+  loadCurrentUser(): Observable<UserProfileDto> {
+    return this.http
+      .get<UserProfileDto>(`${this.apiUrl}/me`, {
+        withCredentials: environment.useCredentials,
+      })
+      .pipe(
+        tap({
+          next: (user) => this.currentUser.set(user),
+          error: () => this.currentUser.set(null),
+        })
+      );
   }
 }

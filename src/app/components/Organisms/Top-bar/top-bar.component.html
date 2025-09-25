@@ -48,6 +48,8 @@
             [size]="btnSize()"
           />
         } @else {
+          <a routerLink="/login" style="color: white">Connexion</a>
+          <a (click)="onLogout()" style="color: white">Se Déconnecter</a>
           <a routerLink="/travels" class="topbar__link">
             <app-icon name="language" [size]="iconSize()" />
             Mappemonde
@@ -56,17 +58,7 @@
             <app-icon name="map_search" [size]="iconSize()" />Articles de voyages</a
           >
           @if (canDisplayDiariesLink) {
-            <a [routerLink]="['/travels/users', currentUserId]" class="topbar__link"
-              ><app-icon name="import_contacts" [size]="iconSize()" />Carnet de voyage</a
-            >
-          }
-          <a routerLink="/me" class="topbar__link"><app-avatar label="Jean" />Compte</a>
-        }
-      }
-      @if (bp.isMobile()) {
-        @if (isMapPage) {
-          @if (canDisplayDiariesLink) {
-            <a [routerLink]="['/travels/users', currentUserId]" class="topbar__link__mobile"
+            <a [routerLink]="['/travels/users', currentUserId()]" class="topbar__link__mobile"
               ><app-icon name="import_contacts" [size]="iconSize()"
             /></a>
           }
@@ -78,7 +70,7 @@
         }
         @if (isFilterPage) {
           @if (canDisplayDiariesLink) {
-            <a [routerLink]="['/travels/users', currentUserId]" class="topbar__link__mobile"
+            <a [routerLink]="['/travels/users', currentUserId()]" class="topbar__link__mobile"
               ><app-icon name="import_contacts" [size]="iconSize()"
             /></a>
           }

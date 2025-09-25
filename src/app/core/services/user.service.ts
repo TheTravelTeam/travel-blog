@@ -1,10 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map, Observable, throwError } from 'rxjs';
-import { jwtDecode } from 'jwt-decode';
+import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { UserProfileDto } from '@dto/user-profile.dto';
-import { UserProfile } from '@model/user-profile.model';
 import { AuthService } from './auth.service';
 
 /**
@@ -17,24 +15,32 @@ export class UserService {
   private readonly authService = inject(AuthService);
   private readonly apiUrl = environment.apiUrl;
 
-  /**
-   * Retourne le profil du user courant en se basant sur l'identifiant décodé dans le JWT.
-   * @throws Error si l'utilisateur n'est pas authentifié.
-   */
-  getCurrentUserProfile(): Observable<UserProfile> {
-    const userId = this.currentUserId();
-    if (!userId) {
-      return throwError(() => new Error("L'utilisateur n'est pas authentifié"));
-    }
+  currentUser = this.authService.currentUser;
 
-    return this.getUserProfile(userId);
+  /**
+   * Retourne le profil complet de l'utilisateur connecté.
+   * Mappe le DTO de l'API en modèle simplifié.
+   *
+   * @returns {Observable<UserProfileDto>} Profil de l'utilisateur.
+   */
+  getCurrentUserProfile(): Observable<UserProfileDto> {
+    return this.authService.loadCurrentUser().pipe(map((dto) => this.mapProfile(dto)));
+  }
+
+  /**
+   * Retourne l'ID de l'utilisateur connecté, ou `null` si non connecté.
+   *
+   * @returns {number | null} ID utilisateur.
+   */
+  currentUserId(): number | null {
+    return this.authService.currentUser()?.id ?? null;
   }
 
   /**
    * Récupère un profil spécifique puis le map.
    * @param userId identifiant de l'utilisateur à interroger.
    */
-  getUserProfile(userId: number): Observable<UserProfile> {
+  getUserProfile(userId: number): Observable<UserProfileDto> {
     return this.http
       .get<UserProfileDto>(`${this.apiUrl}/users/${userId}`)
       .pipe(map((dto) => this.mapProfile(dto)));
@@ -43,14 +49,14 @@ export class UserService {
   /**
    * Récupère l'ensemble des utilisateurs (profil + carnets éventuels) pour l'administration.
    */
-  getAllUsers(): Observable<UserProfile[]> {
+  getAllUsers(): Observable<UserProfileDto[]> {
     return this.http
       .get<UserProfileDto[]>(`${this.apiUrl}/users`)
       .pipe(map((dtos) => dtos.map((dto) => this.mapProfile(dto))));
   }
 
   /** Met à jour les informations d'un utilisateur existant. */
-  updateUser(userId: number, payload: Partial<UserProfileDto>): Observable<UserProfile> {
+  updateUser(userId: number, payload: Partial<UserProfileDto>): Observable<UserProfileDto> {
     return this.http
       .put<UserProfileDto>(`${this.apiUrl}/users/${userId}`, payload)
       .pipe(map((dto) => this.mapProfile(dto)));
@@ -75,39 +81,16 @@ export class UserService {
    * @param admin valeur booleenne indiquant si le compte doit posseder le role admin.
    * @returns Profil utilisateur mis a jour avec les roles synchronises.
    */
-  setAdminRole(userId: number, admin: boolean): Observable<UserProfile> {
+  setAdminRole(userId: number, admin: boolean): Observable<UserProfileDto> {
     return this.http
       .patch<UserProfileDto>(`${this.apiUrl}/users/${userId}/roles`, { admin })
       .pipe(map((dto) => this.mapProfile(dto)));
   }
 
   /**
-   * Décode l'identifiant stocké dans le JWT.
-   * Retourne `null` si aucun token n'est présent ou si celui-ci n'est pas exploitable.
-   */
-  currentUserId(): number | null {
-    const token = this.authService.getToken();
-
-    if (!token) {
-      return null;
-    }
-
-    try {
-      const payload = jwtDecode<{ uid?: unknown }>(token);
-      if (typeof payload.uid === 'number' && Number.isInteger(payload.uid)) {
-        return payload.uid;
-      }
-      return null;
-    } catch (error) {
-      console.warn('Impossible de décoder le token.', error);
-      return null;
-    }
-  }
-
-  /**
    * Transforme la structure brute (`UserProfileDto`) en modèle simplifié consommé par les composants.
    */
-  private mapProfile(dto: UserProfileDto): UserProfile {
+  private mapProfile(dto: UserProfileDto): UserProfileDto {
     const roles = (dto.roles ?? []).map((role) => role.replace(/^ROLE_/, '').toUpperCase());
 
     return {

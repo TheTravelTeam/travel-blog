@@ -20,7 +20,7 @@ import { ThemeService } from '@service/theme.service';
 import { StepService } from '@service/step.service';
 import { TravelMapStateService } from '@service/travel-map-state.service';
 import { TravelDiary } from '@model/travel-diary.model';
-import { UserProfile } from '@model/user-profile.model';
+// import { UserProfile } from '@model/user-profile.model';
 import { Article } from '@model/article.model';
 import { Theme } from '@model/theme.model';
 import { ItemProps } from '@model/select.model';
@@ -81,7 +81,7 @@ export class MePageComponent implements OnInit, OnDestroy {
   // --- Signaux d'état principaux utilisés pour orchestrer la vue ---
   readonly isLoading = signal(true);
   readonly error = signal<string | null>(null);
-  readonly profile = signal<UserProfile | null>(null);
+  readonly profile = signal<UserProfileDto | null>(null);
   readonly diaries = signal<NormalizedDiary[]>([]);
   readonly diariesError = signal<string | null>(null);
 
@@ -616,8 +616,9 @@ export class MePageComponent implements OnInit, OnDestroy {
 
   /** Nettoie les informations d'authentification avant redirection éventuelle. */
   logout(): void {
-    this.authService.clearToken();
-    console.info('User logged out');
+    this.authService.logout().subscribe(() => {
+      console.info('User logged out');
+    });
   }
 
   private loadArticles(): void {
@@ -697,7 +698,7 @@ export class MePageComponent implements OnInit, OnDestroy {
       });
   }
 
-  private mapProfileToManagedUser(profile: UserProfile): ManagedUser {
+  private mapProfileToManagedUser(profile: UserProfileDto): ManagedUser {
     const diaries = (profile.travelDiaries ?? []).map((diary) =>
       this.createManagedDiarySummary(diary)
     );
@@ -706,12 +707,12 @@ export class MePageComponent implements OnInit, OnDestroy {
       id: profile.id,
       name: this.buildUserDisplayName(profile),
       email: profile.email ?? 'Email non communiqué',
-      isAdmin: profile.roles.includes('ADMIN'),
+      isAdmin: (profile.roles ?? []).includes('ADMIN'),
       diaries,
     };
   }
 
-  private buildUserDisplayName(profile: UserProfile): string {
+  private buildUserDisplayName(profile: UserProfileDto): string {
     const firstName = profile.firstName?.trim() ?? '';
     const lastName = profile.lastName?.trim() ?? '';
     const fullName = `${firstName} ${lastName}`.trim();
@@ -915,7 +916,7 @@ export class MePageComponent implements OnInit, OnDestroy {
   }
 
   /** Alimente le formulaire local avec les données du profil récupéré en API. */
-  private patchProfileForm(profile: UserProfile): void {
+  private patchProfileForm(profile: UserProfileDto): void {
     this.profileForm.set({
       firstName: profile.firstName,
       lastName: profile.lastName,

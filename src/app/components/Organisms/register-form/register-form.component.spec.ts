@@ -27,7 +27,7 @@ describe('RegisterFormComponent', () => {
     fixture = TestBed.createComponent(RegisterFormComponent);
     component = fixture.componentInstance;
     alertSpy = spyOn(window, 'alert');
-    authServiceSpy.register.and.returnValue(of({}));
+    authServiceSpy.register.and.returnValue(of(void 0));
     fixture.detectChanges();
   });
 

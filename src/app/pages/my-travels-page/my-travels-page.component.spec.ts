@@ -7,13 +7,25 @@ import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angul
 import { environment } from '../../../environments/environment';
 import { TravelDiary } from '@model/travel-diary.model';
 import { StepService } from '@service/step.service';
-import { importProvidersFrom } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
 import {
-  CreateDiaryModalComponent,
-  } from 'components/Organisms/create-diary-modal/create-diary-modal.component';
-import { UserService } from '@service/user.service';
+  importProvidersFrom,
+  runInInjectionContext,
+  EnvironmentInjector,
+  signal,
+} from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { CreateDiaryModalComponent } from 'components/Organisms/create-diary-modal/create-diary-modal.component';
 import { ThemeService } from '@service/theme.service';
+import { AuthService } from '@service/auth.service';
+import { UserProfileDto } from '@dto/user-profile.dto';
+
+class AuthServiceStub {
+  currentUser = signal<UserProfileDto | null>(null);
+
+  setCurrentUser(user: UserProfileDto | null) {
+    this.currentUser.set(user);
+  }
+}
 
 describe('MyTravelsPageComponent', () => {
   let component: MyTravelsPageComponent;
@@ -22,10 +34,21 @@ describe('MyTravelsPageComponent', () => {
   let router: Router;
   let stepServiceSpy: jasmine.SpyObj<StepService>;
   let themeServiceSpy: jasmine.SpyObj<ThemeService>;
+  let authServiceStub: AuthServiceStub;
 
   const paramMap$ = new BehaviorSubject(convertToParamMap({ id: '1' }));
 
   beforeEach(async () => {
+    authServiceStub = new AuthServiceStub();
+    //Utile si tu veux tester des cas liés à l’utilisateur connecté (par ex. : vérifier qu’un utilisateur ne peut pas supprimer un diary qui ne lui appartient pas → là tu auras besoin de currentUserId)
+    authServiceStub.setCurrentUser({
+      id: 1,
+      pseudo: 'mock',
+      firstName: 'Mock',
+      lastName: 'User',
+      roles: ['ROLE_USER'],
+      travelDiaries: [],
+    });
     stepServiceSpy = jasmine.createSpyObj<StepService>('StepService', [
       'deleteDiary',
       'addDiary',
@@ -57,6 +80,7 @@ describe('MyTravelsPageComponent', () => {
         },
         { provide: StepService, useValue: stepServiceSpy },
         { provide: ThemeService, useValue: themeServiceSpy },
+        { provide: AuthService, useValue: authServiceStub },
       ],
     }).compileComponents();
 
@@ -64,10 +88,12 @@ describe('MyTravelsPageComponent', () => {
     component = fixture.componentInstance;
     httpMock = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
-    const userService = TestBed.inject(UserService);
-    spyOn(userService, 'currentUserId').and.returnValue(1);
 
-    fixture.detectChanges();
+    const injector = TestBed.inject(EnvironmentInjector);
+
+    runInInjectionContext(injector, () => {
+      component.ngOnInit();
+    });
 
     const mockDiaries: TravelDiary[] = [
       {
@@ -93,23 +119,21 @@ describe('MyTravelsPageComponent', () => {
       },
     ];
 
-    httpMock
-      .expectOne(`${environment.apiUrl}/users/1`)
-      .flush({
-        id: 1,
-        pseudo: 'mock',
-        firstName: 'Mock',
-        lastName: 'User',
-        email: 'mock@example.com',
-        biography: null,
-        avatar: null,
-        status: 'ACTIVE',
-        enabled: true,
-        roles: ['ROLE_USER'],
-        createdAt: '',
-        updatedAt: '',
-        travelDiaries: mockDiaries,
-      });
+    httpMock.expectOne(`${environment.apiUrl}/users/1`).flush({
+      id: 1,
+      pseudo: 'mock',
+      firstName: 'Mock',
+      lastName: 'User',
+      email: 'mock@example.com',
+      biography: null,
+      avatar: null,
+      status: 'ACTIVE',
+      enabled: true,
+      roles: ['ROLE_USER'],
+      createdAt: '',
+      updatedAt: '',
+      travelDiaries: mockDiaries,
+    });
   });
 
   afterEach(() => {
@@ -165,7 +189,6 @@ describe('MyTravelsPageComponent', () => {
     expect(themeServiceSpy.getThemes).toHaveBeenCalled();
   });
 
-
   it('should delete a diary and call the service', () => {
     const diary = component.diariesList[0];
     component.onDiaryDelete(diary);
@@ -186,5 +209,4 @@ describe('MyTravelsPageComponent', () => {
     expect(component.diariesList.length).toBe(1);
     expect(component.panelError).toBe('Impossible de supprimer ce carnet pour le moment.');
   });
-
-})
+});
