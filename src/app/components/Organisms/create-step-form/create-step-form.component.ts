@@ -19,8 +19,6 @@ import {
   MediaItem,
 } from '../../Molecules/media-grid-uploader/media-grid-uploader.component';
 
-
-
 @Component({
   selector: 'app-create-step-form',
   standalone: true,
@@ -46,6 +44,7 @@ export class CreateStepFormComponent implements OnDestroy {
   @Input() errorMessage: string | null = null;
   @Input() availableThemes: ItemProps[] = [];
 
+  // eslint-disable-next-line @angular-eslint/no-output-native
   @Output() cancel = new EventEmitter<void>();
   @Output() submitStep = new EventEmitter<StepFormResult>();
 
@@ -64,6 +63,7 @@ export class CreateStepFormComponent implements OnDestroy {
     this.stepForm = this.buildStepForm();
   }
   mediaItems: MediaItem[] = [];
+  isMediaUploading = false;
 
   onMediaItemsChange(items: MediaItem[]) {
     this.mediaItems = items;
@@ -75,6 +75,9 @@ export class CreateStepFormComponent implements OnDestroy {
     this.stepForm.patchValue({ mediaUrl: item?.secureUrl ?? '' });
   }
 
+  onMediaUploadStateChange(isUploading: boolean): void {
+    this.isMediaUploading = isUploading;
+  }
 
   ngOnDestroy(): void {
     this.clearGeocodingSubscription();
@@ -87,6 +90,7 @@ export class CreateStepFormComponent implements OnDestroy {
   reset(): void {
     this.stepEditorContent = '';
     this.mediaItems = [];
+    this.isMediaUploading = false;
     this.stepForm.reset({
       title: '',
       city: '',
@@ -115,9 +119,15 @@ export class CreateStepFormComponent implements OnDestroy {
     const endDate = this.formatDateTimeLocal(step.endDate ?? null);
 
     // Réhydratation éventuelle si ton Step contient déjà une liste de médias
-    const list = (step as any)?.media as { fileUrl: string; publicId?: string }[] | undefined;
+    type MediaLike = { fileUrl: string; publicId?: string };
+    const mediaSource = step as Partial<{ media?: MediaLike[]; medias?: MediaLike[] }>;
+    const list = Array.isArray(mediaSource.media)
+      ? mediaSource.media
+      : Array.isArray(mediaSource.medias)
+        ? mediaSource.medias
+        : undefined;
     this.mediaItems = Array.isArray(list)
-      ? list.map(m => ({ publicId: m.publicId ?? '', secureUrl: m.fileUrl }))
+      ? list.map((m) => ({ publicId: m.publicId ?? '', secureUrl: m.fileUrl }))
       : [];
 
     const primaryMedia =
@@ -162,7 +172,7 @@ export class CreateStepFormComponent implements OnDestroy {
   /** Validate the form, coerce types, and emit the result upstream. */
   handleSubmit(): void {
     this.submitAttempted = true;
-    if (this.stepForm.invalid || this.isSubmitting) {
+    if (this.stepForm.invalid || this.isSubmitting || this.isMediaUploading) {
       this.stepForm.markAllAsTouched();
       return;
     }
@@ -186,7 +196,7 @@ export class CreateStepFormComponent implements OnDestroy {
       longitude,
       description: raw.description ?? '',
       mediaUrl: raw.mediaUrl?.toString().trim() || null,
-      media: this.mediaItems.map(m => ({ fileUrl: m.secureUrl, publicId: m.publicId })),
+      media: this.mediaItems.map((m) => ({ fileUrl: m.secureUrl, publicId: m.publicId })),
       startDate: this.normalizeDateInput(raw.startDate),
       endDate: this.normalizeDateInput(raw.endDate),
       themeId: raw.themeId ?? null,

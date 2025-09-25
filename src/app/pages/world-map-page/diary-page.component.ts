@@ -23,7 +23,7 @@ import { TravelMapStateService } from '@service/travel-map-state.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserService } from '@service/user.service';
 import { User } from '@model/user.model';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription, forkJoin, of } from 'rxjs';
 import { map, switchMap, take } from 'rxjs/operators';
 import { CreateStepFormComponent } from 'components/Organisms/create-step-form/create-step-form.component';
 import { StepService } from '@service/step.service';
@@ -32,7 +32,9 @@ import { ItemProps } from '@model/select.model';
 import { ThemeService } from '@service/theme.service';
 import { TravelDiary } from '@model/travel-diary.model';
 import { IconComponent } from 'components/Atoms/Icon/icon.component';
-import { StepFormResult } from '@model/stepFormResult.model';
+import { MediaPayload, StepFormResult } from '@model/stepFormResult.model';
+import { MediaService } from '@service/media.service';
+import { CreateMediaDto } from '@dto/create-media.dto';
 
 type DiaryOwnerInfo = {
   id: number;
@@ -61,6 +63,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
   private userService = inject(UserService);
   private stepService = inject(StepService);
   private themeService = inject(ThemeService);
+  private mediaService = inject(MediaService);
 
   private breakpointService = inject(BreakpointService);
   isTabletOrMobile = this.breakpointService.isMobileOrTablet;
@@ -192,29 +195,34 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
       continent: formValue.continent,
     };
 
+    const desiredMedia = Array.isArray(formValue.media) ? formValue.media : [];
+    const existingMedia = editingStep?.media ?? [];
+
     this.isStepSubmitting.set(true);
     this.stepFormError.set(null);
 
     this.stepCreationSub?.unsubscribe();
     const stepRequest$ = editingStep
-      ? this.stepService
-          .updateStep(editingStep.id, payload)
-          .pipe(
-            switchMap(() =>
-              this.stepService
-                .getDiaryWithSteps(diaryId)
-                .pipe(map((diary) => ({ diary, targetStepId: editingStep.id })))
-            )
+      ? this.stepService.updateStep(editingStep.id, payload).pipe(
+          switchMap(() => this.syncStepMedia(editingStep.id, existingMedia, desiredMedia)),
+          switchMap(() =>
+            this.stepService
+              .getDiaryWithSteps(diaryId)
+              .pipe(map((diary) => ({ diary, targetStepId: editingStep.id })))
           )
-      : this.stepService
-          .addStepToTravel(diaryId, payload)
-          .pipe(
-            switchMap((createdStep) =>
-              this.stepService
-                .getDiaryWithSteps(diaryId)
-                .pipe(map((diary) => ({ diary, targetStepId: createdStep.id })))
+        )
+      : this.stepService.addStepToTravel(diaryId, payload).pipe(
+          switchMap((createdStep) =>
+            this.syncStepMedia(createdStep.id, createdStep.media ?? [], desiredMedia).pipe(
+              map(() => createdStep)
             )
-          );
+          ),
+          switchMap((createdStep) =>
+            this.stepService
+              .getDiaryWithSteps(diaryId)
+              .pipe(map((diary) => ({ diary, targetStepId: createdStep.id })))
+          )
+        );
 
     this.stepCreationSub = stepRequest$.pipe(take(1)).subscribe({
       next: ({ diary, targetStepId }) => {
@@ -240,6 +248,62 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
         this.stepCreationSub = null;
       },
     });
+  }
+
+  private syncStepMedia(
+    stepId: number,
+    existingMedia: Media[] | undefined,
+    desiredMedia: MediaPayload[]
+  ): Observable<void> {
+    if (!Number.isFinite(stepId)) {
+      return of(void 0);
+    }
+
+    const currentMedia = Array.isArray(existingMedia) ? existingMedia : [];
+
+    const normalizedDesired = Array.isArray(desiredMedia)
+      ? desiredMedia
+          .map((item) => ({
+            fileUrl: item.fileUrl?.trim() ?? '',
+            publicId: item.publicId ?? undefined,
+          }))
+          .filter((item) => !!item.fileUrl)
+      : [];
+
+    if (!normalizedDesired.length && !currentMedia.length) {
+      return of(void 0);
+    }
+
+    const desiredUrls = new Set(normalizedDesired.map((item) => item.fileUrl));
+
+    const toDelete = currentMedia.filter((media) => {
+      const url = media.fileUrl?.trim();
+      return !!url && !desiredUrls.has(url);
+    });
+
+    const toCreatePayloads: CreateMediaDto[] = normalizedDesired
+      .filter((item) => !currentMedia.some((media) => media.fileUrl?.trim() === item.fileUrl))
+      .map((item) => ({
+        fileUrl: item.fileUrl,
+        publicId: item.publicId,
+        mediaType: 'PHOTO',
+        stepId,
+        isVisible: true,
+      }));
+
+    const delete$ = toDelete.length
+      ? forkJoin(toDelete.map((media) => this.mediaService.deleteMedia(media.id))).pipe(
+          map(() => void 0)
+        )
+      : of(void 0);
+
+    const create$ = toCreatePayloads.length
+      ? forkJoin(
+          toCreatePayloads.map((payload) => this.mediaService.createStepMedia(payload))
+        ).pipe(map(() => void 0))
+      : of(void 0);
+
+    return delete$.pipe(switchMap(() => create$));
   }
 
   private ensureThemesLoaded(): void {

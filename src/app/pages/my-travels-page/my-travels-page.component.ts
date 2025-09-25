@@ -199,8 +199,15 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
     }
 
     this.panelError = null;
-    this.state.setCurrentDiaryId(diary.id);
+    const currentId = this.state.currentDiaryId();
+    if (currentId === diary.id) {
+      this.state.setCurrentDiaryId(null);
+    }
     this.state.setCurrentDiary(null);
+    this.state.setSteps([]);
+    this.state.setOpenedStepId(null);
+    this.state.setOpenedCommentStepId(null);
+    this.state.setCurrentDiaryId(diary.id);
     void this.router.navigate(['/travels', diary.id]);
   }
 
@@ -276,6 +283,10 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
       coverUrl: diary.media?.fileUrl ?? null,
     };
     // Positionner le carnet courant pour garantir l'ID lors du submit édition
+    const currentId = this.state.currentDiaryId();
+    if (currentId === diary.id) {
+      this.state.setCurrentDiaryId(null);
+    }
     this.state.setCurrentDiary(diary);
     this.state.setCurrentDiaryId(diary.id);
     this.isCreateModalOpen = true;
@@ -338,20 +349,18 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
             continent: payload.step.continent ?? null,
           };
 
-          return this.stepService
-            .addStepToTravel(createdDiary.id, stepPayload)
-            .pipe(
-              switchMap((createdStep) =>
-                this.createStepMediaEntries(createdStep.id, payload.step.media).pipe(
-                  map(() => createdStep)
-                )
-              ),
-              switchMap((createdStep) =>
-                this.stepService
-                  .getDiaryWithSteps(createdDiary.id) // ← récupère le Diary à jour
-                  .pipe(map((diary) => ({ diary, createdStep })))
+          return this.stepService.addStepToTravel(createdDiary.id, stepPayload).pipe(
+            switchMap((createdStep) =>
+              this.createStepMediaEntries(createdStep.id, payload.step.media).pipe(
+                map(() => createdStep)
               )
-            );
+            ),
+            switchMap((createdStep) =>
+              this.stepService
+                .getDiaryWithSteps(createdDiary.id) // ← récupère le Diary à jour
+                .pipe(map((diary) => ({ diary, createdStep })))
+            )
+          );
         }),
         takeUntil(this.destroy$)
       )
@@ -414,24 +423,24 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
 
     const sanitizedCoverUrl = payload.diary.coverUrl?.trim() ?? '';
     const currentDiary = this.state.currentDiary();
+    const currentMediaId = currentDiary?.media?.id ?? null;
 
     const needsCoverUpdate =
       sanitizedCoverUrl && sanitizedCoverUrl !== (currentDiary?.media?.fileUrl ?? '');
 
+    const mediaPayload = needsCoverUpdate
+      ? this.buildMediaPayload(diaryId, sanitizedCoverUrl)
+      : null;
+
     const media$ = needsCoverUpdate
-      ? this.mediaService
-          .createDiaryMedia(this.buildMediaPayload(diaryId, sanitizedCoverUrl))
-          .pipe(map((media) => media?.id ?? null))
-      : of(currentDiary?.media?.id ?? null);
+      ? currentMediaId
+        ? this.mediaService.updateMedia(currentMediaId, mediaPayload!).pipe(map(() => void 0))
+        : this.mediaService.createDiaryMedia(mediaPayload!).pipe(map(() => void 0))
+      : of(void 0);
 
     media$
       .pipe(
-        switchMap((mediaId) => {
-          if (mediaId) {
-            updatePayload.media = mediaId;
-          }
-          return this.stepService.updateDiary(diaryId, updatePayload);
-        }),
+        switchMap(() => this.stepService.updateDiary(diaryId, updatePayload)),
         takeUntil(this.destroy$)
       )
       .subscribe({

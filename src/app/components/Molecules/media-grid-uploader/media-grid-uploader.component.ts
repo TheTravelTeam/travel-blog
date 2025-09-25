@@ -14,7 +14,7 @@ export interface MediaItem {
   selector: 'app-media-grid-uploader',
   imports: [CommonModule],
   templateUrl: './media-grid-uploader.component.html',
-  styleUrl: './media-grid-uploader.component.scss'
+  styleUrl: './media-grid-uploader.component.scss',
 })
 export class MediaGridUploaderComponent {
   /** Liste courante d’éléments déjà téléversés ou sélectionnés. */
@@ -41,6 +41,9 @@ export class MediaGridUploaderComponent {
    */
   @Output() primaryChange = new EventEmitter<MediaItem | null>();
 
+  /** Permet aux parents de connaître l'état de téléversement en temps réel. */
+  @Output() uploadingChange = new EventEmitter<boolean>();
+
   /** Indique à l’UI qu’un transfert vers Cloudinary est en cours. */
   uploading = false;
 
@@ -64,7 +67,7 @@ export class MediaGridUploaderComponent {
     const toUpload = files.slice(0, room);
     if (!toUpload.length) return;
 
-    this.uploading = true;
+    this.setUploading(true);
     this.error = null;
 
     // upload séquentiel pour la simplicité
@@ -78,11 +81,12 @@ export class MediaGridUploaderComponent {
             this.itemsChange.emit(this.items);
             if (this.items.length === 1) this.primaryChange.emit(item);
           }
-        } catch (err) {
+        } catch (error) {
+          console.error('Upload vers Cloudinary impossible', error);
           this.error = `Échec d'upload pour ${f.name}`;
         }
       }
-      this.uploading = false;
+      this.setUploading(false);
     })();
   }
 
@@ -102,5 +106,13 @@ export class MediaGridUploaderComponent {
    */
   thumb(url: string) {
     return url.replace('/upload/', `/upload/c_fill,w_160,h_160,q_auto,f_auto/`);
+  }
+
+  private setUploading(state: boolean): void {
+    if (this.uploading === state) {
+      return;
+    }
+    this.uploading = state;
+    this.uploadingChange.emit(this.uploading);
   }
 }
