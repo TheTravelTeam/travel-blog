@@ -4,6 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient } from '@angular/common/http';
 import { CreateStepDto } from '@dto/create-step.dto';
 import { Step } from '@model/step.model';
+import { environment } from '../../../environments/environment';
 
 describe('StepService', () => {
   let service: StepService;
@@ -40,7 +41,7 @@ describe('StepService', () => {
       response = step;
     });
 
-    const req = httpMock.expectOne('http://localhost:8080/steps');
+    const req = httpMock.expectOne(`${environment.apiUrl}/steps`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(payload);
 
@@ -80,7 +81,7 @@ describe('StepService', () => {
       response = step;
     });
 
-    const req = httpMock.expectOne('http://localhost:8080/steps/42');
+    const req = httpMock.expectOne(`${environment.apiUrl}/steps/42`);
     expect(req.request.method).toBe('PUT');
     expect(req.request.body).toEqual(payload);
 
@@ -114,7 +115,7 @@ describe('StepService', () => {
       completed = true;
     });
 
-    const req = httpMock.expectOne('http://localhost:8080/steps/7');
+    const req = httpMock.expectOne(`${environment.apiUrl}/steps/7`);
     expect(req.request.method).toBe('DELETE');
 
     req.flush('', { status: 200, statusText: 'OK' });

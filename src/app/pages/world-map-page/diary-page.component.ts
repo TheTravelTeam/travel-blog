@@ -197,47 +197,49 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
 
     this.stepCreationSub?.unsubscribe();
     const stepRequest$ = editingStep
-      ? this.stepService.updateStep(editingStep.id, payload).pipe(
-          switchMap(() =>
-            this.stepService
-              .getDiaryWithSteps(diaryId)
-              .pipe(map((diary) => ({ diary, targetStepId: editingStep.id })))
+      ? this.stepService
+          .updateStep(editingStep.id, payload)
+          .pipe(
+            switchMap(() =>
+              this.stepService
+                .getDiaryWithSteps(diaryId)
+                .pipe(map((diary) => ({ diary, targetStepId: editingStep.id })))
+            )
           )
-        )
-      : this.stepService.addStepToTravel(diaryId, payload).pipe(
-          switchMap((createdStep) =>
-            this.stepService
-              .getDiaryWithSteps(diaryId)
-              .pipe(map((diary) => ({ diary, targetStepId: createdStep.id })))
-          )
-        );
-
-    this.stepCreationSub = stepRequest$
-      .pipe(take(1))
-      .subscribe({
-        next: ({ diary, targetStepId }) => {
-          this.applyUpdatedDiary(diary);
-
-          if (targetStepId) {
-            this.state.openedStepId.set(targetStepId);
-          }
-
-          this.isStepSubmitting.set(false);
-          this.isStepFormVisible.set(false);
-          this.createStepForm?.reset();
-          this.resetEditingState();
-          this.stepCreationSub = null;
-        },
-        error: () => {
-          this.isStepSubmitting.set(false);
-          this.stepFormError.set(
-            editingStep
-              ? "Impossible de mettre à jour cette étape pour le moment."
-              : "Impossible d'ajouter cette étape pour le moment."
+      : this.stepService
+          .addStepToTravel(diaryId, payload)
+          .pipe(
+            switchMap((createdStep) =>
+              this.stepService
+                .getDiaryWithSteps(diaryId)
+                .pipe(map((diary) => ({ diary, targetStepId: createdStep.id })))
+            )
           );
-          this.stepCreationSub = null;
-        },
-      });
+
+    this.stepCreationSub = stepRequest$.pipe(take(1)).subscribe({
+      next: ({ diary, targetStepId }) => {
+        this.applyUpdatedDiary(diary);
+
+        if (targetStepId) {
+          this.state.openedStepId.set(targetStepId);
+        }
+
+        this.isStepSubmitting.set(false);
+        this.isStepFormVisible.set(false);
+        this.createStepForm?.reset();
+        this.resetEditingState();
+        this.stepCreationSub = null;
+      },
+      error: () => {
+        this.isStepSubmitting.set(false);
+        this.stepFormError.set(
+          editingStep
+            ? 'Impossible de mettre à jour cette étape pour le moment.'
+            : "Impossible d'ajouter cette étape pour le moment."
+        );
+        this.stepCreationSub = null;
+      },
+    });
   }
 
   private ensureThemesLoaded(): void {
@@ -250,7 +252,9 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
       .pipe(take(1))
       .subscribe({
         next: (themes) => {
-          const items = themes.map((theme) => ({ id: theme.id, label: theme.name } satisfies ItemProps));
+          const items = themes.map(
+            (theme) => ({ id: theme.id, label: theme.name }) satisfies ItemProps
+          );
           this.stepThemes.set(items);
         },
         error: () => {
@@ -276,7 +280,9 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     this.state.setSteps(normalizedSteps);
     this.state.openedCommentStepId.set(null);
 
-    const lastStepId = normalizedSteps.length ? normalizedSteps[normalizedSteps.length - 1].id : null;
+    const lastStepId = normalizedSteps.length
+      ? normalizedSteps[normalizedSteps.length - 1].id
+      : null;
     this.state.openedStepId.set(lastStepId);
 
     const diaries = this.state.allDiaries();
@@ -440,7 +446,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
           }
         },
         error: () => {
-          this.stepFormError.set("Impossible de supprimer cette étape pour le moment.");
+          this.stepFormError.set('Impossible de supprimer cette étape pour le moment.');
         },
       });
   }

@@ -6,23 +6,24 @@ import { UserService } from './user.service';
 import { AuthService } from './auth.service';
 import { environment } from '../../../environments/environment';
 import { UserProfileDto } from '@dto/user-profile.dto';
+import { signal } from '@angular/core';
+import { Observable, of, throwError } from 'rxjs';
 
 class AuthServiceStub {
-  private token: string | null = null;
+  currentUser = signal<UserProfileDto | null>(null);
 
-  getToken(): string | null {
-    return this.token;
+  loadCurrentUser(): Observable<UserProfileDto> {
+    if (this.currentUser()) {
+      return of(this.currentUser()!);
+    } else {
+      return throwError(() => new Error("L'utilisateur n'est pas authentifié"));
+    }
   }
 
-  saveToken(token: string | null): void {
-    this.token = token;
+  saveCurrentUser(user: UserProfileDto | null) {
+    this.currentUser.set(user);
   }
 }
-
-const TOKEN_WITH_NUMERIC_UID = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjQyfQ.signature';
-const TOKEN_WITH_NON_NUMERIC_UID =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJhYmMifQ.signature';
-const TOKEN_WITH_INVALID_STRUCTURE = 'invalid-token';
 
 describe('UserService', () => {
   let userService: UserService;
@@ -47,32 +48,21 @@ describe('UserService', () => {
     httpMock.verify();
   });
 
-  it('should load the current user profile with the id decoded from the token', () => {
-    authService.saveToken(TOKEN_WITH_NUMERIC_UID);
-
-    let profileId: number | undefined;
-    let roles: string[] | undefined;
-
-    userService.getCurrentUserProfile().subscribe((profile) => {
-      profileId = profile.id;
-      roles = profile.roles;
-    });
-
-    const request = httpMock.expectOne(`${environment.apiUrl}/users/42`);
-    expect(request.request.method).toBe('GET');
-
-    const dto: UserProfileDto = {
+  it('should load the current user profile when authenticated', () => {
+    authService.saveCurrentUser({
       id: 42,
       pseudo: 'wanderer',
       firstName: 'Jane',
       lastName: 'Doe',
       roles: ['ROLE_admin', 'ROLE_user'],
       travelDiaries: [],
-    };
-    request.flush(dto);
+    });
 
-    expect(profileId).toBe(42);
-    expect(roles).toEqual(['ADMIN', 'USER']);
+    let profile: UserProfileDto | undefined;
+    userService.getCurrentUserProfile().subscribe((p) => (profile = p));
+
+    expect(profile?.id).toBe(42);
+    expect(profile?.roles).toEqual(['ADMIN', 'USER']);
   });
 
   it('should send a boolean to toggle admin role', () => {
@@ -100,8 +90,8 @@ describe('UserService', () => {
     expect(receivedRoles).toEqual(['USER', 'ADMIN']);
   });
 
-  it('should emit an error when requesting current user profile without authentication', (done) => {
-    authService.saveToken(null);
+  it('should emit an error when requesting profile while not authenticated', (done) => {
+    authService.saveCurrentUser(null);
 
     userService.getCurrentUserProfile().subscribe({
       next: () => done.fail('Expected an authentication error'),
@@ -111,7 +101,7 @@ describe('UserService', () => {
       },
     });
 
-    httpMock.expectNone(`${environment.apiUrl}/users/`);
+    httpMock.expectNone(`${environment.apiUrl}/auth/me`);
   });
 
   it('should default to USER role when API returns no roles', () => {
@@ -135,29 +125,5 @@ describe('UserService', () => {
     request.flush(dto);
 
     expect(receivedRoles).toEqual(['USER']);
-  });
-
-  it('should return null when no token is stored', () => {
-    authService.saveToken(null);
-
-    const result = userService.currentUserId();
-
-    expect(result).toBeNull();
-  });
-
-  it('should return null when token does not expose a numeric userId', () => {
-    authService.saveToken(TOKEN_WITH_NON_NUMERIC_UID);
-
-    const result = userService.currentUserId();
-
-    expect(result).toBeNull();
-  });
-
-  it('should return null when token decoding fails', () => {
-    authService.saveToken(TOKEN_WITH_INVALID_STRUCTURE);
-
-    const result = userService.currentUserId();
-
-    expect(result).toBeNull();
   });
 });

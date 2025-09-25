@@ -10,9 +10,9 @@ export interface UserProfileDto {
   /** Pseudo destiné aux interactions sociales / URL. */
   pseudo: string;
   /** Pseudo destiné aux interactions sociales / URL. */
-  firstName: string;
+  firstName?: string;
   /** Pseudo destiné aux interactions sociales / URL. */
-  lastName: string;
+  lastName?: string;
   /** Adresse e-mail principale, si fournie. */
   email?: string;
   /** Mot de passe lors des mises à jour ciblées. */

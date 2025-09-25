@@ -1,4 +1,4 @@
-import { effect } from '@angular/core';
+import { computed, effect } from '@angular/core';
 // Import Angular
 import {
   Component,
@@ -36,7 +36,7 @@ import { AvatarComponent } from 'components/Atoms/avatar/avatar.component';
 import { BreakpointService } from '@service/breakpoint.service';
 import { Router } from '@angular/router';
 import { TravelMapStateService } from '@service/travel-map-state.service';
-import { UserService } from '@service/user.service';
+import { AuthService } from '@service/auth.service';
 
 // Interface pour les événements
 export interface MapDiarySelectedEvent {
@@ -77,14 +77,13 @@ export class MapComponent implements AfterViewInit, OnChanges {
   private breakpointService = inject(BreakpointService);
   private router = inject(Router);
   public state = inject(TravelMapStateService);
-  private userService = inject(UserService);
+  private readonly authService = inject(AuthService);
 
   private map!: L.Map;
   public currentDiaryId: number | null = null;
   public currentUser: User | null = null;
   public userLoc: L.LatLng | null = null;
   public isFirstCall = true;
-
 
   @Input() viewMode: MapConfig['modeView'] = mapConfigDefault['modeView'];
   @Input() isDiary: MapConfig['isDiary'] = mapConfigDefault['isDiary'];
@@ -103,6 +102,8 @@ export class MapComponent implements AfterViewInit, OnChanges {
   private lastPoint: L.LatLng | null = null;
   isTabletOrMobile = this.breakpointService.isMobileOrTablet;
   isMobile = this.breakpointService.isMobile;
+
+  public currentUserId = computed(() => this.authService.currentUser()?.id ?? null);
 
   ngAfterViewInit(): void {
     this.initMap();
@@ -201,13 +202,13 @@ export class MapComponent implements AfterViewInit, OnChanges {
     }
   }
 
-
   /**
    * Gérer les clics sur la carte
    */
   private handleCreateOnMapClick(e: L.LeafletMouseEvent): void {
     const { lat, lng } = e.latlng;
     const coordStr = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    const currentUserId = this.currentUserId();
 
     // Affiche les coordonnées dans un popup
     L.popup({ closeOnClick: true, autoClose: true })
@@ -228,7 +229,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
             'https://www.echosciences-grenoble.fr/uploads/article/image/attachment/1005418938/xl_lens-1209823_1920.jpg',
           mediaType: 'PHOTO',
         },
-        user: this.userService.currentUserId(),
+        user: currentUserId,
         isPrivate: false,
         isPublished: true,
         status: 'DRAFT',
