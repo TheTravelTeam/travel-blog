@@ -1,4 +1,4 @@
-import { Component, computed, Input, inject } from '@angular/core';
+import { Component, OnInit, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { IconSize, Size } from '@model/variant.model';
@@ -7,6 +7,7 @@ import { IconComponent } from 'components/Atoms/Icon/icon.component';
 import { ButtonComponent } from 'components/Atoms/Button/button.component';
 import { AvatarComponent } from 'components/Atoms/avatar/avatar.component';
 import { AuthService } from '@service/auth.service';
+import { UserProfileDto } from '@dto/user-profile.dto';
 
 @Component({
   selector: 'app-top-bar',
@@ -15,15 +16,10 @@ import { AuthService } from '@service/auth.service';
   templateUrl: './top-bar.component.html',
   styleUrl: './top-bar.component.scss',
 })
-export class TopBarComponent {
-  @Input() isConnected = true;
-
+export class TopBarComponent implements OnInit {
   private readonly authService = inject(AuthService);
-
-  constructor(
-    public bp: BreakpointService,
-    public router: Router
-  ) {}
+  readonly bp = inject(BreakpointService);
+  private readonly router = inject(Router);
 
   // 💡 IconSize adapté automatiquement au device
   public iconSize = computed<IconSize>(() => {
@@ -53,16 +49,55 @@ export class TopBarComponent {
   }
 
   /** Identifiant de l'utilisateur connecté (null tant que non authentifié). */
-  currentUserId = computed(() => this.authService.currentUser()?.id ?? null);
+  readonly currentUser = computed(() => this.authService.currentUser());
+  readonly isAuthenticated = computed(() => this.currentUser() !== null);
+  readonly currentUserId = computed(() => this.currentUser()?.id ?? null);
+  readonly avatarLabel = computed(() => this.buildAvatarLabel(this.currentUser()));
+  readonly avatarPicture = computed(() => this.currentUser()?.avatar ?? undefined);
 
   /** Indique si le lien "Carnet de voyage" doit être rendu. */
   get canDisplayDiariesLink(): boolean {
-    return this.isConnected && this.currentUserId !== null;
+    return this.isAuthenticated() && this.currentUserId() !== null;
+  }
+
+  ngOnInit(): void {
+    if (!this.authService.currentUser()) {
+      // Charge l'utilisateur courant lors d'un rafraîchissement avec session déjà active
+      this.authService.loadCurrentUser().subscribe({ error: () => undefined });
+    }
+  }
+
+  onNavigateToLogin(): void {
+    void this.router.navigate(['/login']);
   }
 
   onLogout(): void {
     this.authService.logout().subscribe({
       next: () => this.router.navigate(['/login']),
     });
+  }
+
+  private buildAvatarLabel(user: UserProfileDto | null): string {
+    if (!user) {
+      return 'Voyageur';
+    }
+
+    const names = [user.firstName, user.lastName].filter((value): value is string => {
+      return typeof value === 'string' && value.trim().length > 0;
+    });
+
+    if (names.length) {
+      return names.join(' ');
+    }
+
+    if (user.pseudo?.trim().length) {
+      return user.pseudo;
+    }
+
+    if (user.email?.trim().length) {
+      return user.email.split('@')[0] ?? 'Voyageur';
+    }
+
+    return 'Voyageur';
   }
 }

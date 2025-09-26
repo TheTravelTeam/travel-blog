@@ -19,7 +19,6 @@ import { UserService } from '@service/user.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { StepService } from '@service/step.service';
 import { forkJoin, Observable, Subject, of } from 'rxjs';
-import { Subject, of } from 'rxjs';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { map, switchMap, takeUntil } from 'rxjs/operators';
 import {
@@ -71,6 +70,7 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
   private themesLoaded = false;
 
   public currentUserId = computed(() => this.authService.currentUser()?.id ?? null);
+  private readonly currentUserId$ = toObservable(this.currentUserId);
 
   private breakpointService = inject(BreakpointService);
   isTabletOrMobile = this.breakpointService.isMobileOrTablet;
@@ -98,7 +98,7 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
    * via `TravelMapStateService.getDiaryCoverUrl`.
    */
   ngOnInit(): void {
-    const currentUserId$ = toObservable(this.currentUserId);
+    const currentUserId$ = this.currentUserId$;
     this.route.paramMap
       .pipe(
         switchMap((params) => {

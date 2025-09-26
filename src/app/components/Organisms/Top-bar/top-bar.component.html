@@ -26,71 +26,89 @@
   </div>
 
   <div class="topbar__right">
-    <nav class="topbar__menu">
-      @if (bp.isDesktop() || bp.isTablet()) {
-        @if (!isConnected && isHomeOrArticlePage) {
-          <app-button [type]="'standard'" text="Connexion" routerLink="/me" color="secondary" />
-          <app-button [type]="'standard'" text="Mappemonde" routerLink="/travels" color="primary" />
-        } @else if (!isConnected && !isHomeOrArticlePage) {
-          <a routerLink="/travels" class="topbar__link">
-            <app-icon name="language" [size]="iconSize()" />
-            MappeMonde
+    @if (bp.isDesktop() || bp.isTablet()) {
+      <nav class="topbar__menu">
+        <a routerLink="/travels" class="topbar__link">
+          <app-icon name="language" [size]="iconSize()" />
+          Mappemonde
+        </a>
+        <a routerLink="/articles" class="topbar__link">
+          <app-icon name="map_search" [size]="iconSize()" />
+          Articles
+        </a>
+        @if (canDisplayDiariesLink) {
+          <a [routerLink]="['/travels/users', currentUserId()]" class="topbar__link">
+            <app-icon name="import_contacts" [size]="iconSize()" />
+            Mes carnets
           </a>
-          <a routerLink="/articles" class="topbar__link">
-            <app-icon name="map_search" [size]="iconSize()" />
-            Articles
+        }
+      </nav>
+      <div class="topbar__actions">
+        @if (isAuthenticated()) {
+          <a routerLink="/me" class="topbar__profile">
+            <app-avatar
+              [label]="avatarLabel()"
+              [picture]="avatarPicture()"
+              [size]="bp.isMobileOrTablet() ? 'compact' : 'default'"
+            />
           </a>
           <app-button
             [type]="'standard'"
-            text="Connexion"
-            routerLink="/me"
-            color="secondary"
             [size]="btnSize()"
+            color="secondary"
+            text="Déconnexion"
+            (btnClick)="onLogout()"
           />
         } @else {
-          <a routerLink="/login" style="color: white">Connexion</a>
-          <a (click)="onLogout()" style="color: white">Se Déconnecter</a>
-          <a routerLink="/travels" class="topbar__link">
-            <app-icon name="language" [size]="iconSize()" />
-            Mappemonde
-          </a>
-          <a routerLink="/articles" class="topbar__link">
-            <app-icon name="map_search" [size]="iconSize()" />Articles de voyages</a
-          >
-          @if (canDisplayDiariesLink) {
-            <a [routerLink]="['/travels/users', currentUserId()]" class="topbar__link__mobile"
-              ><app-icon name="import_contacts" [size]="iconSize()"
-            /></a>
-          }
+          <app-button
+            [type]="'standard'"
+            [size]="btnSize()"
+            color="secondary"
+            text="Connexion"
+            (btnClick)="onNavigateToLogin()"
+          />
         }
-        @if (isMyDiariesPage) {
-          <a routerLink="/travels" class="topbar__link__mobile"
-            ><app-icon name="map_search" [size]="iconSize()"
-          /></a>
-        }
-        @if (isFilterPage) {
-          @if (canDisplayDiariesLink) {
-            <a [routerLink]="['/travels/users', currentUserId()]" class="topbar__link__mobile"
-              ><app-icon name="import_contacts" [size]="iconSize()"
-            /></a>
-          }
-          <a routerLink="/travels" class="topbar__link__mobile"
-            ><app-icon name="map_search" [size]="iconSize()"
-          /></a>
-        }
-        @if (isHomeOrArticlePage) {
-          <a routerLink="/travels" class="topbar__link__mobile">
-            <app-icon name="language" [size]="iconSize()" />
+      </div>
+    } @else {
+      <nav class="topbar__menu">
+        <a routerLink="/travels" class="topbar__link__mobile">
+          <app-icon name="language" [size]="iconSize()" />
+        </a>
+        <a routerLink="/articles" class="topbar__link__mobile">
+          <app-icon name="map_search" [size]="iconSize()" />
+        </a>
+        @if (canDisplayDiariesLink) {
+          <a [routerLink]="['/travels/users', currentUserId()]" class="topbar__link__mobile">
+            <app-icon name="import_contacts" [size]="iconSize()" />
           </a>
         }
-        @if (!isConnected) {
-          <a routerLink="/me" class="topbar__link__mobile">
-            <app-icon name="account_circle" [size]="iconSize()" />
+      </nav>
+      <div class="topbar__actions">
+        @if (isAuthenticated()) {
+          <a routerLink="/me" class="topbar__profile">
+            <app-avatar
+              [label]="avatarLabel()"
+              [picture]="avatarPicture()"
+              size="compact"
+            />
           </a>
+          <app-button
+            [type]="'standard'"
+            size="sm"
+            color="secondary"
+            text="Déconnexion"
+            (btnClick)="onLogout()"
+          />
         } @else {
-          <a routerLink="/me" class="topbar__link__mobile"><app-avatar label="Jean" /></a>
+          <app-button
+            [type]="'standard'"
+            size="sm"
+            color="secondary"
+            text="Connexion"
+            (btnClick)="onNavigateToLogin()"
+          />
         }
-      }
-    </nav>
+      </div>
+    }
   </div>
 </header>
