@@ -141,9 +141,11 @@ app-accordion {
 
   img {
     max-height: 15rem;
-    min-width: 10rem;
-    border-radius: 15%;
+    width: min(100%, 18rem);
     height: auto;
+    border-radius: 15%;
+    object-fit: cover;
+    flex-shrink: 0;
   }
 }
 
@@ -305,7 +307,6 @@ app-accordion {
   &__input {
     border: none;
     outline: none;
-    width: 100%;
     width: fit-content;
     font-size: 0.7rem;
   }

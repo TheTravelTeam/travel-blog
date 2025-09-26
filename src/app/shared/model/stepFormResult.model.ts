@@ -7,7 +7,13 @@ export interface StepFormResult {
   longitude: number;
   description: string;
   mediaUrl: string | null;
+  media?: MediaPayload[];
   startDate: string | null;
   endDate: string | null;
   themeId: number | null;
+}
+
+export interface MediaPayload {
+  fileUrl: string;
+  publicId?: string;
 }

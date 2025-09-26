@@ -18,7 +18,7 @@ import { BreakpointService } from '@service/breakpoint.service';
 import { UserService } from '@service/user.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { StepService } from '@service/step.service';
-import { Subject, of } from 'rxjs';
+import { forkJoin, Observable, Subject, of } from 'rxjs';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { map, switchMap, takeUntil } from 'rxjs/operators';
 import {
@@ -29,6 +29,9 @@ import { CreateDiaryDto } from '@dto/create-diary.dto';
 import { CreateStepDto } from '@dto/create-step.dto';
 import { ThemeService } from '@service/theme.service';
 import { ItemProps } from '@model/select.model';
+import { MediaService } from '@service/media.service';
+import { CreateMediaDto } from '@dto/create-media.dto';
+import { MediaPayload } from '@model/stepFormResult.model';
 import { UpdateDiaryDTO } from '@dto/update-diary.dto';
 import { AuthService } from '@service/auth.service';
 
@@ -49,6 +52,7 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly userService = inject(UserService);
   private readonly stepService = inject(StepService);
+  private readonly mediaService = inject(MediaService);
   private readonly router = inject(Router);
   private readonly themeService = inject(ThemeService);
   private readonly authService = inject(AuthService);
@@ -66,6 +70,7 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
   private themesLoaded = false;
 
   public currentUserId = computed(() => this.authService.currentUser()?.id ?? null);
+  private readonly currentUserId$ = toObservable(this.currentUserId);
 
   private breakpointService = inject(BreakpointService);
   isTabletOrMobile = this.breakpointService.isMobileOrTablet;
@@ -93,7 +98,7 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
    * via `TravelMapStateService.getDiaryCoverUrl`.
    */
   ngOnInit(): void {
-    const currentUserId$ = toObservable(this.currentUserId);
+    const currentUserId$ = this.currentUserId$;
     this.route.paramMap
       .pipe(
         switchMap((params) => {
@@ -194,8 +199,15 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
     }
 
     this.panelError = null;
-    this.state.setCurrentDiaryId(diary.id);
+    const currentId = this.state.currentDiaryId();
+    if (currentId === diary.id) {
+      this.state.setCurrentDiaryId(null);
+    }
     this.state.setCurrentDiary(null);
+    this.state.setSteps([]);
+    this.state.setOpenedStepId(null);
+    this.state.setOpenedCommentStepId(null);
+    this.state.setCurrentDiaryId(diary.id);
     void this.router.navigate(['/travels', diary.id]);
   }
 
@@ -271,6 +283,10 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
       coverUrl: diary.media?.fileUrl ?? null,
     };
     // Positionner le carnet courant pour garantir l'ID lors du submit édition
+    const currentId = this.state.currentDiaryId();
+    if (currentId === diary.id) {
+      this.state.setCurrentDiaryId(null);
+    }
     this.state.setCurrentDiary(diary);
     this.state.setCurrentDiaryId(diary.id);
     this.isCreateModalOpen = true;
@@ -334,6 +350,11 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
           };
 
           return this.stepService.addStepToTravel(createdDiary.id, stepPayload).pipe(
+            switchMap((createdStep) =>
+              this.createStepMediaEntries(createdStep.id, payload.step.media).pipe(
+                map(() => createdStep)
+              )
+            ),
             switchMap((createdStep) =>
               this.stepService
                 .getDiaryWithSteps(createdDiary.id) // ← récupère le Diary à jour
@@ -400,9 +421,28 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
       // latitude/longitude, steps, user, media non modifiés ici
     };
 
-    this.stepService
-      .updateDiary(diaryId, updatePayload)
-      .pipe(takeUntil(this.destroy$))
+    const sanitizedCoverUrl = payload.diary.coverUrl?.trim() ?? '';
+    const currentDiary = this.state.currentDiary();
+    const currentMediaId = currentDiary?.media?.id ?? null;
+
+    const needsCoverUpdate =
+      sanitizedCoverUrl && sanitizedCoverUrl !== (currentDiary?.media?.fileUrl ?? '');
+
+    const mediaPayload = needsCoverUpdate
+      ? this.buildMediaPayload(diaryId, sanitizedCoverUrl)
+      : null;
+
+    const media$ = needsCoverUpdate
+      ? currentMediaId
+        ? this.mediaService.updateMedia(currentMediaId, mediaPayload!).pipe(map(() => void 0))
+        : this.mediaService.createDiaryMedia(mediaPayload!).pipe(map(() => void 0))
+      : of(void 0);
+
+    media$
+      .pipe(
+        switchMap(() => this.stepService.updateDiary(diaryId, updatePayload)),
+        takeUntil(this.destroy$)
+      )
       .subscribe({
         next: (updatedDiary) => {
           // Met à jour la liste locale et l'état partagé
@@ -428,6 +468,46 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
           this.isCreateModalSubmitting = false;
         },
       });
+  }
+
+  private createStepMediaEntries(
+    stepId: number,
+    mediaItems: MediaPayload[] | undefined | null
+  ): Observable<void> {
+    if (!Number.isFinite(stepId)) {
+      return of(void 0);
+    }
+
+    const sanitized = Array.isArray(mediaItems)
+      ? mediaItems.filter((item) => !!item?.fileUrl?.trim())
+      : [];
+
+    if (!sanitized.length) {
+      return of(void 0);
+    }
+
+    const requests = sanitized.map((item) =>
+      this.mediaService.createStepMedia({
+        fileUrl: item.fileUrl,
+        publicId: item.publicId,
+        mediaType: 'PHOTO',
+        stepId,
+        isVisible: true,
+      })
+    );
+
+    return forkJoin(requests).pipe(map(() => void 0));
+  }
+
+  private buildMediaPayload(travelDiaryId: number, fileUrl: string): CreateMediaDto {
+    const payload: CreateMediaDto = {
+      fileUrl,
+      mediaType: 'PHOTO',
+      travelDiaryId,
+      isVisible: true,
+    };
+
+    return payload;
   }
 
   onDiaryModalSubmit(payload: DiaryCreationPayload): void {

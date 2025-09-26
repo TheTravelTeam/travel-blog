@@ -66,7 +66,9 @@
             htmlType="button"
             (btnClick)="openLocationModal()"
           ></app-button>
-          <span class="create-step__location-summary">{{ locationEnrichmentSummary || selectedCoordinatesSummary }}</span>
+          <span class="create-step__location-summary">{{
+            locationEnrichmentSummary || selectedCoordinatesSummary
+          }}</span>
         </div>
         @if (isGeocoding) {
           <p class="create-step__location-status">Recherche de l'adresse…</p>
@@ -75,18 +77,22 @@
           <p class="create-step__location-error">{{ geocodingError }}</p>
         }
         @if (showLocationRequiredMessage) {
-          <p class="create-step__location-error">Sélectionnez un point sur la carte pour continuer.</p>
+          <p class="create-step__location-error">
+            Sélectionnez un point sur la carte pour continuer.
+          </p>
         }
         <input type="hidden" formControlName="latitude" />
         <input type="hidden" formControlName="longitude" />
       </div>
 
-      <app-text-input
-        formControlName="mediaUrl"
-        label="Média principal (URL)"
-        placeholder="Ajouter un média"
-        icon="add"
-      ></app-text-input>
+      <app-media-grid-uploader
+        [items]="mediaItems"
+        [folder]="'travel-diaries/steps'"
+        (itemsChange)="onMediaItemsChange($event)"
+        (primaryChange)="onPrimaryMediaChange($event)"
+        (uploadingChange)="onMediaUploadStateChange($event)"
+      >
+      </app-media-grid-uploader>
     </div>
 
     <div class="create-step__editor">
@@ -118,7 +124,7 @@
       size="auto"
       radius="border_lg"
       htmlType="submit"
-      [isDisabled]="stepForm.invalid || isSubmitting"
+      [isDisabled]="stepForm.invalid || isSubmitting || isMediaUploading"
     ></app-button>
   </div>
 </form>

@@ -14,6 +14,10 @@ import {
 } from 'components/Organisms/location-picker-modal/location-picker-modal.component';
 import { GeocodingService, ReverseGeocodingResult } from '@service/geocoding.service';
 import { finalize, Subscription } from 'rxjs';
+import {
+  MediaGridUploaderComponent,
+  MediaItem,
+} from '../../Molecules/media-grid-uploader/media-grid-uploader.component';
 
 @Component({
   selector: 'app-create-step-form',
@@ -26,6 +30,7 @@ import { finalize, Subscription } from 'rxjs';
     EditorComponent,
     SelectComponent,
     LocationPickerModalComponent,
+    MediaGridUploaderComponent,
   ],
   templateUrl: './create-step-form.component.html',
   styleUrl: './create-step-form.component.scss',
@@ -39,6 +44,7 @@ export class CreateStepFormComponent implements OnDestroy {
   @Input() errorMessage: string | null = null;
   @Input() availableThemes: ItemProps[] = [];
 
+  // eslint-disable-next-line @angular-eslint/no-output-native
   @Output() cancel = new EventEmitter<void>();
   @Output() submitStep = new EventEmitter<StepFormResult>();
 
@@ -50,8 +56,27 @@ export class CreateStepFormComponent implements OnDestroy {
   private submitAttempted = false;
   private geocodingSub: Subscription | null = null;
 
-  constructor(private readonly fb: FormBuilder, private readonly geocodingService: GeocodingService) {
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly geocodingService: GeocodingService
+  ) {
     this.stepForm = this.buildStepForm();
+  }
+  mediaItems: MediaItem[] = [];
+  isMediaUploading = false;
+
+  onMediaItemsChange(items: MediaItem[]) {
+    this.mediaItems = items;
+    const primary = items[0]?.secureUrl ?? '';
+    this.stepForm.patchValue({ mediaUrl: primary }); // compat "champ unique"
+    this.stepForm.get('mediaUrl')?.markAsDirty();
+  }
+  onPrimaryMediaChange(item: MediaItem | null) {
+    this.stepForm.patchValue({ mediaUrl: item?.secureUrl ?? '' });
+  }
+
+  onMediaUploadStateChange(isUploading: boolean): void {
+    this.isMediaUploading = isUploading;
   }
 
   ngOnDestroy(): void {
@@ -64,6 +89,8 @@ export class CreateStepFormComponent implements OnDestroy {
   /** Reset the reactive form and derived state. */
   reset(): void {
     this.stepEditorContent = '';
+    this.mediaItems = [];
+    this.isMediaUploading = false;
     this.stepForm.reset({
       title: '',
       city: '',
@@ -91,7 +118,20 @@ export class CreateStepFormComponent implements OnDestroy {
     const startDate = this.formatDateTimeLocal(step.startDate);
     const endDate = this.formatDateTimeLocal(step.endDate ?? null);
 
-    const primaryMedia = Array.isArray(step.media) && step.media.length ? step.media[0].fileUrl ?? '' : '';
+    // Réhydratation éventuelle si ton Step contient déjà une liste de médias
+    type MediaLike = { fileUrl: string; publicId?: string };
+    const mediaSource = step as Partial<{ media?: MediaLike[]; medias?: MediaLike[] }>;
+    const list = Array.isArray(mediaSource.media)
+      ? mediaSource.media
+      : Array.isArray(mediaSource.medias)
+        ? mediaSource.medias
+        : undefined;
+    this.mediaItems = Array.isArray(list)
+      ? list.map((m) => ({ publicId: m.publicId ?? '', secureUrl: m.fileUrl }))
+      : [];
+
+    const primaryMedia =
+      Array.isArray(step.media) && step.media.length ? (step.media[0].fileUrl ?? '') : '';
 
     this.stepForm.reset({
       title: step.title ?? '',
@@ -132,7 +172,7 @@ export class CreateStepFormComponent implements OnDestroy {
   /** Validate the form, coerce types, and emit the result upstream. */
   handleSubmit(): void {
     this.submitAttempted = true;
-    if (this.stepForm.invalid || this.isSubmitting) {
+    if (this.stepForm.invalid || this.isSubmitting || this.isMediaUploading) {
       this.stepForm.markAllAsTouched();
       return;
     }
@@ -156,6 +196,7 @@ export class CreateStepFormComponent implements OnDestroy {
       longitude,
       description: raw.description ?? '',
       mediaUrl: raw.mediaUrl?.toString().trim() || null,
+      media: this.mediaItems.map((m) => ({ fileUrl: m.secureUrl, publicId: m.publicId })),
       startDate: this.normalizeDateInput(raw.startDate),
       endDate: this.normalizeDateInput(raw.endDate),
       themeId: raw.themeId ?? null,
@@ -338,9 +379,21 @@ export class CreateStepFormComponent implements OnDestroy {
   private buildStepForm(): FormGroup {
     return this.fb.group({
       title: this.fb.control('', [Validators.required, Validators.maxLength(150)]),
-      city: this.fb.control('', [Validators.required, Validators.minLength(2), Validators.maxLength(200)]),
-      country: this.fb.control('', [Validators.required, Validators.minLength(2), Validators.maxLength(200)]),
-      continent: this.fb.control('', [Validators.required, Validators.minLength(2), Validators.maxLength(200)]),
+      city: this.fb.control('', [
+        Validators.required,
+        Validators.minLength(2),
+        Validators.maxLength(200),
+      ]),
+      country: this.fb.control('', [
+        Validators.required,
+        Validators.minLength(2),
+        Validators.maxLength(200),
+      ]),
+      continent: this.fb.control('', [
+        Validators.required,
+        Validators.minLength(2),
+        Validators.maxLength(200),
+      ]),
       latitude: this.fb.control('', [Validators.required]),
       longitude: this.fb.control('', [Validators.required]),
       description: this.fb.control('', [Validators.required, Validators.minLength(10)]),

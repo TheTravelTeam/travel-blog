@@ -1,0 +1,36 @@
+/* src/app/components/Organisms/media-grid-uploader/media-grid-uploader.component.scss */
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 12px;
+}
+.tile {
+  position: relative;
+  width: 100%;
+  padding-top: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #111;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+.tile img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover;
+}
+.tile__remove {
+  position: absolute; top: 6px; right: 6px;
+  width: 24px; height: 24px; border-radius: 50%;
+  border: none; background: rgba(0,0,0,.6); color: #fff; cursor: pointer;
+}
+.tile__badge {
+  position: absolute; left: 6px; bottom: 6px;
+  background: rgba(0,0,0,.7); color:#fff; font-size: 11px;
+  padding: 2px 6px; border-radius: 6px;
+}
+.tile--add {
+  display: grid; place-items: center; cursor: pointer;
+  color: #888;
+}
+.tile--add span { font-size: 32px; line-height: 1; }
+.media-grid__status { margin-top: 8px; color:#888; }
+.media-grid__error { margin-top: 8px; color:#d33; }

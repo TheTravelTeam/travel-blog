@@ -22,13 +22,22 @@
           }
         </p>
       </div>
-      <button type="button" class="create-diary-modal__close" (click)="handleCancel()" aria-label="Fermer">
+      <button
+        type="button"
+        class="create-diary-modal__close"
+        (click)="handleCancel()"
+        aria-label="Fermer"
+      >
         <app-icon name="close"></app-icon>
       </button>
     </div>
 
     @if (stage === 'diary') {
-      <form class="create-diary-modal__form" [formGroup]="diaryForm" (ngSubmit)="handleDiarySubmit()">
+      <form
+        class="create-diary-modal__form"
+        [formGroup]="diaryForm"
+        (ngSubmit)="handleDiarySubmit()"
+      >
         <section class="create-diary-modal__section">
           <h3>Informations du carnet</h3>
           <div class="create-diary-modal__grid">
@@ -52,6 +61,35 @@
               placeholder="Ajouter votre image de couverture"
               icon="add"
             ></app-text-input>
+
+            <div class="create-diary-modal__upload">
+              <input
+                #coverFileInput
+                type="file"
+                accept="image/*"
+                (change)="onCoverFileSelected($event)"
+                hidden
+              />
+              <app-button
+                text="Importer une image"
+                color="secondary"
+                size="auto"
+                radius="border_lg"
+                htmlType="button"
+                [isDisabled]="isCoverUploading || isSubmitting"
+                (btnClick)="coverFileInput.click()"
+              ></app-button>
+              <p class="create-diary-modal__upload-hint">
+                Choisissez un fichier pour téléverser via Cloudinary. L'URL est mise à jour
+                automatiquement.
+              </p>
+              @if (isCoverUploading) {
+                <p class="create-diary-modal__upload-status">Téléversement en cours…</p>
+              }
+              @if (coverUploadError) {
+                <p class="create-diary-modal__upload-error">{{ coverUploadError }}</p>
+              }
+            </div>
 
             <div class="create-diary-modal__toggles">
               <label class="toggle">
@@ -105,7 +143,7 @@
               size="auto"
               radius="border_lg"
               htmlType="submit"
-              [isDisabled]="diaryForm.invalid || isSubmitting"
+              [isDisabled]="diaryForm.invalid || isSubmitting || isCoverUploading"
             ></app-button>
           } @else {
             <app-button
@@ -114,7 +152,7 @@
               size="auto"
               radius="border_lg"
               htmlType="submit"
-              [isDisabled]="diaryForm.invalid || isSubmitting"
+              [isDisabled]="diaryForm.invalid || isSubmitting || isCoverUploading"
             ></app-button>
           }
         </div>
@@ -157,14 +195,12 @@
               [errorMessage]="getStepControlError('continent')"
             ></app-text-input>
 
-
             <app-text-input
               formControlName="startDate"
               label="Début de l'étape"
               placeholder="Date et heure"
               type="datetime-local"
             ></app-text-input>
-
 
             <app-text-input
               formControlName="endDate"
@@ -193,7 +229,9 @@
                   htmlType="button"
                   (btnClick)="openStepLocationModal()"
                 ></app-button>
-                <span class="create-diary-modal__location-summary">{{ stepLocationSummary || stepSelectedCoordinatesSummary }}</span>
+                <span class="create-diary-modal__location-summary">{{
+                  stepLocationSummary || stepSelectedCoordinatesSummary
+                }}</span>
               </div>
               @if (isStepGeocoding) {
                 <p class="create-diary-modal__location-status">Recherche de l'adresse…</p>
@@ -202,18 +240,22 @@
                 <p class="create-diary-modal__location-error">{{ stepGeocodingError }}</p>
               }
               @if (stepShowLocationRequiredMessage) {
-                <p class="create-diary-modal__location-error">Sélectionnez un point sur la carte pour continuer.</p>
+                <p class="create-diary-modal__location-error">
+                  Sélectionnez un point sur la carte pour continuer.
+                </p>
               }
               <input type="hidden" formControlName="latitude" />
               <input type="hidden" formControlName="longitude" />
             </div>
 
-            <app-text-input
-              formControlName="mediaUrl"
-              label="Média principal (URL)"
-              placeholder="Ajouter un média"
-              icon="add"
-            ></app-text-input>
+            <app-media-grid-uploader
+              [items]="stepMediaItems"
+              [folder]="'travel-diaries/steps'"
+              (itemsChange)="onStepMediaItemsChange($event)"
+              (primaryChange)="onStepPrimaryMediaChange($event)"
+              (uploadingChange)="onStepMediaUploadChange($event)"
+            ></app-media-grid-uploader>
+            <input type="hidden" formControlName="mediaUrl" />
           </div>
 
           <div class="create-diary-modal__editor">
@@ -254,7 +296,7 @@
             size="auto"
             radius="border_lg"
             htmlType="submit"
-            [isDisabled]="stepForm.invalid || isSubmitting"
+            [isDisabled]="stepForm.invalid || isSubmitting || isStepMediaUploading"
           ></app-button>
         </div>
       </form>

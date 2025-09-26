@@ -105,9 +105,11 @@ export class TravelMapStateService {
   reset() {
     this.steps.set([]);
     this.currentDiary.set(null);
+    this.currentDiaryId.set(null);
     this.openedStepId.set(null);
     this.openedCommentStepId.set(null);
     this.mapCenterCoords.set(null);
+    this.allDiaries.set([]);
     // this.completedSteps.set(0);
   }
 

@@ -68,6 +68,21 @@
     gap: 1rem;
   }
 
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    @media screen and (max-width: 768px) {
+      gap: 0.5rem;
+    }
+  }
+
+  &__profile {
+    display: flex;
+    align-items: center;
+  }
+
   &__menu {
     display: flex;
     justify-content: space-around;
@@ -122,14 +137,6 @@
     }
   }
 
-  &__link__mobile {
-    color: $secondaryTextColor;
-    font-size: 0.75rem;
-
-    &:hover {
-      color: darken($color: $secondaryTextColor, $amount: 10);
-    }
-  }
 }
 
 .search-bar {

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonComponent } from 'components/Atoms/Button/button.component';
 import { IconComponent } from 'components/Atoms/Icon/icon.component';
@@ -12,7 +12,13 @@ import {
   LocationPickerResult,
 } from 'components/Organisms/location-picker-modal/location-picker-modal.component';
 import { GeocodingService, ReverseGeocodingResult } from '@service/geocoding.service';
+import { CloudinaryService } from '@service/cloudinary.service';
 import { finalize, Subscription } from 'rxjs';
+import {
+  MediaGridUploaderComponent,
+  MediaItem,
+} from '../../Molecules/media-grid-uploader/media-grid-uploader.component';
+import { MediaPayload } from '@model/stepFormResult.model';
 
 export type CreationModalStage = 'diary' | 'step';
 
@@ -36,6 +42,7 @@ export interface StepFormPayload {
   longitude: number;
   description: string;
   mediaUrl: string | null;
+  media?: MediaPayload[];
   startDate: string | null;
   endDate: string | null;
   themeId: number | null;
@@ -58,6 +65,7 @@ export interface DiaryCreationPayload {
     EditorComponent,
     SelectComponent,
     LocationPickerModalComponent,
+    MediaGridUploaderComponent,
   ],
   templateUrl: './create-diary-modal.component.html',
   styleUrl: './create-diary-modal.component.scss',
@@ -66,14 +74,16 @@ export interface DiaryCreationPayload {
  * Two-step wizard used to create a travel diary and seed it with its first step.
  * Shares the same location picker / reverse geocoding logic as the standalone step form.
  */
-export class CreateDiaryModalComponent implements OnDestroy {
+export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
   @Input() isMobile = false;
   @Input() isSubmitting = false;
   @Input() errorMessage: string | null = null;
   @Input() availableThemes: ItemProps[] = [];
   @Input() mode: 'create' | 'edit' = 'create';
-  @Input() initialDiary: { title: string; description: string; coverUrl: string | null } | null = null;
+  @Input() initialDiary: { title: string; description: string; coverUrl: string | null } | null =
+    null;
 
+  // eslint-disable-next-line @angular-eslint/no-output-native
   @Output() cancel = new EventEmitter<void>();
   @Output() submitDiary = new EventEmitter<DiaryCreationPayload>();
 
@@ -89,14 +99,40 @@ export class CreateDiaryModalComponent implements OnDestroy {
   stepGeocodingError: string | null = null;
   private stepSubmitAttempted = false;
   private stepGeocodingSub: Subscription | null = null;
+  isCoverUploading = false;
+  coverUploadError: string | null = null;
+  private coverUploadSub: Subscription | null = null;
+  private readonly coverUploadFolder = 'travel-diaries/covers';
+  stepMediaItems: MediaItem[] = [];
+  isStepMediaUploading = false;
 
-  constructor(private readonly fb: FormBuilder, private readonly geocodingService: GeocodingService) {
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly geocodingService: GeocodingService,
+    private readonly cloudinaryService: CloudinaryService
+  ) {
     this.diaryForm = this.buildDiaryForm();
     this.stepForm = this.buildStepForm();
   }
 
+  onStepMediaItemsChange(items: MediaItem[]): void {
+    this.stepMediaItems = items;
+    const primary = items[0]?.secureUrl ?? '';
+    this.stepForm.patchValue({ mediaUrl: primary });
+    this.stepForm.get('mediaUrl')?.markAsDirty();
+  }
+
+  onStepPrimaryMediaChange(item: MediaItem | null): void {
+    this.stepForm.patchValue({ mediaUrl: item?.secureUrl ?? '' });
+  }
+
+  onStepMediaUploadChange(isUploading: boolean): void {
+    this.isStepMediaUploading = isUploading;
+  }
+
   ngOnDestroy(): void {
     this.clearStepGeocodingSubscription();
+    this.clearCoverUploadSubscription();
   }
 
   /** Rehydrate the diary form when editing an existing travel diary. */
@@ -131,7 +167,11 @@ export class CreateDiaryModalComponent implements OnDestroy {
    * Pré-remplit le formulaire carnet avec les données fournies.
    */
   /** Apply initial values when the component is used in edit mode. */
-  private patchDiaryForm(data: { title: string; description: string; coverUrl: string | null }): void {
+  private patchDiaryForm(data: {
+    title: string;
+    description: string;
+    coverUrl: string | null;
+  }): void {
     this.diaryEditorContent = data.description ?? '';
     this.diaryForm.patchValue(
       {
@@ -151,9 +191,21 @@ export class CreateDiaryModalComponent implements OnDestroy {
   private buildStepForm(): FormGroup {
     return this.fb.group({
       title: this.fb.control('', [Validators.required, Validators.maxLength(150)]),
-      city: this.fb.control('', [Validators.required, Validators.minLength(2), Validators.maxLength(200)]),
-      country: this.fb.control('', [Validators.required, Validators.minLength(2), Validators.maxLength(200)]),
-      continent: this.fb.control('', [Validators.required, Validators.minLength(2), Validators.maxLength(200)]),
+      city: this.fb.control('', [
+        Validators.required,
+        Validators.minLength(2),
+        Validators.maxLength(200),
+      ]),
+      country: this.fb.control('', [
+        Validators.required,
+        Validators.minLength(2),
+        Validators.maxLength(200),
+      ]),
+      continent: this.fb.control('', [
+        Validators.required,
+        Validators.minLength(2),
+        Validators.maxLength(200),
+      ]),
       latitude: this.fb.control('', [Validators.required]),
       longitude: this.fb.control('', [Validators.required]),
       description: this.fb.control('', [Validators.required, Validators.minLength(10)]),
@@ -185,7 +237,7 @@ export class CreateDiaryModalComponent implements OnDestroy {
      * - En mode édition: émet directement le payload pour mise à jour, sans passer à l'étape 'step'.
      * - En mode création: bascule à l'étape 'step'.
      */
-    if (this.diaryForm.invalid || this.isSubmitting) {
+    if (this.diaryForm.invalid || this.isSubmitting || this.isCoverUploading) {
       this.diaryForm.markAllAsTouched();
       return;
     }
@@ -207,23 +259,29 @@ export class CreateDiaryModalComponent implements OnDestroy {
 
       // On émet via submitDiary pour garder une seule sortie.
       // Le parent (MyTravelsPage) route vers onDiaryEditSubmit lorsque isEditMode = true.
-      this.submitDiary.emit({ diary: diaryPayload, step: {
-        title: '',
-        city: null,
+      this.submitDiary.emit({
+        diary: diaryPayload,
+        step: {
+          title: '',
+          city: null,
           country: null,
           continent: null,
-        latitude: 0,
-        longitude: 0,
-        description: '',
-        mediaUrl: null,
-        startDate: null,
+          latitude: 0,
+          longitude: 0,
+          description: '',
+          mediaUrl: null,
+          media: [],
+          startDate: null,
           endDate: null,
-        themeId: null,
-      }});
+          themeId: null,
+        },
+      });
       return;
     }
 
     // Mode création: on enchaîne vers l'étape "step".
+    this.stepMediaItems = [];
+    this.isStepMediaUploading = false;
     this.stage = 'step';
   }
 
@@ -234,7 +292,7 @@ export class CreateDiaryModalComponent implements OnDestroy {
      * Construit le payload carnet+étape et le propage au parent.
      */
     this.stepSubmitAttempted = true;
-    if (this.stepForm.invalid || this.isSubmitting) {
+    if (this.stepForm.invalid || this.isSubmitting || this.isStepMediaUploading) {
       this.stepForm.markAllAsTouched();
       return;
     }
@@ -271,6 +329,10 @@ export class CreateDiaryModalComponent implements OnDestroy {
       longitude,
       description: raw.description ?? '',
       mediaUrl: raw.mediaUrl?.toString().trim() || null,
+      media: this.stepMediaItems.map((item) => ({
+        fileUrl: item.secureUrl,
+        publicId: item.publicId,
+      })),
       startDate: this.normalizeDateInput(raw.startDate),
       endDate: this.normalizeDateInput(raw.endDate),
       themeId: raw.themeId ?? null,
@@ -285,6 +347,38 @@ export class CreateDiaryModalComponent implements OnDestroy {
     }
     this.cancel.emit();
     this.resetForms();
+  }
+
+  onCoverFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    this.coverUploadError = null;
+    this.clearCoverUploadSubscription();
+    this.isCoverUploading = true;
+
+    this.coverUploadSub = this.cloudinaryService
+      .uploadImage(file, { folder: this.coverUploadFolder })
+      .pipe(
+        finalize(() => {
+          this.isCoverUploading = false;
+          input.value = '';
+        })
+      )
+      .subscribe({
+        next: (result) => {
+          console.info('resultat upload Cloudinary', result);
+          this.diaryForm.patchValue({ coverUrl: result.secureUrl });
+          this.diaryForm.get('coverUrl')?.markAsDirty();
+        },
+        error: () => {
+          this.coverUploadError = "Impossible de téléverser l'image. Veuillez réessayer.";
+        },
+      });
   }
 
   /**
@@ -341,6 +435,8 @@ export class CreateDiaryModalComponent implements OnDestroy {
     this.stepSubmitAttempted = false;
     this.stepGeocodingError = null;
     this.clearStepGeocodingSubscription();
+    this.stepMediaItems = [];
+    this.isStepMediaUploading = false;
   }
 
   /** Open the shared location picker modal for the step section. */
@@ -452,6 +548,13 @@ export class CreateDiaryModalComponent implements OnDestroy {
     }
   }
 
+  private clearCoverUploadSubscription(): void {
+    if (this.coverUploadSub) {
+      this.coverUploadSub.unsubscribe();
+      this.coverUploadSub = null;
+    }
+  }
+
   /** Safely parse coordinates stored as strings in form controls. */
   private parseCoordinate(value: unknown): number | null {
     if (value == null) {
@@ -476,6 +579,9 @@ export class CreateDiaryModalComponent implements OnDestroy {
       coverUrl: '',
       description: '',
     });
+    this.coverUploadError = null;
+    this.isCoverUploading = false;
+    this.clearCoverUploadSubscription();
   }
 
   private resetStepForm(): void {
@@ -492,6 +598,8 @@ export class CreateDiaryModalComponent implements OnDestroy {
       endDate: '',
       themeId: null,
     });
+    this.stepMediaItems = [];
+    this.isStepMediaUploading = false;
     this.stepGeocodingError = null;
     this.stepSubmitAttempted = false;
     this.clearStepGeocodingSubscription();
