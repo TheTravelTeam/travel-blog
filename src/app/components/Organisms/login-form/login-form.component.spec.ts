@@ -1,49 +1,49 @@
-/// <reference types="jasmine" />
-
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 
 import { LoginFormComponent } from './login-form.component';
 import { AuthService } from '@service/auth.service';
-import { ToastService } from '../../../shared/services/toast.service';
+import { ToastService } from '../../../shared/services/toast.service'; // Service custom pour remplacer alert()
 
 describe('LoginFormComponent', () => {
   let component: LoginFormComponent;
   let fixture: ComponentFixture<LoginFormComponent>;
-  let authService: jasmine.SpyObj<AuthService>;
-  let toastService: jasmine.SpyObj<ToastService>;
-  let router: jasmine.SpyObj<Router>;
+  let authServiceSpy: jasmine.SpyObj<AuthService>;
+  let routerSpy: jasmine.SpyObj<Router>;
+  let toastSpy: jasmine.SpyObj<ToastService>;
 
   beforeEach(async () => {
-    authService = jasmine.createSpyObj<AuthService>('AuthService', ['login']);
-    toastService = jasmine.createSpyObj<ToastService>('ToastService', ['error']);
-    router = jasmine.createSpyObj<Router>('Router', ['navigate']);
+    authServiceSpy = jasmine.createSpyObj('AuthService', ['login']);
+    routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+    toastSpy = jasmine.createSpyObj('ToastService', ['error']);
 
     await TestBed.configureTestingModule({
-      imports: [ReactiveFormsModule, LoginFormComponent],
+      imports: [LoginFormComponent],
       providers: [
-        { provide: AuthService, useValue: authService },
-        { provide: ToastService, useValue: toastService },
-        { provide: Router, useValue: router },
+        { provide: AuthService, useValue: authServiceSpy },
+        { provide: Router, useValue: routerSpy },
+        { provide: ToastService, useValue: toastSpy },
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(LoginFormComponent);
     component = fixture.componentInstance;
+
+    // Login réussit par défaut
+    authServiceSpy.login.and.returnValue(of('token'));
+
     fixture.detectChanges();
   });
 
-  it('creates the form with the expected controls', () => {
+  it('should create and initialize form controls', () => {
     expect(component).toBeTruthy();
     expect(component.loginForm.get('email')).toBeTruthy();
     expect(component.loginForm.get('password')).toBeTruthy();
     expect(component.loginForm.valid).toBeFalse();
   });
 
-  it('returns the required error for email when missing', () => {
+  it('should provide the correct validation message for required email', () => {
     const emailControl = component.loginForm.get('email');
     emailControl?.markAsTouched();
     emailControl?.setErrors({ required: true });
@@ -51,7 +51,7 @@ describe('LoginFormComponent', () => {
     expect(component.getErrorMessage('email')).toBe("L'email est requis");
   });
 
-  it('returns the invalid email error when format is wrong', () => {
+  it('should provide the correct validation message for invalid email', () => {
     const emailControl = component.loginForm.get('email');
     emailControl?.markAsTouched();
     emailControl?.setErrors({ email: true });
@@ -59,64 +59,52 @@ describe('LoginFormComponent', () => {
     expect(component.getErrorMessage('email')).toBe("L'email n'est pas valide");
   });
 
-  it('marks fields touched and skips login when form is invalid', () => {
+  it('should mark fields as touched and not call login when form is invalid', () => {
     component.onSubmit();
 
-    expect(authService.login).not.toHaveBeenCalled();
+    expect(authServiceSpy.login).not.toHaveBeenCalled();
     expect(component.loginForm.get('email')?.touched).toBeTrue();
     expect(component.loginForm.get('password')?.touched).toBeTrue();
   });
 
-  it('propagates backend error messages to the UI', () => {
-    authService.login.and.returnValue(
-      throwError(() => new HttpErrorResponse({ error: 'Identifiants invalides', status: 401 }))
-    );
+  it('should submit credentials and navigate on success', fakeAsync(() => {
+    component.loginForm.setValue({
+      email: 'user@example.com',
+      password: '12345678',
+    });
 
-    component.loginForm.setValue({ email: 'john@doe.com', password: 'password123' });
+    fixture.detectChanges();
+    component.onSubmit();
+    tick(); // Simule la réponse async
+
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['travels']);
+    expect(component.isSubmitting).toBeTrue();
+  }));
+
+  it('should show error and reset submitting state on login failure', fakeAsync(() => {
+    authServiceSpy.login.and.returnValue(throwError(() => new Error('invalid')));
+
+    component.loginForm.setValue({
+      email: 'user@example.com',
+      password: '12345678',
+    });
 
     component.onSubmit();
+    tick(); // Simule la réponse async
 
-    expect(component.submissionError).toBe('Identifiants invalides');
-    expect(toastService.error).toHaveBeenCalledWith('Identifiants invalides');
-    expect(component.isSubmitting).toBeFalse();
-  });
-
-  it('falls back to a generic message when backend has none', () => {
-    authService.login.and.returnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
-
-    component.loginForm.setValue({ email: 'john@doe.com', password: 'password123' });
-
-    component.onSubmit();
-
-    expect(component.submissionError).toBe('Échec de la connexion, veuillez vérifier vos identifiants.');
-    expect(toastService.error).toHaveBeenCalledWith(
+    expect(toastSpy.error).toHaveBeenCalledWith(
       'Échec de la connexion, veuillez vérifier vos identifiants.'
     );
     expect(component.isSubmitting).toBeFalse();
-  });
+  }));
 
-  it('navigates to travels on success and clears submissionError', () => {
-    authService.login.and.returnValue(of('ok'));
-
-    component.loginForm.setValue({ email: 'john@doe.com', password: 'password123' });
-    component.submissionError = 'Old error';
-
-    component.onSubmit();
-
-    expect(router.navigate).toHaveBeenCalledWith(['travels']);
-    expect(component.submissionError).toBe('');
-    expect(component.isSubmitting).toBeFalse();
-  });
-
-  it('navigates to the signup page when requested', () => {
+  it('should redirect to register page when navigateToSignup is called', () => {
     component.navigateToSignup();
-
-    expect(router.navigate).toHaveBeenCalledWith(['/register']);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/register']);
   });
 
-  it('navigates to the forgot password page when requested', () => {
+  it('should redirect to forgot password page when navigateToForgotPassword is called', () => {
     component.navigateToForgotPassword();
-
-    expect(router.navigate).toHaveBeenCalledWith(['/forgot-password']);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/forgot-password']);
   });
 });

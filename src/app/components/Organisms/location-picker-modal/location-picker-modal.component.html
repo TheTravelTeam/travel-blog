@@ -1,11 +1,11 @@
-<div class="location-picker-modal" role="dialog" aria-modal="true" data-test="location-picker-modal">
+<div class="location-picker-modal" role="dialog" aria-modal="true">
   <div class="location-picker-modal__backdrop" (click)="onCancel()"></div>
   <div class="location-picker-modal__panel" role="document" (click)="$event.stopPropagation()">
     <header class="location-picker-modal__header">
       <h3>{{ title }}</h3>
       <p>{{ description }}</p>
     </header>
-    <div class="location-picker-modal__map" #mapContainer data-test="location-picker-map"></div>
+    <div class="location-picker-modal__map" #mapContainer></div>
     @if (isLocating) {
       <p class="location-picker-modal__status">Recherche de votre position…</p>
     }
@@ -20,7 +20,6 @@
         radius="border_lg"
         htmlType="button"
         (btnClick)="onCancel()"
-        data-test="location-picker-cancel"
       ></app-button>
       <app-button
         text="Valider"
@@ -30,7 +29,6 @@
         htmlType="button"
         [isDisabled]="!hasSelection"
         (btnClick)="onConfirm()"
-        data-test="location-picker-confirm"
       ></app-button>
     </footer>
   </div>

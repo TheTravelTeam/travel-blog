@@ -1,14 +1,8 @@
 <div class="media-grid">
   @for (m of items; track m.secureUrl; let i = $index) {
-    <div class="tile" [attr.data-test]="'media-item-' + i">
+    <div class="tile">
       <img [src]="thumb(m.secureUrl)" alt="media" />
-      <button
-        type="button"
-        class="tile__remove"
-        (click)="remove(i)"
-        aria-label="Supprimer"
-        [attr.data-test]="'media-remove-' + i"
-      >
+      <button type="button" class="tile__remove" (click)="remove(i)" aria-label="Supprimer">
         ×
       </button>
       @if (i === 0) {
@@ -18,14 +12,8 @@
   }
 
   @if (items.length < maxItems) {
-    <label class="tile tile--add" data-test="media-add">
-      <input
-        type="file"
-        multiple
-        accept="image/*,video/*"
-        (change)="onPickFiles($event)"
-        hidden
-      />
+    <label class="tile tile--add">
+      <input type="file" multiple accept="image/*,video/*" (change)="onPickFiles($event)" hidden />
       <span>+</span>
     </label>
   }

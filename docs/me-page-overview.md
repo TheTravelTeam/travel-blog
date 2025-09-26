@@ -26,7 +26,7 @@
 - `deleteManagedDiary(userId, diaryId)` applique le meme schema pour les carnets administres, en synchronisant les deux signaux (`managedUsers`, `selectedManagedUser`) avant d'appeler l'API.
 
 ## Gestion des articles
-- `ArticleService` alimente la section : `loadArticles()` convertit les DTO en `ArticleItem` prêts pour l'éditeur sans traitement supplémentaire.
+- `ArticleService` et `ThemeService` alimentent la section : `loadArticles()` convertit les DTO en `ArticleItem`, `loadThemes()` fabrique les options du select.
 - Les signaux `articleEditorView`, `articleFormMode`, `articleDraft`, `articleFormSubmitting` orchestrent la phase creation/edition.
 - `submitArticle()` (vers la ligne 650) choisit automatiquement entre `createArticle` et `updateArticle` selon `editingArticleId()` et reinitialise le draft via `resetArticleForm()`.
 
@@ -40,6 +40,7 @@
 - Les gabarits mobiles / tablettes utilisent les signaux `isMobile`, `isMobileOrTablet` exposes par `BreakpointService`.
 - Les classes CSS `me-page--compact` et `me-page__aside-divider` ajustent la densite et basculent le divider en horizontal lorsque l'ecran retrecit.
 
-- `me-page.component.spec.ts` utilise `provideHttpClient(withInterceptorsFromDi())` + `provideHttpClientTesting()` pour simuler la requête `GET /articles` déclenchée à l'initialisation.
-- `HttpTestingController` est injecte pour *flusher* l'appel réseau et garantir qu'aucun appel n'est oublie (`httpMock.verify()` en `afterEach`).
+## Tests
+- `me-page.component.spec.ts` utilise `provideHttpClient(withInterceptorsFromDi())` + `provideHttpClientTesting()` pour simuler les requetes `GET /themes` et `GET /articles` déclenchées à l'initialisation.
+- `HttpTestingController` est injecte pour *flusher* ces requetes et garantir qu'aucun appel n'est oublie (`httpMock.verify()` en `afterEach`).
 - Les tests continuent de verifier l'initialisation des signaux, la generation des sections selon le role et les interactions principales (toggle admin, suppression, changement d'onglet).

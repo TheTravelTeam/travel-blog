@@ -30,8 +30,7 @@ app-accordion {
     flex: 8;
     display: flex;
     flex-direction: column;
-    height: calc(100vh - var(--top-bar-height, 68px));
-    height: calc(100dvh - var(--top-bar-height, 68px));
+    height: calc(100vh - 70.55px);
     padding-bottom: 1rem;
     overflow-y: auto;
     gap: 0.5rem;
@@ -182,99 +181,6 @@ app-accordion {
   }
 }
 
-.worldMap__filtered-results {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  background-color: white;
-  padding: 1.5rem;
-  border-radius: 1rem;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-
-  &__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-
-    h2 {
-      display: flex;
-      align-items: baseline;
-      gap: 0.35rem;
-      margin: 0;
-      font-size: 1.25rem;
-      color: $primaryColor;
-
-      span {
-        font-size: 1rem;
-        color: $commentTextColor;
-      }
-    }
-
-    button {
-      border: none;
-      background: transparent;
-      color: $secondaryColor;
-      cursor: pointer;
-      font-weight: 600;
-
-      &:hover,
-      &:focus-visible {
-        text-decoration: underline;
-        outline: none;
-      }
-    }
-  }
-
-  &__status {
-    margin: 0;
-    color: $commentTextColor;
-  }
-
-  &__list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin: 0;
-    padding: 0;
-
-    li {
-      button {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.25rem;
-        border: 1px solid rgba(0, 0, 0, 0.08);
-        border-radius: 0.75rem;
-        padding: 0.75rem 1rem;
-        background-color: white;
-        cursor: pointer;
-        transition: border-color 0.15s ease, box-shadow 0.15s ease;
-
-        &:hover,
-        &:focus-visible {
-          border-color: $primaryColor;
-          box-shadow: 0 0 0 2px rgba(7, 91, 93, 0.1);
-          outline: none;
-        }
-
-        .label {
-          font-weight: 600;
-          color: $textColor;
-        }
-
-        .description {
-          font-size: 0.85rem;
-          color: $commentTextColor;
-        }
-      }
-    }
-  }
-}
-
 .filter_checkbox__container {
   display: flex;
   flex-direction: column;
@@ -315,12 +221,6 @@ app-accordion {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-}
-
-.filter__empty {
-  margin: 0;
-  font-size: 0.85rem;
-  color: $commentTextColor;
 }
 
 .step__content__container {
@@ -488,6 +388,31 @@ app-accordion {
   }
 }
 
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: white;
+  border-radius: 5rem;
+  padding: 0.5rem 1rem;
+  width: 100%;
+  max-width: 350px;
+  border: 1px solid #ccc;
+  font-size: 0.6rem;
+
+  &__icon {
+    font-size: 1.25rem;
+    color: gray;
+  }
+
+  &__input {
+    border: none;
+    outline: none;
+    width: fit-content;
+    font-size: 0.7rem;
+  }
+}
+
 @media screen and (min-width: 600px) {
   .worldMap {
     height: 88%;
@@ -509,8 +434,7 @@ app-accordion {
 @media screen and (min-width: 1024px) {
   .worldMap {
     flex-direction: row;
-    height: calc(100vh - var(--top-bar-height, 68px));
-    height: calc(100dvh - var(--top-bar-height, 68px));
+    height: calc(100vh - 70.55px);
   }
 
   .progress-bar--sticky {
@@ -525,8 +449,7 @@ app-accordion {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
     box-shadow: none;
-    height: calc(100vh - var(--top-bar-height, 68px));
-    height: calc(100dvh - var(--top-bar-height, 68px));
+    height: calc(100vh - 70.55px);
     padding: 0 1rem 1rem 1rem;
     overflow-y: auto;
     scrollbar-gutter: stable;

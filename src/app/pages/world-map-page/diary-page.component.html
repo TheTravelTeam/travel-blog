@@ -87,68 +87,60 @@
         @if (viewerIsOwner) {
           <div class="diary__actions">
             <app-button
-              text="Terminer le carnet"
-              color="secondary"
-              size="auto"
-              radius="border_lg"
-              [isDisabled]="isFinishDiaryDisabled()"
-              (btnClick)="onFinishDiary()"
-              data-test="diary-finish"
-            ></app-button>
-            <app-button
               text="Créer une étape"
               color="primary"
               size="auto"
               radius="border_lg"
               (btnClick)="onCreateStepClick()"
               [isDisabled]="isStepFormVisible()"
-              data-test="diary-add-step"
             ></app-button>
-            @if (finishDiaryError()) {
-              <p class="diary__finish-error">{{ finishDiaryError() }}</p>
-            }
           </div>
         }
         @for (step of state.steps(); track $index) {
           @let medias = getStepMedias(step);
-          <div class="worldMap__step" [attr.data-test]="'diary-step-' + step.id">
-            <app-accordion
-              [id]="step.id"
-              [title]="step.title"
-              [subTitle]="step.country"
-              [startDate]="step.startDate ?? undefined"
-              [isOpen]="state.openedStepId() === step.id"
-              (toggleOpen)="onAccordionToggle(step.id, $event)"
-              (stepClicked)="onStepClicked($event)"
-              (remove)="onDeleteSteps(step.id)"
-              [role]="viewerIsOwner ? 'owner' : 'reader'"
-              [(isEditing)]="step.isEditing"
-              (isEditingChange)="onStepEditModeChange(step, $event)"
-              [dataTest]="'step-accordion-' + step.id"
-              [editDataTest]="'step-edit-' + step.id"
-              [deleteDataTest]="'step-delete-' + step.id"
-            >
+          <app-accordion
+            [id]="step.id"
+            [title]="step.title"
+            [subTitle]="step.country"
+            [startDate]="step.startDate ?? undefined"
+            [isOpen]="state.openedStepId() === step.id"
+            (toggleOpen)="onAccordionToggle(step.id, $event)"
+            (stepClicked)="onStepClicked($event)"
+            (remove)="onDeleteSteps(step.id)"
+            [role]="viewerIsOwner ? 'owner' : 'reader'"
+            [(isEditing)]="step.isEditing"
+            (isEditingChange)="onStepEditModeChange(step, $event)"
+          >
             <div class="step__content__container">
-              <div
-                class="step__content ql-editor"
-                [innerHTML]="step.description | safeHtml"
-              ></div>
+              <p>{{ step.description }}</p>
 
-              <div class="step__media__container" [attr.data-id]="step.id">
-                @for (media of medias; track $index) {
+              <div class="step__media__wrapper">
+                @if (medias.length > 1) {
                   <button
-                    type="button"
-                    class="step__media__item"
-                    (click)="openMediaViewer(step, $index)"
-                    aria-label="Afficher la photo en plein écran"
+                    class="scroll-btn scroll-btn--left"
+                    (click)="scrollMediaContainer(step.id, 'left')"
                   >
+                    ←
+                  </button>
+                }
+
+                <div class="step__media__container" [attr.data-id]="step.id">
+                  @for (media of medias; track $index) {
                     <img
                       [src]="getStepMediaUrl(media)"
                       sizes="100vw"
                       loading="lazy"
                       decoding="async"
-                      alt=""
                     />
+                  }
+                </div>
+
+                @if (medias.length > 1) {
+                  <button
+                    class="scroll-btn scroll-btn--right"
+                    (click)="scrollMediaContainer(step.id, 'right')"
+                  >
+                    →
                   </button>
                 }
               </div>
@@ -156,10 +148,9 @@
               <div class="step__action__btn">
                 <app-button
                   [startIcon]="true"
-                  [icon]="step.viewerHasLiked ? 'favorite' : 'favorite_border'"
+                  icon="favorite"
                   type="like"
-                  [text]="formatLikeLabel(step)"
-                  [isDisabled]="isStepLikePending(step.id)"
+                  text="{{ step.likes }}"
                   (btnClick)="handleButtonClick($event, step)"
                 ></app-button>
                 <app-button
@@ -170,9 +161,6 @@
                   (btnClick)="handleButtonClick($event, step)"
                 ></app-button>
               </div>
-              @if (getStepLikeError(step.id)) {
-                <p class="step__like-error">{{ getStepLikeError(step.id) }}</p>
-              }
               <!-- ✅ Ici on affiche si le step correspond -->
               @if (state.openedCommentStepId() === step.id) {
                 <div class="step_comments">
@@ -186,185 +174,23 @@
                         }"
                       >
                         <p class="step_comment__user">
-                          {{ getCommentAuthor(comment) }}
+                          {{ comment.user.username }}
                           <span class="step_comment__date">{{
                             comment.updatedAt | date: 'dd/MM/yyyy'
                           }}</span>
                         </p>
-                        @if (isCommentEditing(comment.id)) {
-                          <form
-                            class="step_comment__edit-form"
-                            (ngSubmit)="onSubmitCommentEdit(step, comment)"
-                          >
-                            <textarea
-                              rows="3"
-                              [ngModel]="getCommentEditDraft(comment.id)"
-                              (ngModelChange)="onCommentEditDraftChange(comment.id, $event)"
-                              name="edit-comment-{{ comment.id }}"
-                              [disabled]="isCommentUpdating(comment.id)"
-                            ></textarea>
-
-                            @if (getCommentEditError(comment.id)) {
-                              <p class="step_comment__error">{{
-                                getCommentEditError(comment.id)
-                              }}</p>
-                            }
-
-                            <div class="step_comment__actions">
-                              <button
-                                type="button"
-                                class="step_comment__action"
-                                (click)="onCancelCommentEdit()"
-                                [disabled]="isCommentUpdating(comment.id)"
-                              >
-                                Annuler
-                              </button>
-                              <button
-                                type="submit"
-                                class="step_comment__action step_comment__action--primary"
-                                [disabled]="isCommentUpdating(comment.id)"
-                              >
-                                Enregistrer
-                              </button>
-                            </div>
-                          </form>
-                        } @else {
-                          <p class="step_comment__content">{{ comment.content }}</p>
-                        }
-
-                        @if ((canEditComment(comment) || canDeleteComment(comment)) && !isCommentEditing(comment.id)) {
-                          <div class="step_comment__footer">
-                            @if (canEditComment(comment)) {
-                              <button
-                                type="button"
-                                class="step_comment__action"
-                                (click)="onEditComment(step, comment)"
-                                [disabled]="isCommentDeleting(comment.id) || isCommentEditing(comment.id)"
-                              >
-                                Modifier
-                              </button>
-                            }
-                            @if (canDeleteComment(comment)) {
-                              <button
-                                type="button"
-                                class="step_comment__action step_comment__action--danger"
-                                (click)="onDeleteComment(step, comment)"
-                                [disabled]="isCommentDeleting(comment.id)"
-                              >
-                                Supprimer
-                              </button>
-                            }
-                          </div>
-                        }
+                        <p class="step_comment__content">{{ comment.content }}</p>
                       </div>
                     }
                   } @else {
                     <p>Aucun commentaire pour le moment.</p>
                   }
-
-                  @if (!canDiaryReceiveComments()) {
-                    <p class="step_comment__message">
-                      Les commentaires sont désactivés pour ce carnet.
-                    </p>
-                  } @else if (!isAuthenticated()) {
-                    <p class="step_comment__message">
-                      Connectez-vous pour commenter cette étape.
-                    </p>
-                  } @else if (isViewerDisabled()) {
-                    <p class="step_comment__message">
-                      Votre compte est désactivé. Vous ne pouvez plus commenter cette étape.
-                    </p>
-                  } @else {
-                    <form class="step_comment__form" (ngSubmit)="onSubmitComment(step)">
-                      <label class="visually-hidden" [for]="'comment-' + step.id">
-                        Ajouter un commentaire pour {{ step.title }}
-                      </label>
-                      <textarea
-                        [id]="'comment-' + step.id"
-                        name="comment-{{ step.id }}"
-                        rows="3"
-                        placeholder="Écrire un commentaire..."
-                        [ngModel]="getCommentDraft(step.id)"
-                        (ngModelChange)="onCommentDraftChange(step.id, $event)"
-                        [disabled]="isCommentSubmitting(step.id)"
-                      ></textarea>
-
-                      @if (getCommentError(step.id)) {
-                        <p class="step_comment__error">{{ getCommentError(step.id) }}</p>
-                      }
-
-                      <app-button
-                        text="Publier"
-                        color="primary"
-                        type="standard"
-                        htmlType="submit"
-                        [isDisabled]="isCommentSubmitting(step.id)"
-                      ></app-button>
-                    </form>
-                  }
                 </div>
               }
             </div>
-            </app-accordion>
-          </div>
+          </app-accordion>
         }
       </div>
     </div>
   </div>
-
-  @if (activeMediaPayload(); as viewer) {
-    <div
-      class="media-lightbox"
-      role="dialog"
-      aria-modal="true"
-      (click)="closeMediaViewer()"
-    >
-      <div class="media-lightbox__content" (click)="$event.stopPropagation()">
-        <button
-          type="button"
-          class="media-lightbox__close"
-          aria-label="Fermer la visionneuse"
-          (click)="closeMediaViewer()"
-        >
-          &times;
-        </button>
-
-        @if (viewer.medias.length > 1) {
-          <button
-            type="button"
-            class="media-lightbox__nav media-lightbox__nav--prev"
-            aria-label="Voir la photo précédente"
-            (click)="showPreviousMedia()"
-          >
-            &lsaquo;
-          </button>
-        }
-
-        <div class="media-lightbox__image-wrapper">
-          <img
-            class="media-lightbox__image"
-            [src]="getStepMediaUrl(viewer.media)"
-            loading="lazy"
-            decoding="async"
-            alt=""
-          />
-        </div>
-
-        @if (viewer.medias.length > 1) {
-          <button
-            type="button"
-            class="media-lightbox__nav media-lightbox__nav--next"
-            aria-label="Voir la photo suivante"
-            (click)="showNextMedia()"
-          >
-            &rsaquo;
-          </button>
-        }
-
-        <p class="media-lightbox__counter">
-          {{ viewer.index + 1 }} / {{ viewer.medias.length }}
-        </p>
-      </div>
-    </div>
-  }
 </div>

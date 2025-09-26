@@ -11,26 +11,35 @@
     @if ((bp.isMobile() && isHomeOrArticlePage) || !bp.isMobile()) {
       <img src="/icon/logo_desktop.svg" alt="logo" class="topbar__logo" routerLink="/" />
     } @else {
-      <button
-        type="button"
-        class="topbar__link topbar__link--back"
-        (click)="onMobileBack()"
-        aria-label="Retour"
-      >
+      <a routerLink="/back" class="topbar__link">
         <app-icon name="arrow_back" [size]="iconSize()" />
-      </button>
+      </a>
     }
     @if (!bp.isMobileOrTablet() && !isHomeOrArticlePage) {
       <div class="topbar__center">
-        <app-search-bar
-          [control]="searchControl"
-          placeholder="Rechercher un carnet ou une étape"
-          dataTestId="topbar-search-input"
-          (searchSubmit)="onSearchSubmit($event)"
-          (searchFocus)="onSearchFocus()"
-          (searchBlur)="onSearchBlur()"
-          (clear)="onClearSearch()"
-        />
+        <form class="search-bar" role="search" (submit)="onSearchSubmit($event)">
+          <span class="search-bar__icon material-symbols-outlined">search</span>
+          <input
+            type="search"
+            class="search-bar__input"
+            placeholder="Rechercher un carnet ou une étape"
+            autocomplete="off"
+            [formControl]="searchControl"
+            (focus)="onSearchFocus()"
+            (blur)="onSearchBlur()"
+          />
+          @if (searchControl.value.trim().length) {
+            <button
+              type="button"
+              class="search-bar__clear"
+              aria-label="Effacer la recherche"
+              (mousedown)="$event.preventDefault()"
+              (click)="onClearSearch()"
+            >
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          }
+        </form>
         @if (shouldDisplaySearchPanel()) {
           <div class="topbar__search-results" (mousedown)="$event.preventDefault()">
             @if (isSearchLoading()) {
@@ -48,11 +57,7 @@
                   <ul>
                     @for (result of diaryResults(); track result.id) {
                       <li>
-                        <button
-                          type="button"
-                          (click)="onSearchResultClick(result)"
-                          [attr.data-test]="'topbar-search-result-' + result.id"
-                        >
+                        <button type="button" (click)="onSearchResultClick(result)">
                           <span class="topbar__search-label">{{ result.label }}</span>
                           @if (result.description) {
                             <span class="topbar__search-description">{{ result.description }}</span>
@@ -69,11 +74,7 @@
                   <ul>
                     @for (result of stepResults(); track result.id) {
                       <li>
-                        <button
-                          type="button"
-                          (click)="onSearchResultClick(result)"
-                          [attr.data-test]="'topbar-search-result-' + result.id"
-                        >
+                        <button type="button" (click)="onSearchResultClick(result)">
                           <span class="topbar__search-label">{{ result.label }}</span>
                           <span class="topbar__search-description">
                             @if (result.diaryTitle) {
@@ -95,7 +96,7 @@
   </div>
 
   <div class="topbar__right">
-    @if (bp.isDesktop() ) {
+    @if (bp.isDesktop() || bp.isTablet()) {
       <nav class="topbar__menu">
         <a routerLink="/travels" class="topbar__link">
           <app-icon name="language" [size]="iconSize()" />
@@ -106,11 +107,7 @@
           Articles
         </a>
         @if (canDisplayDiariesLink) {
-          <a
-            [routerLink]="['/travels/users', currentUserId()]"
-            class="topbar__link"
-            data-test="topbar-my-diaries"
-          >
+          <a [routerLink]="['/travels/users', currentUserId()]" class="topbar__link">
             <app-icon name="import_contacts" [size]="iconSize()" />
             Mes carnets
           </a>
@@ -118,7 +115,7 @@
       </nav>
       <div class="topbar__actions">
         @if (isAuthenticated()) {
-          <a routerLink="/me" class="topbar__profile" data-test="topbar-me">
+          <a routerLink="/me" class="topbar__profile">
             <app-avatar
               [label]="avatarLabel()"
               [picture]="avatarPicture()"
@@ -131,7 +128,6 @@
             color="secondary"
             text="Déconnexion"
             (btnClick)="onLogout()"
-            data-test="topbar-logout"
           />
         } @else {
           <app-button
@@ -152,11 +148,7 @@
           <app-icon name="map_search" [size]="iconSize()" />
         </a>
         @if (canDisplayDiariesLink) {
-          <a
-            [routerLink]="['/travels/users', currentUserId()]"
-            class="topbar__link__mobile"
-            data-test="topbar-my-diaries"
-          >
+          <a [routerLink]="['/travels/users', currentUserId()]" class="topbar__link__mobile">
             <app-icon name="import_contacts" [size]="iconSize()" />
           </a>
         }
@@ -170,16 +162,13 @@
               size="compact"
             />
           </a>
-          <div class="topbar__logout" data-test="topbar-logout">
-            <button
-              type="button"
-              class="topbar__logout-btn"
-              (click)="onLogout()"
-              aria-label="Se déconnecter"
-            >
-              <app-icon name="power_settings_new" [size]="logoutIconSize()" />
-            </button>
-          </div>
+          <app-button
+            [type]="'standard'"
+            size="sm"
+            color="secondary"
+            text="Déconnexion"
+            (btnClick)="onLogout()"
+          />
         } @else {
           <app-button
             [type]="'standard'"

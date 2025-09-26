@@ -1,5 +1,3 @@
-/// <reference types="jasmine" />
-
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { MediaGridUploaderComponent } from './media-grid-uploader.component';

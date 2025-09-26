@@ -1,6 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AuthService } from '@service/auth.service';
 import { TextInputComponent } from '../../Atoms/text-input/text-input.component';
@@ -21,7 +20,6 @@ export class LoginFormComponent implements OnInit {
 
   loginForm!: FormGroup;
   isSubmitting = false;
-  submissionError = '';
 
   ngOnInit(): void {
     this.initializeForm();
@@ -55,22 +53,15 @@ export class LoginFormComponent implements OnInit {
   }
 
   onSubmit(): void {
-    this.submissionError = '';
-
     if (this.loginForm.valid) {
       this.isSubmitting = true;
       const { email, password } = this.loginForm.value;
 
       this.authservice.login(email, password).subscribe({
-        next: () => {
+        next: () => this.router.navigate(['travels']),
+        error: () => {
           this.isSubmitting = false;
-          this.submissionError = '';
-          this.router.navigate(['travels']);
-        },
-        error: (error) => {
-          this.isSubmitting = false;
-          this.submissionError = this.extractErrorMessage(error);
-          this.toast.error(this.submissionError || 'Échec de la connexion, veuillez vérifier vos identifiants.');
+          this.toast.error('Échec de la connexion, veuillez vérifier vos identifiants.');
         },
       });
     } else {
@@ -93,36 +84,5 @@ export class LoginFormComponent implements OnInit {
 
   navigateToForgotPassword(): void {
     this.router.navigate(['/forgot-password']);
-  }
-
-  private extractErrorMessage(error: unknown): string {
-    if (error instanceof HttpErrorResponse) {
-      const payload = error.error;
-
-      if (payload?.errors && typeof payload.errors === 'object') {
-        const first = Object.values(payload.errors)[0];
-        if (Array.isArray(first)) {
-          return first.join(' ');
-        }
-        if (typeof first === 'string' && first.trim()) {
-          return first.trim();
-        }
-      }
-
-      if (typeof payload === 'string' && payload.trim()) {
-        return payload.trim();
-      }
-
-      const message = typeof payload?.message === 'string' ? payload.message : '';
-      if (message) {
-        return message;
-      }
-    }
-
-    if (error instanceof Error && error.message) {
-      return error.message;
-    }
-
-    return 'Échec de la connexion, veuillez vérifier vos identifiants.';
   }
 }

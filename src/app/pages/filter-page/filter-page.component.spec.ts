@@ -1,6 +1,4 @@
-/// <reference types="jasmine" />
-
-import { ComponentFixture, TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
@@ -21,12 +19,6 @@ const routerStub: Partial<Router> = {
   navigate: jasmine.createSpy('navigate').and.returnValue(Promise.resolve(true)),
 };
 
-const routerNavigateSpy = routerStub.navigate as jasmine.Spy;
-
-const activatedRouteStub = {
-  queryParamMap: queryParams$.asObservable(),
-} as Partial<ActivatedRoute>;
-
 const breakpointStub: Partial<BreakpointService> = {
   isMobile: signal(false),
   isTablet: signal(false),
@@ -42,17 +34,13 @@ describe('FilterPageComponent', () => {
   let fixture: ComponentFixture<FilterPageComponent>;
 
   beforeEach(async () => {
-    routerNavigateSpy.calls.reset();
-    (searchServiceStub.search as jasmine.Spy).calls.reset();
-    queryParams$.next(convertToParamMap({}));
-
     await TestBed.configureTestingModule({
       imports: [FilterPageComponent, RouterTestingModule],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideAnimations(),
-        { provide: ActivatedRoute, useValue: activatedRouteStub },
+        { provide: ActivatedRoute, useValue: { queryParamMap: queryParams$.asObservable() } },
         { provide: Router, useValue: routerStub },
         { provide: BreakpointService, useValue: breakpointStub },
         { provide: SearchService, useValue: searchServiceStub },
@@ -68,58 +56,4 @@ describe('FilterPageComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
-  it('updates search control when query param changes', fakeAsync(() => {
-    queryParams$.next(convertToParamMap({ q: 'asia' }));
-    flushMicrotasks(); // flushMicrotasks : exécute immédiatement les tâches micro (Promise, Observables sync).
-    fixture.detectChanges();
-
-    expect(component.searchControl.value).toBe('asia');
-    expect(searchServiceStub.search as jasmine.Spy).toHaveBeenCalledWith('asia');
-  }));
-
-  it('navigates with trimmed query when search value changes', fakeAsync(() => {
-    component.searchControl.setValue('  peru  ');
-    tick(200); // tick : simule l'écoulement du délai de debounce configuré à 200 ms.
-    flushMicrotasks(); // flushMicrotasks : vide les micro-tâches produites par le pipe async.
-
-    expect(routerNavigateSpy).toHaveBeenCalledWith([], {
-      relativeTo: activatedRouteStub,
-      queryParams: { q: 'peru' },
-      queryParamsHandling: 'merge',
-    });
-  }));
-
-  it('removes query param when search value cleared', fakeAsync(() => {
-    component.searchControl.setValue('tokyo');
-    tick(200); // tick : attend le debounce avant d'envoyer la requête initiale.
-    flushMicrotasks();
-    routerNavigateSpy.calls.reset();
-
-    component.searchControl.setValue('');
-    tick(200); // tick : permet au debounce de finaliser le clear.
-    flushMicrotasks();
-
-    expect(routerNavigateSpy).toHaveBeenCalledWith([], {
-      relativeTo: activatedRouteStub,
-      queryParams: { q: null },
-      queryParamsHandling: 'merge',
-    });
-  }));
-
-  it('clears search immediately when clearSearchQuery is called', fakeAsync(() => {
-    component.searchControl.setValue('lisbonne', { emitEvent: false });
-
-    component.clearSearchQuery();
-    flushMicrotasks(); // flushMicrotasks : synchronise la mise à jour des signaux et du formulaire.
-
-    expect(component.searchControl.value).toBe('');
-    expect(component.activeSearchQuery()).toBe('');
-    expect(component.searchResults()).toEqual([]);
-    expect(routerNavigateSpy).toHaveBeenCalledWith([], {
-      relativeTo: activatedRouteStub,
-      queryParams: { q: null },
-      queryParamsHandling: 'merge',
-    });
-  }));
 });

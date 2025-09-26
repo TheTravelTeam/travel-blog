@@ -6,26 +6,20 @@ export interface ArticleDto {
   slug: string;
   userId: number;
   pseudo: string;
+  themeId?: number | null;
+  themeName?: string | null;
   category?: string | null;
-  coverUrl?: string | null;
-  thumbnailUrl?: string | null;
-  medias?: {
+  theme?: {
     id: number;
-    fileUrl: string;
-    mediaType: string;
-    publicId?: string | null;
-    articleId?: number | null;
-    status?: string | null;
+    name: string;
     updatedAt?: string;
-    createdAt?: string;
-  }[] | null;
+  } | null;
+  themes?: { id: number; name: string; updatedAt?: string }[] | null;
 }
 
 export interface UpsertArticleDto {
   title: string;
   content: string;
   userId: number;
-  category?: string;
-  coverUrl?: string;
-  mediaIds?: number[];
+  themeIds: number[];
 }

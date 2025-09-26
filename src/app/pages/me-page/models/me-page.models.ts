@@ -1,6 +1,6 @@
 import { TravelDiary } from '@model/travel-diary.model';
 import { Step } from '@model/step.model';
-import { Media } from '@model/media.model';
+import { Theme } from '@model/theme.model';
 
 export type SectionId = 'info' | 'diaries' | 'articles' | 'users';
 
@@ -10,23 +10,48 @@ export interface SectionItem {
   adminOnly?: boolean;
 }
 
+export interface ManagedDiarySummary {
+  id: number;
+  title: string;
+  destination?: string;
+  coverUrl?: string | null;
+  durationLabel?: string;
+  stepCount?: number;
+  isPrivate?: boolean;
+}
+
+export interface ManagedUser {
+  id: number;
+  name: string;
+  email: string;
+  isAdmin: boolean;
+  diaries: ManagedDiarySummary[];
+}
+
+export interface ManagedUserAction {
+  userId: number;
+  type: 'delete' | 'toggle-role';
+}
+
 export interface ArticleDraft {
   title: string;
   author: string;
   category: string;
   content: string;
-  coverUrl: string | null;
+  themeId: number | null;
 }
 
 export interface ArticleItem extends ArticleDraft {
   id: number;
   publishedAt: string;
   slug?: string;
+  themes?: Theme[];
   userId?: number | null;
-  medias?: Media[];
 }
 
 export interface ProfileFormState {
+  firstName?: string;
+  lastName?: string;
   pseudo: string;
   email: string;
   password: string;
@@ -40,10 +65,12 @@ export const INITIAL_ARTICLE_DRAFT: ArticleDraft = {
   author: '',
   category: '',
   content: '',
-  coverUrl: null,
+  themeId: null,
 };
 
 export const INITIAL_PROFILE_FORM: ProfileFormState = {
+  firstName: '',
+  lastName: '',
   pseudo: '',
   email: '',
   password: '',

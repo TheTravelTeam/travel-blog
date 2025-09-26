@@ -1,4 +1,4 @@
-import { Media } from '@model/media.model';
+import { Theme } from '@model/theme.model';
 
 export interface Article {
   id: number;
@@ -8,8 +8,7 @@ export interface Article {
   slug: string;
   author: string;
   category?: string;
+  themeId?: number | null;
   userId?: number | null;
-  coverUrl?: string | null;
-  thumbnailUrl?: string | null;
-  medias?: Media[];
+  themes?: Theme[];
 }

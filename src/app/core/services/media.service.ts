@@ -12,16 +12,12 @@ export class MediaService {
 
   constructor(private readonly http: HttpClient) {}
 
-  createMedia(payload: CreateMediaDto): Observable<Media> {
+  createDiaryMedia(payload: CreateMediaDto): Observable<Media> {
     return this.http.post<Media>(`${this.baseUrl}/medias`, payload);
   }
 
   createStepMedia(payload: CreateMediaDto): Observable<Media> {
-    return this.createMedia(payload);
-  }
-
-  createDiaryMedia(payload: CreateMediaDto): Observable<Media> {
-    return this.createMedia(payload);
+    return this.http.post<Media>(`${this.baseUrl}/medias`, payload);
   }
 
   updateMedia(mediaId: number, payload: UpdateMediaDto): Observable<Media> {

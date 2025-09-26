@@ -1,23 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
-import {
-  AbstractControl,
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  ValidationErrors,
-  ValidatorFn,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonComponent } from 'components/Atoms/Button/button.component';
 import { TextInputComponent } from 'components/Atoms/text-input/text-input.component';
-import { IconComponent } from 'components/Atoms/Icon/icon.component';
 import { EditorComponent } from 'shared/editor/editor.component';
 import { SelectComponent } from 'components/Atoms/select/select.component';
 import { ItemProps } from '@model/select.model';
 import { Step } from '@model/step.model';
 import { StepFormResult } from '@model/stepFormResult.model';
-import { normalizeThemeSelection } from '@utils/theme-selection.util';
 import {
   LocationPickerModalComponent,
   LocationPickerResult,
@@ -37,7 +27,6 @@ import {
     ReactiveFormsModule,
     ButtonComponent,
     TextInputComponent,
-    IconComponent,
     EditorComponent,
     SelectComponent,
     LocationPickerModalComponent,
@@ -72,55 +61,24 @@ export class CreateStepFormComponent implements OnDestroy {
     private readonly geocodingService: GeocodingService
   ) {
     this.stepForm = this.buildStepForm();
-    this.disableManualLocationControls();
   }
   mediaItems: MediaItem[] = [];
   isMediaUploading = false;
-  /** Validator shared across date inputs to ensure ISO or French formatting. */
-  private readonly dateFormatValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
-    const value = control.value;
-    if (value == null || value === '') {
-      return null;
-    }
 
-    const raw = value.toString().trim();
-    if (!raw) {
-      return null;
-    }
-
-    const isIso = /^\d{4}-\d{2}-\d{2}$/.test(raw);
-    const isFrench = /^\d{2}\/\d{2}\/\d{4}$/.test(raw);
-
-    return isIso || isFrench ? null : { invalidDate: true };
-  };
-
-  /**
-   * Receives the latest list of media items uploaded from the grid.
-   * @param items Media descriptors emitted by the uploader.
-   */
   onMediaItemsChange(items: MediaItem[]) {
     this.mediaItems = items;
     const primary = items[0]?.secureUrl ?? '';
     this.stepForm.patchValue({ mediaUrl: primary }); // compat "champ unique"
     this.stepForm.get('mediaUrl')?.markAsDirty();
   }
-  /**
-   * Updates the primary media URL when the user selects another preview.
-   * @param item Selected media item or null when none.
-   */
   onPrimaryMediaChange(item: MediaItem | null) {
     this.stepForm.patchValue({ mediaUrl: item?.secureUrl ?? '' });
   }
 
-  /**
-   * Tracks the upload state to prevent submissions while uploading.
-   * @param isUploading True when an upload is in progress.
-   */
   onMediaUploadStateChange(isUploading: boolean): void {
     this.isMediaUploading = isUploading;
   }
 
-  /** Cleans up pending subscriptions before destroying the component. */
   ngOnDestroy(): void {
     this.clearGeocodingSubscription();
   }
@@ -128,6 +86,7 @@ export class CreateStepFormComponent implements OnDestroy {
   /**
    * Clears the reactive form and associated editor state, restoring the pristine creation view.
    */
+  /** Reset the reactive form and derived state. */
   reset(): void {
     this.stepEditorContent = '';
     this.mediaItems = [];
@@ -144,21 +103,20 @@ export class CreateStepFormComponent implements OnDestroy {
       startDate: '',
       endDate: '',
       themeId: null,
-      themeIds: [],
     });
-    this.disableManualLocationControls();
     this.geocodingError = null;
     this.submitAttempted = false;
     this.clearGeocodingSubscription();
   }
 
   /**
-   * Pre-fill the form with an existing step (used for edition flows).
-   * @param step Step to surface in the editor.
+   * Prefills the form with values coming from an existing step so the user can edit them.
+   * Handles optional fields (media, dates) and keeps the rich-text editor in sync.
    */
+  /** Pre-fill the form with an existing step (used for edition flows). */
   populateFromStep(step: Step): void {
-    const startDate = this.formatDate(step.startDate);
-    const endDate = this.formatDate(step.endDate ?? null);
+    const startDate = this.formatDateTimeLocal(step.startDate);
+    const endDate = this.formatDateTimeLocal(step.endDate ?? null);
 
     // Réhydratation éventuelle si ton Step contient déjà une liste de médias
     type MediaLike = { fileUrl: string; publicId?: string };
@@ -175,9 +133,6 @@ export class CreateStepFormComponent implements OnDestroy {
     const primaryMedia =
       Array.isArray(step.media) && step.media.length ? (step.media[0].fileUrl ?? '') : '';
 
-    const themeIds = this.extractThemeIds(step);
-    const primaryThemeId = themeIds.length ? themeIds[0] : (step.themeId ?? null);
-
     this.stepForm.reset({
       title: step.title ?? '',
       city: step.city ?? '',
@@ -189,42 +144,32 @@ export class CreateStepFormComponent implements OnDestroy {
       mediaUrl: primaryMedia,
       startDate,
       endDate,
-      themeId: primaryThemeId,
-      themeIds,
+      themeId: step.themeId ?? null,
     });
-    this.disableManualLocationControls();
 
     this.stepEditorContent = step.description ?? '';
   }
 
-  /**
-   * Keep the rich-text editor in sync with the form control.
-   * @param content Updated HTML payload from the editor.
-   */
+  /** Keep the rich-text editor in sync with the form control. */
   onEditorChange(content: string): void {
     this.stepEditorContent = content ?? '';
     this.stepForm.patchValue({ description: this.stepEditorContent }, { emitEvent: false });
     this.stepForm.get('description')?.markAsDirty();
   }
 
-  /**
-   * Update the selected theme id whenever the dropdown emits a new selection.
-   * @param selection Dropdown payload (single or multi).
-   */
+  /** Update the selected theme id whenever the dropdown emits a new selection. */
   onThemeChange(selection: ItemProps | ItemProps[]): void {
-    const items = Array.isArray(selection) ? selection : selection ? [selection] : [];
-    const themeIds = items.map((item) => Number(item?.id)).filter((id) => Number.isFinite(id));
-
-    const primaryThemeId = themeIds.length ? themeIds[0] : null;
-
-    this.stepForm.patchValue({ themeId: primaryThemeId, themeIds });
-    this.stepForm.get('themeId')?.markAsDirty();
-    this.stepForm.get('themeIds')?.markAsDirty();
+    const item = Array.isArray(selection) ? selection[0] : selection;
+    const parsed = item ? Number(item.id) : null;
+    const themeId = typeof parsed === 'number' && Number.isFinite(parsed) ? parsed : null;
+    this.stepForm.patchValue({ themeId });
   }
 
   /**
-   * Validates the form, coerces types, and emits the result upstream.
+   * Emits the normalized payload when the form is valid. Performs lightweight coercion
+   * for numeric inputs and guards against invalid lat/lng values before emitting.
    */
+  /** Validate the form, coerce types, and emit the result upstream. */
   handleSubmit(): void {
     this.submitAttempted = true;
     if (this.stepForm.invalid || this.isSubmitting || this.isMediaUploading) {
@@ -242,8 +187,6 @@ export class CreateStepFormComponent implements OnDestroy {
       return;
     }
 
-    const { themeIds, primaryThemeId } = normalizeThemeSelection(raw.themeId, raw.themeIds);
-
     const result: StepFormResult = {
       title: (raw.title ?? '').trim(),
       city: raw.city?.toString().trim() || null,
@@ -256,16 +199,17 @@ export class CreateStepFormComponent implements OnDestroy {
       media: this.mediaItems.map((m) => ({ fileUrl: m.secureUrl, publicId: m.publicId })),
       startDate: this.normalizeDateInput(raw.startDate),
       endDate: this.normalizeDateInput(raw.endDate),
-      themeId: primaryThemeId,
-      themeIds,
+      themeId: raw.themeId ?? null,
     };
 
     this.submitStep.emit(result);
   }
 
   /**
-   * Notifies the parent that the flow is aborted and restores the initial state when possible.
+   * Notifies the parent that the flow is aborted and restores the initial state
+   * unless a submission is currently pending.
    */
+  /** Notify the parent that the flow is aborted and wipe the form. */
   handleCancel(): void {
     if (this.isSubmitting) {
       return;
@@ -324,10 +268,7 @@ export class CreateStepFormComponent implements OnDestroy {
     return city || country || null;
   }
 
-  /**
-   * Persist the coordinate coming from the modal and trigger a reverse geocoding lookup.
-   * @param selection Coordinates picked by the user.
-   */
+  /** Persist the coordinate coming from the modal and trigger a reverse geocoding lookup. */
   handleLocationConfirm(selection: LocationPickerResult): void {
     this.closeLocationModal();
     const formattedLat = selection.lat.toFixed(6);
@@ -343,11 +284,7 @@ export class CreateStepFormComponent implements OnDestroy {
     this.fetchLocationDetails(selection.lat, selection.lng);
   }
 
-  /**
-   * Call Nominatim and update the form with the returned address components.
-   * @param lat Latitude to reverse geocode.
-   * @param lng Longitude to reverse geocode.
-   */
+  /** Call Nominatim and update the form with the returned address components. */
   private fetchLocationDetails(lat: number, lng: number): void {
     this.clearGeocodingSubscription();
     this.isGeocoding = true;
@@ -368,10 +305,7 @@ export class CreateStepFormComponent implements OnDestroy {
       });
   }
 
-  /**
-   * Patch the relevant form controls using the Nominatim result.
-   * @param result Reverse geocoding response.
-   */
+  /** Patch the relevant form controls using the Nominatim result. */
   private applyGeocodingResult(result: ReverseGeocodingResult): void {
     const payload: Record<string, string> = {};
 
@@ -387,14 +321,7 @@ export class CreateStepFormComponent implements OnDestroy {
 
     if (Object.keys(payload).length > 0) {
       this.stepForm.patchValue(payload);
-      this.disableManualLocationControls();
     }
-  }
-
-  private disableManualLocationControls(): void {
-    this.stepForm.get('city')?.disable({ emitEvent: false });
-    this.stepForm.get('country')?.disable({ emitEvent: false });
-    this.stepForm.get('continent')?.disable({ emitEvent: false });
   }
 
   /** Ensure the geocoding subscription is cleaned up to avoid leaks. */
@@ -405,10 +332,7 @@ export class CreateStepFormComponent implements OnDestroy {
     }
   }
 
-  /**
-   * Safely parse a coordinate coming from the form controls.
-   * @param value Value to interpret.
-   */
+  /** Safely parse a coordinate coming from the form controls. */
   private parseCoordinate(value: unknown): number | null {
     if (value == null) {
       return null;
@@ -419,7 +343,8 @@ export class CreateStepFormComponent implements OnDestroy {
 
   /**
    * Returns a user-facing validation message for a form control when it is invalid.
-   * @param controlName Form control name.
+   * Only surfaces errors after the control has been touched or marked dirty to
+   * avoid flashing messages on pristine fields.
    */
   getControlError(controlName: string): string | undefined {
     const control = this.stepForm.get(controlName);
@@ -428,12 +353,6 @@ export class CreateStepFormComponent implements OnDestroy {
     }
 
     if (control.errors?.['required']) {
-      if (controlName === 'startDate') {
-        return 'Sélectionnez une date de départ';
-      }
-      if (controlName === 'endDate') {
-        return 'Sélectionnez une date de fin';
-      }
       return 'Champ obligatoire';
     }
 
@@ -447,10 +366,6 @@ export class CreateStepFormComponent implements OnDestroy {
       return `Maximum ${maxLength} caractères autorisés`;
     }
 
-    if (control.errors?.['invalidDate']) {
-      return 'Format de date invalide. Utilisez jj/mm/aaaa.';
-    }
-
     if (control.errors?.['invalid']) {
       if (controlName === 'latitude' || controlName === 'longitude') {
         return 'Valeur numérique invalide';
@@ -461,9 +376,8 @@ export class CreateStepFormComponent implements OnDestroy {
     return undefined;
   }
 
-  /** Creates the reactive form used by the component. */
   private buildStepForm(): FormGroup {
-    const form = this.fb.group({
+    return this.fb.group({
       title: this.fb.control('', [Validators.required, Validators.maxLength(150)]),
       city: this.fb.control('', [
         Validators.required,
@@ -484,93 +398,12 @@ export class CreateStepFormComponent implements OnDestroy {
       longitude: this.fb.control('', [Validators.required]),
       description: this.fb.control('', [Validators.required, Validators.minLength(10)]),
       mediaUrl: this.fb.control(''),
-      startDate: this.fb.control('', [Validators.required, this.dateFormatValidator]),
-      endDate: this.fb.control('', [Validators.required, this.dateFormatValidator]),
+      startDate: this.fb.control(''),
+      endDate: this.fb.control(''),
       themeId: this.fb.control<number | null>(null),
-      themeIds: this.fb.control<number[]>([]),
     });
-
-    form.get('city')?.disable({ emitEvent: false });
-    form.get('country')?.disable({ emitEvent: false });
-    form.get('continent')?.disable({ emitEvent: false });
-
-    return form;
   }
 
-  /**
-   * Compute the list of theme identifiers present on the provided step.
-   * @param step Source step.
-   */
-  private extractThemeIds(step: Step | null | undefined): number[] {
-    if (!step) {
-      return [];
-    }
-
-    const collected = new Set<number>();
-
-    if (Array.isArray(step.themeIds)) {
-      step.themeIds
-        .map((value) => this.coerceThemeId(value))
-        .forEach((id) => {
-          if (id != null) {
-            collected.add(id);
-          }
-        });
-    }
-
-    const addCandidate = (value: unknown) => {
-      const parsed = this.coerceThemeId(value);
-      if (parsed != null) {
-        collected.add(parsed);
-      }
-    };
-
-    if (step.themeId != null) {
-      addCandidate(step.themeId);
-    }
-
-    const legacyThemes = (step as unknown as { themes?: unknown[] })?.themes;
-    if (Array.isArray(legacyThemes)) {
-      legacyThemes.forEach(addCandidate);
-    }
-
-    if (Array.isArray(step.stepThemes)) {
-      step.stepThemes.forEach((theme) => {
-        addCandidate(theme);
-        addCandidate(theme?.theme?.id);
-      });
-    }
-
-    return Array.from(collected);
-  }
-
-  /**
-   * Best-effort conversion of a value into a numeric theme id.
-   * @param value Value to coerce.
-   */
-  private coerceThemeId(value: unknown): number | null {
-    if (typeof value === 'number' && Number.isFinite(value)) {
-      return value;
-    }
-
-    if (typeof value === 'string' && value.trim()) {
-      const parsed = Number(value.trim());
-      return Number.isFinite(parsed) ? parsed : null;
-    }
-
-    if (value && typeof value === 'object') {
-      const fromTheme = (value as { theme?: { id?: unknown } }).theme?.id;
-      const direct = (value as { id?: unknown }).id;
-      return this.coerceThemeId(fromTheme ?? direct ?? null);
-    }
-
-    return null;
-  }
-
-  /**
-   * Normalises a date input into a YYYY-MM-DD string or null.
-   * @param value Raw value coming from the form.
-   */
   private normalizeDateInput(value: unknown): string | null {
     if (value == null) {
       return null;
@@ -589,19 +422,10 @@ export class CreateStepFormComponent implements OnDestroy {
       return raw.slice(0, 10);
     }
 
-    if (/^\d{2}\/\d{2}\/\d{4}$/.test(raw)) {
-      const [day, month, year] = raw.split('/');
-      return `${year}-${month}-${day}`;
-    }
-
     return raw;
   }
 
-  /**
-   * Formats a backend date value into an input-friendly string.
-   * @param value Raw date value.
-   */
-  private formatDate(value: string | Date | null | undefined): string {
+  private formatDateTimeLocal(value: string | Date | null | undefined): string {
     if (!value) {
       return '';
     }
@@ -614,8 +438,9 @@ export class CreateStepFormComponent implements OnDestroy {
     const year = date.getFullYear();
     const month = `${date.getMonth() + 1}`.padStart(2, '0');
     const day = `${date.getDate()}`.padStart(2, '0');
+    const hours = `${date.getHours()}`.padStart(2, '0');
+    const minutes = `${date.getMinutes()}`.padStart(2, '0');
 
-
-    return `${year}-${month}-${day}`;
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 }

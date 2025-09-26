@@ -18,9 +18,5 @@ export interface CreateStepDto {
   country?: string | null;
   continent?: string | null;
 
-  // Optional theme association (deduplicated list of theme identifiers)
-  // Always provide an array (can be empty) to satisfy the backend contract.
-  themeIds: number[];
-
   // Future extensions: themes, media, comments handled server-side
 }

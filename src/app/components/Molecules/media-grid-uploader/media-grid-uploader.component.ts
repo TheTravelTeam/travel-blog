@@ -7,8 +7,6 @@ import { CommonModule } from '@angular/common';
  * asset (public identifier and secure delivery URL).
  */
 export interface MediaItem {
-  /** Optional identifier returned by the API once the media metadata is persisted. */
-  id?: number | null;
   publicId: string;
   secureUrl: string;
 }
@@ -78,7 +76,7 @@ export class MediaGridUploaderComponent {
         try {
           const res = await this.cloud.uploadImage(f, { folder: this.folder }).toPromise();
           if (res) {
-            const item: MediaItem = { id: null, publicId: res.publicId, secureUrl: res.secureUrl };
+            const item: MediaItem = { publicId: res.publicId, secureUrl: res.secureUrl };
             this.items = [...this.items, item];
             this.itemsChange.emit(this.items);
             if (this.items.length === 1) this.primaryChange.emit(item);

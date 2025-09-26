@@ -44,28 +44,6 @@ export class AuthService {
   }
 
   /**
-   * Déclenche l'envoi d'un lien de réinitialisation de mot de passe pour l'email fourni.
-   */
-  requestPasswordReset(email: string): Observable<void> {
-    return this.http.post<void>(
-      `${this.apiUrl}/forgot-password`,
-      { email },
-      { withCredentials: environment.useCredentials }
-    );
-  }
-
-  /**
-   * Réinitialise le mot de passe en utilisant le jeton fourni par email.
-   */
-  resetPassword(token: string, password: string): Observable<void> {
-    return this.http.post<void>(
-      `${this.apiUrl}/reset-password`,
-      { token, password },
-      { withCredentials: environment.useCredentials }
-    );
-  }
-
-  /**
    * Déconnecte l’utilisateur et vide le signal.
    */
   logout(): Observable<void> {

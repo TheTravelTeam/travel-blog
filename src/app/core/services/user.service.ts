@@ -18,50 +18,6 @@ export class UserService {
   currentUser = this.authService.currentUser;
 
   /**
-   * Indique si l'utilisateur courant possède un compte désactivé.
-   * Combine le statut applicatif et le flag `enabled` pour couvrir les retours API.
-   */
-  isCurrentUserDisabled(): boolean {
-    const user = this.authService.currentUser();
-    if (!user) {
-      return false;
-    }
-
-    const status = typeof user.status === 'string' ? user.status.trim().toUpperCase() : '';
-    const normalized = status.replace(/[\s_-]+/g, '');
-    const disabledStatuses = new Set(['DISABLED', 'BLOCKED', 'INACTIVE']);
-
-    if (normalized && (disabledStatuses.has(status) || disabledStatuses.has(normalized))) {
-      return true;
-    }
-
-    return user.enabled === false;
-  }
-
-  /** True when the current user has an admin role. */
-  isCurrentUserAdmin(): boolean {
-    const roles = this.authService.currentUser()?.roles;
-    if (!Array.isArray(roles)) {
-      return false;
-    }
-
-    return roles.some((role) => {
-      if (typeof role !== 'string') {
-        return false;
-      }
-
-      const normalized = role.trim().toUpperCase().replace(/^ROLE_/, '');
-      return normalized === 'ADMIN';
-    });
-  }
-
-  /** Retourne le statut brut de l'utilisateur courant ou `null` s'il est absent. */
-  currentUserStatus(): string | null {
-    const status = this.authService.currentUser()?.status;
-    return typeof status === 'string' ? status : null;
-  }
-
-  /**
    * Retourne le profil complet de l'utilisateur connecté.
    * Mappe le DTO de l'API en modèle simplifié.
    *

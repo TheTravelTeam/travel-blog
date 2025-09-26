@@ -4,7 +4,7 @@ import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Article } from '@model/article.model';
 import { ArticleDto, UpsertArticleDto } from '@dto/article.dto';
-import { Media } from '@model/media.model';
+import { Theme } from '@model/theme.model';
 
 @Injectable({ providedIn: 'root' })
 export class ArticleService {
@@ -18,15 +18,6 @@ export class ArticleService {
     return this.http
       .get<ArticleDto[]>(`${this.apiUrl}/articles`)
       .pipe(map((dtos) => dtos.map((dto) => this.mapArticle(dto))));
-  }
-
-  /**
-   * Retrieves a single article by its identifier.
-   */
-  getArticleById(articleId: number): Observable<Article> {
-    return this.http
-      .get<ArticleDto>(`${this.apiUrl}/articles/${articleId}`)
-      .pipe(map((dto) => this.mapArticle(dto)));
   }
 
   /**
@@ -54,15 +45,16 @@ export class ArticleService {
 
   /**
    * Harmonizes the shape of an article to match the front-end expectations
-   * (string trimming plus sane defaults on optional fields).
+   * (themes flattened, ids coerced to numbers, sane defaults on optional fields).
    */
   private mapArticle(dto: ArticleDto): Article {
-    const medias = this.mapMedias(dto.medias);
-
-    const coverUrl = dto.coverUrl?.trim() || null;
-    const thumbnailUrl = dto.thumbnailUrl?.trim() || null;
-    const author = dto.pseudo?.trim() || '';
-    const category = dto.category?.trim() || undefined;
+    const rawThemes = this.normalizeThemes(dto);
+    const fromThemesArray = rawThemes.length ? rawThemes[0] : null;
+    const rawThemeId = dto.theme?.id ?? dto.themeId ?? fromThemesArray?.id ?? null;
+    const themeId = rawThemeId != null ? Number(rawThemeId) : null;
+    const safeThemeId = Number.isNaN(themeId) ? null : themeId;
+    const themeName = dto.theme?.name ?? dto.themeName ?? fromThemesArray?.name ?? undefined;
+    const themes = this.mapThemes(rawThemes);
 
     return {
       id: dto.id,
@@ -70,51 +62,52 @@ export class ArticleService {
       content: dto.content,
       slug: dto.slug,
       updatedAt: dto.updatedAt,
-      author,
-      category,
+      author: dto.pseudo ?? '',
+      category: themeName ?? dto.category ?? undefined,
+      themes,
+      themeId: safeThemeId ?? undefined,
       userId: dto.userId ?? undefined,
-      coverUrl,
-      thumbnailUrl,
-      medias,
     };
   }
 
-  private mapMedias(medias?: ArticleDto['medias']): Media[] | undefined {
-    if (!Array.isArray(medias) || !medias.length) {
+  /** Converts the list of themes coming from the API into a typed array. */
+  private mapThemes(
+    themes?: { id: number; name: string; updatedAt?: string }[] | null
+  ): Theme[] | undefined {
+    if (!Array.isArray(themes) || !themes.length) {
       return undefined;
     }
 
-    const normalized: Media[] = [];
+    return themes
+      .map((theme) => {
+        if (!theme) {
+          return null;
+        }
 
-    for (const media of medias) {
-      if (!media) {
-        continue;
-      }
+        const id = Number(theme.id);
+        if (Number.isNaN(id)) {
+          return null;
+        }
 
-      const id = Number(media.id);
-      if (Number.isNaN(id)) {
-        continue;
-      }
+        return {
+          id,
+          name: theme.name,
+          updatedAt: theme.updatedAt ?? '',
+        } satisfies Theme;
+      })
+      .filter((theme): theme is Theme => !!theme);
+  }
 
-      const fileUrl = media.fileUrl?.trim();
-      if (!fileUrl) {
-        continue;
-      }
-
-      normalized.push({
-        id,
-        fileUrl,
-        mediaType: media.mediaType ?? 'PHOTO',
-        status: media.status ?? 'PUBLISHED',
-        createdAt: media.createdAt ?? '',
-        updatedAt: media.updatedAt ?? '',
-        publicId: media.publicId ?? null,
-        articleId: media.articleId ?? null,
-        travelDiaryId: null,
-        stepId: null,
-      });
+  /** Groups theme information regardless of API shape (single object or array). */
+  private normalizeThemes(dto: ArticleDto): { id: number; name: string; updatedAt?: string }[] {
+    if (Array.isArray(dto.themes) && dto.themes.length) {
+      return dto.themes;
     }
 
-    return normalized.length ? normalized : undefined;
+    if (dto.theme) {
+      return [dto.theme];
+    }
+
+    return [];
   }
 }
