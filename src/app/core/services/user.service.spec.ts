@@ -49,17 +49,23 @@ describe('UserService', () => {
   });
 
   it('should load the current user profile when authenticated', () => {
-    authService.saveCurrentUser({
+    const currentUser: UserProfileDto = {
       id: 42,
       pseudo: 'wanderer',
       firstName: 'Jane',
       lastName: 'Doe',
       roles: ['ROLE_admin', 'ROLE_user'],
       travelDiaries: [],
-    });
+    };
+
+    authService.saveCurrentUser(currentUser);
 
     let profile: UserProfileDto | undefined;
     userService.getCurrentUserProfile().subscribe((p) => (profile = p));
+
+    const request = httpMock.expectOne(`${environment.apiUrl}/users/42`);
+    expect(request.request.method).toBe('GET');
+    request.flush(currentUser);
 
     expect(profile?.id).toBe(42);
     expect(profile?.roles).toEqual(['ADMIN', 'USER']);
