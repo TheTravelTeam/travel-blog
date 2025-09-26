@@ -13,7 +13,7 @@ import { ChipComponent } from 'components/Atoms/chip/chip.component';
 })
 export class VisualTripCardComponent {
   @Input({ required: true }) id!: VariantTripCard['id'];
-  @Input({ required: true }) title!: VariantTripCard['country'];
+  @Input() title!: VariantTripCard['country'];
   @Input({ required: true }) image!: VariantTripCard['image'];
   @Input({ required: true }) description!: VariantTripCard['title'];
   @Input({ required: true }) author!: VariantTripCard['author'];

@@ -1,11 +1,11 @@
 export interface VariantTripCard {
   id: number;
-  title: string;
+  title?: string;
   image: string;
   description: string;
-  country: string;
-  continent: string;
+  country?: string;
+  continent?: string;
   longDescription?: string;
-  author: string;
-  dateCreation: string;
+  author?: string;
+  dateCreation?: string;
 }
