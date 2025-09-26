@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map, Observable } from 'rxjs';
+import { catchError, map, Observable, of, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { UserProfileDto } from '@dto/user-profile.dto';
 import { AuthService } from './auth.service';
@@ -24,7 +24,30 @@ export class UserService {
    * @returns {Observable<UserProfileDto>} Profil de l'utilisateur.
    */
   getCurrentUserProfile(): Observable<UserProfileDto> {
-    return this.authService.loadCurrentUser().pipe(map((dto) => this.mapProfile(dto)));
+    return this.authService.loadCurrentUser().pipe(
+      switchMap((dto) => {
+        const hasDiaryArray = Array.isArray(dto.travelDiaries) && dto.travelDiaries.length > 0;
+
+        if (hasDiaryArray) {
+          return of(this.mapProfile(dto));
+        }
+
+        const userId = dto.id;
+        if (typeof userId === 'number' && Number.isFinite(userId)) {
+          return this.http
+            .get<UserProfileDto>(`${this.apiUrl}/users/${userId}`)
+            .pipe(
+              map((fullDto) => this.mapProfile(fullDto)),
+              catchError((error) => {
+                console.warn('Fallback profile fetch without travel diaries failed', error);
+                return of(this.mapProfile(dto));
+              })
+            );
+        }
+
+        return of(this.mapProfile(dto));
+      })
+    );
   }
 
   /**

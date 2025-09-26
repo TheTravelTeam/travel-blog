@@ -17,10 +17,80 @@
     }
     @if (!bp.isMobileOrTablet() && !isHomeOrArticlePage) {
       <div class="topbar__center">
-        <div class="search-bar">
+        <form class="search-bar" role="search" (submit)="onSearchSubmit($event)">
           <span class="search-bar__icon material-symbols-outlined">search</span>
-          <input type="text" class="search-bar__input" placeholder="Hinted search text" />
-        </div>
+          <input
+            type="search"
+            class="search-bar__input"
+            placeholder="Rechercher un carnet ou une étape"
+            autocomplete="off"
+            [formControl]="searchControl"
+            (focus)="onSearchFocus()"
+            (blur)="onSearchBlur()"
+          />
+          @if (searchControl.value.trim().length) {
+            <button
+              type="button"
+              class="search-bar__clear"
+              aria-label="Effacer la recherche"
+              (mousedown)="$event.preventDefault()"
+              (click)="onClearSearch()"
+            >
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          }
+        </form>
+        @if (shouldDisplaySearchPanel()) {
+          <div class="topbar__search-results" (mousedown)="$event.preventDefault()">
+            @if (isSearchLoading()) {
+              <div class="topbar__search-status">Recherche en cours…</div>
+            } @else if (searchError()) {
+              <div class="topbar__search-status topbar__search-status--error">
+                {{ searchError() }}
+              </div>
+            } @else if (hasSearchQuery() && !diaryResults().length && !stepResults().length) {
+              <div class="topbar__search-status">Aucun résultat trouvé.</div>
+            } @else {
+              @if (diaryResults().length) {
+                <div class="topbar__search-group">
+                  <p class="topbar__search-group-title">Carnets</p>
+                  <ul>
+                    @for (result of diaryResults(); track result.id) {
+                      <li>
+                        <button type="button" (click)="onSearchResultClick(result)">
+                          <span class="topbar__search-label">{{ result.label }}</span>
+                          @if (result.description) {
+                            <span class="topbar__search-description">{{ result.description }}</span>
+                          }
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+              @if (stepResults().length) {
+                <div class="topbar__search-group">
+                  <p class="topbar__search-group-title">Étapes</p>
+                  <ul>
+                    @for (result of stepResults(); track result.id) {
+                      <li>
+                        <button type="button" (click)="onSearchResultClick(result)">
+                          <span class="topbar__search-label">{{ result.label }}</span>
+                          <span class="topbar__search-description">
+                            @if (result.diaryTitle) {
+                              {{ result.diaryTitle }} ·
+                            }
+                            {{ result.description ?? 'Voir le détail' }}
+                          </span>
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+            }
+          </div>
+        }
       </div>
     }
   </div>
