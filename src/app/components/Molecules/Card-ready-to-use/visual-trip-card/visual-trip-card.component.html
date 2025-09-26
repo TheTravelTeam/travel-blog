@@ -1,7 +1,7 @@
 <app-card
   width="240px"
   height="312px"
-  [borderColor]="undefined"
+  borderColor="text-secondary"
   layout="column"
   shadow="sm"
   [isHoverable]="true"
@@ -11,15 +11,21 @@
 >
   <app-card-body><img [src]="image" /></app-card-body>
   <app-card-footer>
-    <app-chip [customClass]="'title-chip chip-overlay'" [children]="title" shadow="xl"></app-chip>
+    @if (title) {
+      <app-chip [customClass]="'title-chip chip-overlay'" [children]="title" shadow="xl"></app-chip>
+    }
     <span class="description">{{ description }}</span>
     <div class="informations">
-      <app-chip
-        [children]="author"
-        startIcon="account_circle"
-        startIconColor="secondary"
-      ></app-chip>
-      <p>Crée le {{ dateCreation }}</p>
+      @if (author) {
+        <app-chip
+          [children]="author"
+          startIcon="account_circle"
+          startIconColor="secondary"
+        ></app-chip>
+      }
+      @if (dateCreation) {
+        <p>Crée le {{ dateCreation }}</p>
+      }
     </div>
   </app-card-footer>
 </app-card>
