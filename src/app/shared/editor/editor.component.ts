@@ -165,6 +165,7 @@ export class EditorComponent implements AfterViewInit {
    * @returns The sanitized and cleaned HTML content
    */
   private cleanQuillContent(html: string): string {
+    if (!html) return '';
     return html
 
       .replace(/&nbsp;/g, ' ') // replaces non-breaking HTML spaces (&nbsp;) with normal spaces

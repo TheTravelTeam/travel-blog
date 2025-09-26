@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MapComponent } from './map.component';
 import { provideHttpClient } from '@angular/common/http';
+import { UserService } from '@service/user.service';
 
 describe('MapComponent', () => {
   let component: MapComponent;
@@ -11,7 +12,7 @@ describe('MapComponent', () => {
       imports: [MapComponent],
       providers: [
         provideHttpClient(),
-        // d'autres providers éventuels ici
+        { provide: UserService, useValue: { currentUserId: () => 1 } },
       ],
     }).compileComponents();
 

@@ -1,0 +1,138 @@
+<form class="create-step" [formGroup]="stepForm" (ngSubmit)="handleSubmit()">
+  <section class="create-step__section">
+    <h3>Nouvelle étape</h3>
+    <div class="create-step__grid">
+      <app-text-input
+        formControlName="title"
+        label="Nom de l'étape"
+        placeholder="Nom de l'étape"
+        [isRequired]="true"
+        [errorMessage]="getControlError('title')"
+      ></app-text-input>
+
+      <app-text-input
+        formControlName="city"
+        label="Ville"
+        placeholder="Ville"
+        [isRequired]="true"
+        [errorMessage]="getControlError('city')"
+      ></app-text-input>
+      <app-text-input
+        formControlName="country"
+        label="Pays"
+        placeholder="Pays"
+        [isRequired]="true"
+        [errorMessage]="getControlError('country')"
+      ></app-text-input>
+      <app-text-input
+        formControlName="continent"
+        label="Continent"
+        placeholder="Continent"
+        [isRequired]="true"
+        [errorMessage]="getControlError('continent')"
+      ></app-text-input>
+
+      <app-text-input
+        formControlName="startDate"
+        label="Début de l'étape"
+        placeholder="Date et heure"
+        type="datetime-local"
+      ></app-text-input>
+
+      <app-text-input
+        formControlName="endDate"
+        label="Fin de l'étape"
+        placeholder="Date et heure"
+        type="datetime-local"
+      ></app-text-input>
+
+      <app-select
+        [itemsList]="availableThemes"
+        label="Thème"
+        placeholder="Choisissez un thème"
+        [selectedId]="stepForm.get('themeId')?.value ?? null"
+        [disabled]="availableThemes.length === 0"
+        (selectOnChange)="onThemeChange($event)"
+      ></app-select>
+
+      <div class="create-step__location">
+        <p class="create-step__location-label">Localisation</p>
+        <div class="create-step__location-actions">
+          <app-button
+            text="Choisir sur la carte"
+            color="secondary"
+            size="auto"
+            radius="border_lg"
+            htmlType="button"
+            (btnClick)="openLocationModal()"
+          ></app-button>
+          <span class="create-step__location-summary">{{
+            locationEnrichmentSummary || selectedCoordinatesSummary
+          }}</span>
+        </div>
+        @if (isGeocoding) {
+          <p class="create-step__location-status">Recherche de l'adresse…</p>
+        }
+        @if (geocodingError) {
+          <p class="create-step__location-error">{{ geocodingError }}</p>
+        }
+        @if (showLocationRequiredMessage) {
+          <p class="create-step__location-error">
+            Sélectionnez un point sur la carte pour continuer.
+          </p>
+        }
+        <input type="hidden" formControlName="latitude" />
+        <input type="hidden" formControlName="longitude" />
+      </div>
+
+      <app-media-grid-uploader
+        [items]="mediaItems"
+        [folder]="'travel-diaries/steps'"
+        (itemsChange)="onMediaItemsChange($event)"
+        (primaryChange)="onPrimaryMediaChange($event)"
+        (uploadingChange)="onMediaUploadStateChange($event)"
+      >
+      </app-media-grid-uploader>
+    </div>
+
+    <div class="create-step__editor">
+      <app-editor
+        [label]="'Décrivez cette étape'"
+        [content]="stepEditorContent"
+        (contentChange)="onEditorChange($event)"
+      ></app-editor>
+    </div>
+  </section>
+
+  @if (errorMessage) {
+    <p class="create-step__error">{{ errorMessage }}</p>
+  }
+
+  <div class="create-step__actions">
+    <app-button
+      text="Annuler"
+      color="secondary"
+      size="auto"
+      radius="border_lg"
+      htmlType="button"
+      [isDisabled]="isSubmitting"
+      (btnClick)="handleCancel()"
+    ></app-button>
+    <app-button
+      text="Enregistrer l'étape"
+      color="primary"
+      size="auto"
+      radius="border_lg"
+      htmlType="submit"
+      [isDisabled]="stepForm.invalid || isSubmitting || isMediaUploading"
+    ></app-button>
+  </div>
+</form>
+
+@if (isLocationModalOpen) {
+  <app-location-picker-modal
+    [initialCoordinates]="locationInitialCoordinates"
+    (cancel)="closeLocationModal()"
+    (confirm)="handleLocationConfirm($event)"
+  ></app-location-picker-modal>
+}

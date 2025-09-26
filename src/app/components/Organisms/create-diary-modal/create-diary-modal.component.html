@@ -1,0 +1,313 @@
+<div class="create-diary-modal" [class.create-diary-modal--mobile]="isMobile">
+  <div class="create-diary-modal__panel">
+    <div class="create-diary-modal__header">
+      <div>
+        <h2>
+          @if (stage === 'diary') {
+            Créer un carnet
+          } @else {
+            Ajouter votre première étape
+          }
+        </h2>
+        <p>
+          @if (stage === 'diary') {
+            Saisissez les informations principales de votre voyage.
+          } @else {
+            @let diaryTitle = diaryForm.get('title')?.value;
+            @if (diaryTitle) {
+              Première étape pour « {{ diaryTitle }} »
+            } @else {
+              Décrivez la première étape de votre voyage.
+            }
+          }
+        </p>
+      </div>
+      <button
+        type="button"
+        class="create-diary-modal__close"
+        (click)="handleCancel()"
+        aria-label="Fermer"
+      >
+        <app-icon name="close"></app-icon>
+      </button>
+    </div>
+
+    @if (stage === 'diary') {
+      <form
+        class="create-diary-modal__form"
+        [formGroup]="diaryForm"
+        (ngSubmit)="handleDiarySubmit()"
+      >
+        <section class="create-diary-modal__section">
+          <h3>Informations du carnet</h3>
+          <div class="create-diary-modal__grid">
+            <app-text-input
+              formControlName="title"
+              label="Nom du voyage"
+              placeholder="Le nom de votre voyage"
+              [isRequired]="true"
+            ></app-text-input>
+
+            <app-text-input
+              formControlName="period"
+              label="Période de voyage"
+              placeholder="Sélectionnez une date et une heure"
+              type="datetime-local"
+            ></app-text-input>
+
+            <app-text-input
+              formControlName="coverUrl"
+              label="Visuel de couverture (URL)"
+              placeholder="Ajouter votre image de couverture"
+              icon="add"
+            ></app-text-input>
+
+            <div class="create-diary-modal__upload">
+              <input
+                #coverFileInput
+                type="file"
+                accept="image/*"
+                (change)="onCoverFileSelected($event)"
+                hidden
+              />
+              <app-button
+                text="Importer une image"
+                color="secondary"
+                size="auto"
+                radius="border_lg"
+                htmlType="button"
+                [isDisabled]="isCoverUploading || isSubmitting"
+                (btnClick)="coverFileInput.click()"
+              ></app-button>
+              <p class="create-diary-modal__upload-hint">
+                Choisissez un fichier pour téléverser via Cloudinary. L'URL est mise à jour
+                automatiquement.
+              </p>
+              @if (isCoverUploading) {
+                <p class="create-diary-modal__upload-status">Téléversement en cours…</p>
+              }
+              @if (coverUploadError) {
+                <p class="create-diary-modal__upload-error">{{ coverUploadError }}</p>
+              }
+            </div>
+
+            <div class="create-diary-modal__toggles">
+              <label class="toggle">
+                <input type="checkbox" formControlName="isPrivate" />
+                <span>Privé</span>
+              </label>
+              <label class="toggle">
+                <input type="checkbox" formControlName="isPublished" />
+                <span>Publié</span>
+              </label>
+              <label class="toggle">
+                <input type="checkbox" formControlName="canComment" />
+                <span>Commentaires autorisés</span>
+              </label>
+            </div>
+
+            <div class="create-diary-modal__grid-row">
+              <label>
+                Statut
+                <select formControlName="status">
+                  <option value="IN_PROGRESS">En cours</option>
+                  <option value="COMPLETED">Terminé</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div class="create-diary-modal__editor">
+            <app-editor
+              [label]="'Décrivez votre voyage'"
+              [content]="diaryEditorContent"
+              (contentChange)="onDiaryEditorChange($event)"
+            ></app-editor>
+          </div>
+        </section>
+
+        <div class="create-diary-modal__footer">
+          <app-button
+            text="Annuler"
+            color="secondary"
+            size="auto"
+            radius="border_lg"
+            htmlType="button"
+            [isDisabled]="isSubmitting"
+            (btnClick)="handleCancel()"
+          ></app-button>
+          @if (mode === 'edit') {
+            <app-button
+              text="Enregistrer le carnet"
+              color="primary"
+              size="auto"
+              radius="border_lg"
+              htmlType="submit"
+              [isDisabled]="diaryForm.invalid || isSubmitting || isCoverUploading"
+            ></app-button>
+          } @else {
+            <app-button
+              text="Continuer"
+              color="primary"
+              size="auto"
+              radius="border_lg"
+              htmlType="submit"
+              [isDisabled]="diaryForm.invalid || isSubmitting || isCoverUploading"
+            ></app-button>
+          }
+        </div>
+      </form>
+    }
+
+    @if (stage === 'step' && mode !== 'edit') {
+      <form class="create-diary-modal__form" [formGroup]="stepForm" (ngSubmit)="handleStepSubmit()">
+        <section class="create-diary-modal__section">
+          <h3>Première étape</h3>
+          <div class="create-diary-modal__grid create-diary-modal__grid--step">
+            <app-text-input
+              formControlName="title"
+              label="Nom de l'étape"
+              placeholder="Nom de l'étape"
+              [isRequired]="true"
+              [errorMessage]="getStepControlError('title')"
+            ></app-text-input>
+
+            <app-text-input
+              formControlName="city"
+              label="ville"
+              placeholder="Ville"
+              [isRequired]="true"
+              [errorMessage]="getStepControlError('city')"
+            ></app-text-input>
+            <app-text-input
+              formControlName="country"
+              label="pays"
+              placeholder="Pays"
+              [isRequired]="true"
+              [errorMessage]="getStepControlError('country')"
+            ></app-text-input>
+
+            <app-text-input
+              formControlName="continent"
+              label="continent"
+              placeholder="Continent"
+              [isRequired]="true"
+              [errorMessage]="getStepControlError('continent')"
+            ></app-text-input>
+
+            <app-text-input
+              formControlName="startDate"
+              label="Début de l'étape"
+              placeholder="Date et heure"
+              type="datetime-local"
+            ></app-text-input>
+
+            <app-text-input
+              formControlName="endDate"
+              label="Début de l'étape"
+              placeholder="Date et heure"
+              type="datetime-local"
+            ></app-text-input>
+
+            <app-select
+              [itemsList]="availableThemes"
+              label="Thème"
+              placeholder="Choisissez un thème"
+              [selectedId]="stepForm.get('themeId')?.value ?? null"
+              [disabled]="availableThemes.length === 0"
+              (selectOnChange)="onThemeChange($event)"
+            ></app-select>
+
+            <div class="create-diary-modal__location">
+              <p class="create-diary-modal__location-label">Localisation</p>
+              <div class="create-diary-modal__location-actions">
+                <app-button
+                  text="Choisir sur la carte"
+                  color="secondary"
+                  size="auto"
+                  radius="border_lg"
+                  htmlType="button"
+                  (btnClick)="openStepLocationModal()"
+                ></app-button>
+                <span class="create-diary-modal__location-summary">{{
+                  stepLocationSummary || stepSelectedCoordinatesSummary
+                }}</span>
+              </div>
+              @if (isStepGeocoding) {
+                <p class="create-diary-modal__location-status">Recherche de l'adresse…</p>
+              }
+              @if (stepGeocodingError) {
+                <p class="create-diary-modal__location-error">{{ stepGeocodingError }}</p>
+              }
+              @if (stepShowLocationRequiredMessage) {
+                <p class="create-diary-modal__location-error">
+                  Sélectionnez un point sur la carte pour continuer.
+                </p>
+              }
+              <input type="hidden" formControlName="latitude" />
+              <input type="hidden" formControlName="longitude" />
+            </div>
+
+            <app-media-grid-uploader
+              [items]="stepMediaItems"
+              [folder]="'travel-diaries/steps'"
+              (itemsChange)="onStepMediaItemsChange($event)"
+              (primaryChange)="onStepPrimaryMediaChange($event)"
+              (uploadingChange)="onStepMediaUploadChange($event)"
+            ></app-media-grid-uploader>
+            <input type="hidden" formControlName="mediaUrl" />
+          </div>
+
+          <div class="create-diary-modal__editor">
+            <app-editor
+              [label]="'Décrivez cette étape'"
+              [content]="stepEditorContent"
+              (contentChange)="onStepEditorChange($event)"
+            ></app-editor>
+          </div>
+        </section>
+
+        @if (errorMessage) {
+          <p class="create-diary-modal__error">{{ errorMessage }}</p>
+        }
+
+        <div class="create-diary-modal__footer">
+          <app-button
+            text="Retour"
+            color="secondary"
+            size="auto"
+            radius="border_lg"
+            htmlType="button"
+            [isDisabled]="isSubmitting"
+            (btnClick)="goBackToDiaryStage()"
+          ></app-button>
+          <app-button
+            text="Annuler"
+            color="secondary"
+            size="auto"
+            radius="border_lg"
+            htmlType="button"
+            [isDisabled]="isSubmitting"
+            (btnClick)="handleCancel()"
+          ></app-button>
+          <app-button
+            text="Enregistrer les changements"
+            color="primary"
+            size="auto"
+            radius="border_lg"
+            htmlType="submit"
+            [isDisabled]="stepForm.invalid || isSubmitting || isStepMediaUploading"
+          ></app-button>
+        </div>
+      </form>
+    }
+  </div>
+</div>
+
+@if (isStepLocationModalOpen) {
+  <app-location-picker-modal
+    [initialCoordinates]="stepLocationInitialCoordinates"
+    (cancel)="closeStepLocationModal()"
+    (confirm)="handleStepLocationConfirm($event)"
+  ></app-location-picker-modal>
+}

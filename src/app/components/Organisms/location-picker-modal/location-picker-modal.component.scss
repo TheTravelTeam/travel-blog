@@ -1,0 +1,96 @@
+@use 'variables' as *;
+
+.location-picker-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+}
+
+.location-picker-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(12, 20, 33, 0.55);
+}
+
+.location-picker-modal__panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(90vw, 720px);
+  max-height: 90vh;
+  background: #ffffff;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  gap: 1rem;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.2);
+}
+
+.location-picker-modal__header {
+  h3 {
+    margin: 0;
+    font-size: 1.4rem;
+    color: $textColor;
+  }
+
+  p {
+    margin: 0.25rem 0 0;
+    color: rgba($textColor, 0.7);
+    font-size: 0.95rem;
+  }
+}
+
+.location-picker-modal__map {
+  flex: 1;
+  min-height: 360px;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+}
+
+.location-picker-modal__status {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  color: rgba($textColor, 0.75);
+}
+
+.location-picker-modal__error {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  color: var(--app-error-color, #d93025);
+  font-weight: 500;
+}
+
+.location-picker-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.location-picker-modal__user-pin {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: rgba(7, 91, 93, 0.9);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.35);
+}
+
+:host ::ng-deep .location-picker-modal__map .leaflet-tile-pane {
+  filter: saturate(1.05) brightness(0.95);
+}
+
+@media screen and (max-width: 720px) {
+  .location-picker-modal__panel {
+    width: 92vw;
+    padding: 1rem;
+  }
+
+  .location-picker-modal__footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}

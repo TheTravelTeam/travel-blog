@@ -1,3 +1,4 @@
+@use 'sass:color';
 @use 'variables' as *;
 .editor {
   &__container {
@@ -18,7 +19,7 @@
   &__error-message {
     display: flex;
     justify-content: flex-end;
-    color: lighten($color: $secondaryColor, $amount: 30);
+    color: color.mix(#ffffff, $secondaryColor, 30%);
   }
 }
 .ql-toolbar.ql-snow,

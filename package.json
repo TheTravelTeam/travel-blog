@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve -o",
+    "start": "ng serve --proxy-config proxy.conf.json -o",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
@@ -36,6 +36,7 @@
     "@enzedonline/quill-blot-formatter2": "^3.0.0",
     "dotenv": "^16.6.1",
     "json-server": "^1.0.0-beta.3",
+    "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
     "ngx-quill": "^28.0.1",
     "quill": "^2.0.3",

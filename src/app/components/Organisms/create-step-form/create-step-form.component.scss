@@ -1,0 +1,93 @@
+@use 'variables' as *;
+
+
+.create-step {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.create-step__section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  h3 {
+    margin: 0;
+    font-size: 1.4rem;
+    color: $textColor;
+  }
+}
+
+.create-step__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.create-step__location {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: rgba(12, 20, 33, 0.04);
+  border-radius: 0.75rem;
+}
+
+.create-step__location-label {
+  margin: 0;
+  font-weight: 600;
+  color: $textColor;
+}
+
+.create-step__location-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.create-step__location-summary {
+  color: rgba($textColor, 0.75);
+  font-size: 0.95rem;
+}
+
+.create-step__location-status {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba($textColor, 0.65);
+}
+
+.create-step__location-error {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--app-error-color, #d93025);
+  font-weight: 500;
+}
+
+.create-step__editor {
+  margin-top: 0.5rem;
+}
+
+.create-step__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.create-step__error {
+  color: var(--app-error-color, #d93025);
+  font-weight: 600;
+  margin: 0;
+}
+
+@media screen and (max-width: 768px) {
+  .create-step {
+    padding: 1rem;
+  }
+
+  .create-step__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

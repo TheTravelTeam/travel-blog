@@ -1,0 +1,89 @@
+<div class="register-form">
+  <div class="register-form__container">
+    <div class="register-form__header">
+      <h1 class="register-form__title">Créer un compte</h1>
+      <p class="register-form__subtitle">
+        Rejoignez la communauté des voyageurs en quelques secondes.
+      </p>
+    </div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form__form">
+      <div class="register-form__fields">
+        <app-text-input
+          label="Pseudo"
+          placeholder="Choisissez un pseudo"
+          type="text"
+          size="large"
+          variant="outlined"
+          formControlName="pseudo"
+          [isRequired]="true"
+          (inputBlur)="registerForm.get('pseudo')?.markAsTouched()"
+          [errorMessage]="getErrorMessage('pseudo')"
+        >
+        </app-text-input>
+
+        <app-text-input
+          label="Email"
+          placeholder="Entrez votre email"
+          type="email"
+          size="large"
+          variant="outlined"
+          formControlName="email"
+          [isRequired]="true"
+          (inputBlur)="registerForm.get('email')?.markAsTouched()"
+          [errorMessage]="getErrorMessage('email')"
+        >
+        </app-text-input>
+
+        <app-text-input
+          label="Mot de passe"
+          placeholder="Créer un mot de passe"
+          type="password"
+          size="large"
+          variant="outlined"
+          formControlName="password"
+          [isRequired]="true"
+          iconPosition="right"
+          (inputBlur)="registerForm.get('password')?.markAsTouched()"
+          [errorMessage]="getErrorMessage('password')"
+        >
+        </app-text-input>
+
+        <app-text-input
+          label="Confirmer le mot de passe"
+          placeholder="Confirmez votre mot de passe"
+          type="password"
+          size="large"
+          variant="outlined"
+          formControlName="confirmPassword"
+          [isRequired]="true"
+          iconPosition="right"
+          (inputBlur)="registerForm.get('confirmPassword')?.markAsTouched()"
+          [errorMessage]="getErrorMessage('confirmPassword')"
+        >
+        </app-text-input>
+      </div>
+
+      <div class="register-form__actions">
+        <app-button
+          color="primary"
+          size="lg"
+          radius="border_lg"
+          text="Créer un compte"
+          [isDisabled]="isSubmitting"
+          type="standard"
+        >
+        </app-button>
+      </div>
+
+      <div class="register-form__footer">
+        <p class="register-form__link-text">
+          Déjà inscrit ?
+          <button type="button" class="register-form__link" (click)="navigateToLogin()">
+            Se connecter
+          </button>
+        </p>
+      </div>
+    </form>
+  </div>
+</div>

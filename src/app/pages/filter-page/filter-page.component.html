@@ -27,10 +27,65 @@
     }
 
     <div class="worldMap__detail-panel__body">
+      @if (hasActiveSearch()) {
+        <section class="worldMap__search-results">
+          <header class="worldMap__search-results__header">
+            <h2>Résultats pour « {{ activeSearchQuery() }} »</h2>
+            <button type="button" (click)="clearSearchQuery()">Effacer</button>
+          </header>
+          @if (isSearchLoading()) {
+            <p class="worldMap__search-results__status">Recherche en cours…</p>
+          } @else if (searchError()) {
+            <p class="worldMap__search-results__status worldMap__search-results__status--error">
+              {{ searchError() }}
+            </p>
+          } @else if (noSearchResults()) {
+            <p class="worldMap__search-results__status">Aucun résultat disponible.</p>
+          } @else {
+            @if (diaryResults().length) {
+              <section class="worldMap__search-results__group">
+                <h3>Carnets</h3>
+                <ul>
+                  @for (result of diaryResults(); track result.id) {
+                    <li>
+                      <button type="button" (click)="onSearchResultClick(result)">
+                        <span class="label">{{ result.label }}</span>
+                        @if (result.description) {
+                          <span class="description">{{ result.description }}</span>
+                        }
+                      </button>
+                    </li>
+                  }
+                </ul>
+              </section>
+            }
+            @if (stepResults().length) {
+              <section class="worldMap__search-results__group">
+                <h3>Étapes</h3>
+                <ul>
+                  @for (result of stepResults(); track result.id) {
+                    <li>
+                      <button type="button" (click)="onSearchResultClick(result)">
+                        <span class="label">{{ result.label }}</span>
+                        <span class="description">
+                          @if (result.diaryTitle) {
+                            {{ result.diaryTitle }} ·
+                          }
+                          {{ result.description ?? 'Voir le détail' }}
+                        </span>
+                      </button>
+                    </li>
+                  }
+                </ul>
+              </section>
+            }
+          }
+        </section>
+      }
       <div class="worldMap__filter-panel">
         <app-accordion [isFilter]="true" title="Pays">
           <div class="filter__container">
-            <app-checkbox checkboxName="Farniente" label="Farniente" color></app-checkbox>
+            <app-checkbox checkboxName="Farniente" label="Farniente"></app-checkbox>
             <app-checkbox checkboxName="A la dur" label="A la dur"></app-checkbox>
             <app-checkbox
               checkboxName="Je reste chez c'est triste"
@@ -41,7 +96,7 @@
         </app-accordion>
         <app-accordion [isFilter]="true" title="Continent">
           <div class="filter__container">
-            <app-checkbox checkboxName="Farniente" label="Farniente" color></app-checkbox>
+            <app-checkbox checkboxName="Farniente" label="Farniente"></app-checkbox>
             <app-checkbox checkboxName="A la dur" label="A la dur"></app-checkbox>
             <app-checkbox
               checkboxName="Je reste chez c'est triste"
@@ -52,7 +107,7 @@
         </app-accordion>
         <app-accordion [isFilter]="true" title="Durée">
           <div class="filter__container">
-            <app-checkbox checkboxName="Farniente" label="Farniente" color></app-checkbox>
+            <app-checkbox checkboxName="Farniente" label="Farniente"></app-checkbox>
             <app-checkbox checkboxName="A la dur" label="A la dur"></app-checkbox>
             <app-checkbox
               checkboxName="Je reste chez c'est triste"
@@ -63,7 +118,7 @@
         </app-accordion>
         <app-accordion [isFilter]="true" title="Themes">
           <div class="filter__container">
-            <app-checkbox checkboxName="Farniente" label="Farniente" color></app-checkbox>
+            <app-checkbox checkboxName="Farniente" label="Farniente" ></app-checkbox>
             <app-checkbox checkboxName="A la dur" label="A la dur"></app-checkbox>
             <app-checkbox
               checkboxName="Je reste chez c'est triste"

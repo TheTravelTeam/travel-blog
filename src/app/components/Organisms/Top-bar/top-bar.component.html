@@ -17,82 +17,168 @@
     }
     @if (!bp.isMobileOrTablet() && !isHomeOrArticlePage) {
       <div class="topbar__center">
-        <div class="search-bar">
+        <form class="search-bar" role="search" (submit)="onSearchSubmit($event)">
           <span class="search-bar__icon material-symbols-outlined">search</span>
-          <input type="text" class="search-bar__input" placeholder="Hinted search text" />
-        </div>
+          <input
+            type="search"
+            class="search-bar__input"
+            placeholder="Rechercher un carnet ou une étape"
+            autocomplete="off"
+            [formControl]="searchControl"
+            (focus)="onSearchFocus()"
+            (blur)="onSearchBlur()"
+          />
+          @if (searchControl.value.trim().length) {
+            <button
+              type="button"
+              class="search-bar__clear"
+              aria-label="Effacer la recherche"
+              (mousedown)="$event.preventDefault()"
+              (click)="onClearSearch()"
+            >
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          }
+        </form>
+        @if (shouldDisplaySearchPanel()) {
+          <div class="topbar__search-results" (mousedown)="$event.preventDefault()">
+            @if (isSearchLoading()) {
+              <div class="topbar__search-status">Recherche en cours…</div>
+            } @else if (searchError()) {
+              <div class="topbar__search-status topbar__search-status--error">
+                {{ searchError() }}
+              </div>
+            } @else if (hasSearchQuery() && !diaryResults().length && !stepResults().length) {
+              <div class="topbar__search-status">Aucun résultat trouvé.</div>
+            } @else {
+              @if (diaryResults().length) {
+                <div class="topbar__search-group">
+                  <p class="topbar__search-group-title">Carnets</p>
+                  <ul>
+                    @for (result of diaryResults(); track result.id) {
+                      <li>
+                        <button type="button" (click)="onSearchResultClick(result)">
+                          <span class="topbar__search-label">{{ result.label }}</span>
+                          @if (result.description) {
+                            <span class="topbar__search-description">{{ result.description }}</span>
+                          }
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+              @if (stepResults().length) {
+                <div class="topbar__search-group">
+                  <p class="topbar__search-group-title">Étapes</p>
+                  <ul>
+                    @for (result of stepResults(); track result.id) {
+                      <li>
+                        <button type="button" (click)="onSearchResultClick(result)">
+                          <span class="topbar__search-label">{{ result.label }}</span>
+                          <span class="topbar__search-description">
+                            @if (result.diaryTitle) {
+                              {{ result.diaryTitle }} ·
+                            }
+                            {{ result.description ?? 'Voir le détail' }}
+                          </span>
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+            }
+          </div>
+        }
       </div>
     }
   </div>
 
   <div class="topbar__right">
-    <nav class="topbar__menu">
-      @if (bp.isDesktop() || bp.isTablet()) {
-        @if (!isConnected && isHomeOrArticlePage) {
-          <app-button [type]="'standard'" text="Connexion" routerLink="/me" color="secondary" />
-          <app-button [type]="'standard'" text="Mappemonde" routerLink="/travels" color="primary" />
-        } @else if (!isConnected && !isHomeOrArticlePage) {
-          <a routerLink="/travels" class="topbar__link">
-            <app-icon name="language" [size]="iconSize()" />
-            MappeMonde
+    @if (bp.isDesktop() || bp.isTablet()) {
+      <nav class="topbar__menu">
+        <a routerLink="/travels" class="topbar__link">
+          <app-icon name="language" [size]="iconSize()" />
+          Mappemonde
+        </a>
+        <a routerLink="/articles" class="topbar__link">
+          <app-icon name="map_search" [size]="iconSize()" />
+          Articles
+        </a>
+        @if (canDisplayDiariesLink) {
+          <a [routerLink]="['/travels/users', currentUserId()]" class="topbar__link">
+            <app-icon name="import_contacts" [size]="iconSize()" />
+            Mes carnets
           </a>
-          <a routerLink="/articles" class="topbar__link">
-            <app-icon name="map_search" [size]="iconSize()" />
-            Articles
+        }
+      </nav>
+      <div class="topbar__actions">
+        @if (isAuthenticated()) {
+          <a routerLink="/me" class="topbar__profile">
+            <app-avatar
+              [label]="avatarLabel()"
+              [picture]="avatarPicture()"
+              [size]="bp.isMobileOrTablet() ? 'compact' : 'default'"
+            />
           </a>
           <app-button
             [type]="'standard'"
-            text="Connexion"
-            routerLink="/me"
-            color="secondary"
             [size]="btnSize()"
+            color="secondary"
+            text="Déconnexion"
+            (btnClick)="onLogout()"
           />
         } @else {
-          <a routerLink="/travels" class="topbar__link">
-            <app-icon name="language" [size]="iconSize()" />
-            Mappemonde
-          </a>
-          <a routerLink="/articles" class="topbar__link">
-            <app-icon name="map_search" [size]="iconSize()" />Articles de voyages</a
-          >
-          <a [routerLink]="['/travels/users', userId]" class="topbar__link"
-            ><app-icon name="import_contacts" [size]="iconSize()" />Carnet de voyage</a
-          >
-          <a routerLink="/me" class="topbar__link"><app-avatar label="Jean" />Compte</a>
+          <app-button
+            [type]="'standard'"
+            [size]="btnSize()"
+            color="secondary"
+            text="Connexion"
+            (btnClick)="onNavigateToLogin()"
+          />
         }
-      }
-      @if (bp.isMobile()) {
-        @if (isMapPage) {
-          <a [routerLink]="['/travels/users', userId]" class="topbar__link__mobile"
-            ><app-icon name="import_contacts" [size]="iconSize()"
-          /></a>
-        }
-        @if (isMyDiariesPage) {
-          <a routerLink="/travels" class="topbar__link__mobile"
-            ><app-icon name="map_search" [size]="iconSize()"
-          /></a>
-        }
-        @if (isFilterPage) {
-          <a [routerLink]="['/travels/users', userId]" class="topbar__link__mobile"
-            ><app-icon name="import_contacts" [size]="iconSize()"
-          /></a>
-          <a routerLink="/travels" class="topbar__link__mobile"
-            ><app-icon name="map_search" [size]="iconSize()"
-          /></a>
-        }
-        @if (isHomeOrArticlePage) {
-          <a routerLink="/travels" class="topbar__link__mobile">
-            <app-icon name="language" [size]="iconSize()" />
+      </div>
+    } @else {
+      <nav class="topbar__menu">
+        <a routerLink="/travels" class="topbar__link__mobile">
+          <app-icon name="language" [size]="iconSize()" />
+        </a>
+        <a routerLink="/articles" class="topbar__link__mobile">
+          <app-icon name="map_search" [size]="iconSize()" />
+        </a>
+        @if (canDisplayDiariesLink) {
+          <a [routerLink]="['/travels/users', currentUserId()]" class="topbar__link__mobile">
+            <app-icon name="import_contacts" [size]="iconSize()" />
           </a>
         }
-        @if (!isConnected) {
-          <a routerLink="/me" class="topbar__link__mobile">
-            <app-icon name="account_circle" [size]="iconSize()" />
+      </nav>
+      <div class="topbar__actions">
+        @if (isAuthenticated()) {
+          <a routerLink="/me" class="topbar__profile">
+            <app-avatar
+              [label]="avatarLabel()"
+              [picture]="avatarPicture()"
+              size="compact"
+            />
           </a>
+          <app-button
+            [type]="'standard'"
+            size="sm"
+            color="secondary"
+            text="Déconnexion"
+            (btnClick)="onLogout()"
+          />
         } @else {
-          <a routerLink="/me" class="topbar__link__mobile"><app-avatar label="Jean" /></a>
+          <app-button
+            [type]="'standard'"
+            size="sm"
+            color="secondary"
+            text="Connexion"
+            (btnClick)="onNavigateToLogin()"
+          />
         }
-      }
-    </nav>
+      </div>
+    }
   </div>
 </header>

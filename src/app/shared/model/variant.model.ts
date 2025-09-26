@@ -1,5 +1,5 @@
 // Button
-export type Color = 'primary' | 'secondary' | 'danger' | 'white';
+export type Color = 'primary' | 'secondary' | 'danger' | 'white' | 'white-danger';
 export type RadiusButton = 'border_sm' | 'border_md' | 'border_lg';
 export type Size = 'sm' | 'md' | 'lg' | 'auto';
 export type CardSize = '';

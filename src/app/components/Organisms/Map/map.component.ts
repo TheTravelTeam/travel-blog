@@ -1,4 +1,4 @@
-import { effect } from '@angular/core';
+import { computed, effect } from '@angular/core';
 // Import Angular
 import {
   Component,
@@ -36,6 +36,7 @@ import { AvatarComponent } from 'components/Atoms/avatar/avatar.component';
 import { BreakpointService } from '@service/breakpoint.service';
 import { Router } from '@angular/router';
 import { TravelMapStateService } from '@service/travel-map-state.service';
+import { AuthService } from '@service/auth.service';
 
 // Interface pour les événements
 export interface MapDiarySelectedEvent {
@@ -76,13 +77,13 @@ export class MapComponent implements AfterViewInit, OnChanges {
   private breakpointService = inject(BreakpointService);
   private router = inject(Router);
   public state = inject(TravelMapStateService);
+  private readonly authService = inject(AuthService);
 
   private map!: L.Map;
   public currentDiaryId: number | null = null;
   public currentUser: User | null = null;
   public userLoc: L.LatLng | null = null;
   public isFirstCall = true;
-  private currentSteps: Step[] = [];
 
   @Input() viewMode: MapConfig['modeView'] = mapConfigDefault['modeView'];
   @Input() isDiary: MapConfig['isDiary'] = mapConfigDefault['isDiary'];
@@ -101,6 +102,8 @@ export class MapComponent implements AfterViewInit, OnChanges {
   private lastPoint: L.LatLng | null = null;
   isTabletOrMobile = this.breakpointService.isMobileOrTablet;
   isMobile = this.breakpointService.isMobile;
+
+  public currentUserId = computed(() => this.authService.currentUser()?.id ?? null);
 
   ngAfterViewInit(): void {
     this.initMap();
@@ -204,6 +207,14 @@ export class MapComponent implements AfterViewInit, OnChanges {
    */
   private handleCreateOnMapClick(e: L.LeafletMouseEvent): void {
     const { lat, lng } = e.latlng;
+    const coordStr = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    const currentUserId = this.currentUserId();
+
+    // Affiche les coordonnées dans un popup
+    L.popup({ closeOnClick: true, autoClose: true })
+      .setLatLng([lat, lng])
+      .setContent(`<b>GPS</b><br>${coordStr}`)
+      .openOn(this.map);
 
     if (this.viewMode) return;
 
@@ -213,11 +224,17 @@ export class MapComponent implements AfterViewInit, OnChanges {
         description: 'Diary ajouté depuis la carte',
         latitude: lat,
         longitude: lng,
-        coverMedia: {
+        media: {
           fileUrl:
             'https://www.echosciences-grenoble.fr/uploads/article/image/attachment/1005418938/xl_lens-1209823_1920.jpg',
           mediaType: 'PHOTO',
         },
+        user: currentUserId,
+        isPrivate: false,
+        isPublished: true,
+        status: 'DRAFT',
+        canComment: true,
+        steps: [],
       };
 
       this.stepService.addDiary(newDiary).subscribe((diary) => {
@@ -258,7 +275,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
       this.mapInitialized.emit({ diaries });
 
       diaries.forEach((diary: TravelDiary) => {
-        const fileUrl = diary.coverMedia?.fileUrl ?? '/icon/logo.svg';
+        const fileUrl = this.state.getDiaryCoverUrl(diary) || '/icon/logo.svg';
         const html = `
           <div class="custom-marker">
             <img src="${fileUrl}" class="size-md" alt="avatar" />
@@ -305,10 +322,11 @@ export class MapComponent implements AfterViewInit, OnChanges {
       this.diarySelected.emit({ diary, steps });
 
       steps.forEach((step, index) => {
+        const medias = this.state.getStepMediaList(step);
         this.addMarkerWithComponent(
           step.latitude,
           step.longitude,
-          step.medias,
+          medias,
           currentUser,
           step,
           index
@@ -424,14 +442,22 @@ export class MapComponent implements AfterViewInit, OnChanges {
    */
   private saveStep(lat: number, lng: number): void {
     const newStep: CreateStepDto = {
-      name: `Step ${Date.now()}`,
+      title: `Step ${Date.now()}`,
       description: 'Ajouté depuis carte',
       latitude: lat,
       longitude: lng,
+      travelDiaryId: this.currentDiaryId!,
+      status: 'IN_PROGRESS',
     };
 
-    this.stepService.addStepToTravel(this.currentDiaryId!, newStep).subscribe((travel) => {
-      console.info('✅ Step sauvegardé', travel);
+    this.stepService.addStepToTravel(this.currentDiaryId!, newStep).subscribe({
+      next: (createdStep) => {
+        console.info('✅ Step sauvegardé', createdStep);
+        this.loadStepsForCurrentDiary();
+      },
+      error: (err) => {
+        console.error('❌ Impossible de sauvegarder le step', err);
+      },
     });
   }
 

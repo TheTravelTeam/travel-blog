@@ -1,10 +1,13 @@
 import { Routes } from '@angular/router';
 import { HomePageComponent } from './pages/home-page/home-page.component';
-import { WorldMapPageComponent } from './pages/world-map-page/world-map-page.component';
+import { DiaryPageComponent } from './pages/world-map-page/diary-page.component';
 import { MyTravelsPageComponent } from './pages/my-travels-page/my-travels-page.component';
 import { TravelMapLayoutPageComponent } from './pages/travel-map-layout-page/travel-map-layout-page.component';
 import { FilterPageComponent } from './pages/filter-page/filter-page.component';
 import { TestPageComponent } from 'pages/test-page/test-page.component';
+import { LoginFormComponent } from './components/Organisms/login-form/login-form.component';
+import { RegisterFormComponent } from './components/Organisms/register-form/register-form.component';
+import { MePageComponent } from './pages/me-page/me-page.component';
 
 export const routes: Routes = [
   {
@@ -12,6 +15,9 @@ export const routes: Routes = [
     component: HomePageComponent,
     pathMatch: 'full',
   },
+  { path: 'login', component: LoginFormComponent },
+  { path: 'register', component: RegisterFormComponent },
+  { path: 'me', component: MePageComponent },
   {
     path: 'travels',
     component: TravelMapLayoutPageComponent,
@@ -19,7 +25,7 @@ export const routes: Routes = [
       { path: '', component: FilterPageComponent },
       {
         path: ':id',
-        component: WorldMapPageComponent,
+        component: DiaryPageComponent,
       },
       { path: 'users/:id', component: MyTravelsPageComponent },
     ],

@@ -1,51 +1,53 @@
 <app-card
+  class="travel-diary-card"
   width="100%"
   height="218px"
   layout="column"
-  [padding]="isMobile() ? 'sm' : 'xl'"
+  [padding]="isMobileOrTablet() ? 'lg' : 'xl'"
   shadow="xs"
   radius="lg"
   [isHoverable]="true"
   [isClickable]="true"
   (click)="onCardClick()"
   [style]="{
-    'background-image': isMobileOrTablet() ? 'url(' + image + ')' : '',
+    'background-image': 'url(' + image + ')',
     'background-size': 'cover',
     'background-position': 'center',
-    'background-repeat': 'no-repeat',
+    'background-repeat': 'no-repeat'
   }"
 >
-  <!-- @if (!isMobileOrTable()) {
-    <app-card-header>
-      <img [src]="image" alt="" />
-    </app-card-header>
-  } -->
-  <app-card-body>
-    @if (!isMobileOrTablet()) {
-      <app-card width="36%" height="75%" radius="lg">
-        <img [src]="image" alt="" />
-      </app-card>
-    }
-
-    <div class="informations" [ngClass]="isMobileOrTablet() ? 'informations--mobile' : ''">
-      <div class="title">
+  <div class="travel-diary-card__overlay"></div>
+  <app-card-body class="travel-diary-card__body">
+    <div
+      class="travel-diary-card__content"
+      [ngClass]="{ 'travel-diary-card__content--mobile': isMobileOrTablet() }"
+    >
+      <div class="travel-diary-card__header">
         <h3>{{ title }}</h3>
-        <div>
-          <button (click)="onEdit()">
-            <app-icon
-              name="edit"
-              [color]="isAltBackground ? 'light' : 'primary'"
-              size="lg"
-            ></app-icon>
-          </button>
-          @if (!isMobileOrTablet()) {
-            <button (click)="onDelete()">
-              <app-icon name="delete" color="secondary" size="lg"></app-icon>
+        @if (showInlineActions) {
+          <div class="travel-diary-card__actions">
+            <button type="button" (click)="onEdit(); $event.stopPropagation()">
+              <app-icon
+                name="edit"
+                [color]="isMobileOrTablet() ? 'light' : 'primary'"
+                size="lg"
+              ></app-icon>
             </button>
-          }
-        </div>
+            <button
+              type="button"
+              (click)="onDelete(); $event.stopPropagation()"
+              [class.travel-diary-card__actions-btn--hidden]="isMobileOrTablet()"
+            >
+              <app-icon
+                name="delete"
+                [color]="isMobileOrTablet() ? 'light' : 'secondary'"
+                size="lg"
+              ></app-icon>
+            </button>
+          </div>
+        }
       </div>
-      <div class="description">
+      <div class="travel-diary-card__description">
         {{ description }}
       </div>
     </div>

@@ -19,7 +19,7 @@
     <div class="my-diaries__detail-panel__header">
       <!-- <div
           class="diary__cover"
-          [style]="`background-image: url(${state.currentDiary()?.coverMedia?.fileUrl})`"
+          [style]="`background-image: url(${state.getDiaryCoverUrl(state.currentDiary())})`"
         > -->
       <!-- <app-avatar label="" picture="toto" class="diary__avatar"></app-avatar> -->
       <h1 class="my-diaries__detail-panel__header--title">Mes carnets de voyage</h1>
@@ -34,21 +34,35 @@
           ></app-divider>
         </div>
         <div class="my-diaries__detail-panel__header--btn">
-          <app-button [isActionBtn]="true" size="md" color="primary" type="like"></app-button>
+          <app-button
+            [isActionBtn]="true"
+            size="md"
+            color="primary"
+            type="standard"
+            icon="add"
+            (btnClick)="openCreateModal()"
+          ></app-button>
           <p>Ajouter un carnet</p>
         </div>
       }
     </div>
 
     <div class="my-diaries__detail-panel__body">
+      @if (panelError) {
+        <p class="my-diaries__error-message">{{ panelError }}</p>
+      }
       @for (diary of diariesList; track $index) {
         <app-travel-diary-card
           [isAltBackground]="$index % 2 === 1 && !isTabletOrMobile()"
           [ngClass]="{ 'alt-background': $index % 2 === 1 }"
           [id]="diary.id"
           [title]="diary.title"
-          [image]="diary.coverMedia?.fileUrl || ''"
+          [image]="state.getDiaryCoverUrl(diary)"
           [description]="diary.description"
+          [showInlineActions]="isOwner()"
+          (cardClick)="onDiaryCardClick(diary)"
+          (edit)="onDiaryEdit(diary)"
+          (delete)="onDiaryDelete(diary)"
         ></app-travel-diary-card>
       }
     </div>
@@ -66,7 +80,22 @@
         icon="add"
         text="Ajouter"
         size="auto"
+        type="standard"
+        (btnClick)="openCreateModal()"
       ></app-button>
     </div>
   </div>
+
+  @if (isCreateModalOpen) {
+  <app-create-diary-modal
+    [isMobile]="isTabletOrMobile()"
+    [isSubmitting]="isCreateModalSubmitting"
+    [errorMessage]="createModalError"
+    [availableThemes]="themeOptions"
+    [mode]="isEditMode ? 'edit' : 'create'"
+    [initialDiary]="editInitialDiary"
+    (cancel)="closeCreateModal()"
+    (submitDiary)="onDiaryModalSubmit($event)"
+  ></app-create-diary-modal>
+  }
 </div>

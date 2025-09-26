@@ -1,11 +1,12 @@
 <!-- <button type="button" (click)="onClick()">click</button> -->
 <button
+  [attr.type]="htmlType"
   [ngClass]="[
     'btn',
     'btn--' + color,
     'btn--' + size,
     'btn--' + radius,
-    type !== 'standard' ? 'btn--' + type + '--' + color : 'btn--standard',
+    type === 'standard' && !isActionBtn ? 'btn--standard' : 'btn--' + type + '--' + color,
     isDisabled ? 'btn--disabled' : '',
     isActionBtn ? 'btn--icon-only' : '',
   ]"
