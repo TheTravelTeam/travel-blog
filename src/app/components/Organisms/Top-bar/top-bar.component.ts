@@ -1,5 +1,6 @@
 import {
   Component,
+  DestroyRef,
   OnDestroy,
   OnInit,
   computed,
@@ -51,6 +52,7 @@ export class TopBarComponent implements OnInit, OnDestroy {
   readonly bp = inject(BreakpointService);
   private readonly router = inject(Router);
   private readonly searchService = inject(SearchService);
+  private readonly destroyRef = inject(DestroyRef);
 
   // 💡 IconSize adapté automatiquement au device
   readonly iconSize = computed<IconSize>(() => {
@@ -130,7 +132,7 @@ export class TopBarComponent implements OnInit, OnDestroy {
 
     this.searchControl.valueChanges
       .pipe(
-        takeUntilDestroyed(),
+        takeUntilDestroyed(this.destroyRef),
         map((raw) => raw.trim()),
         tap((value) => {
           this.searchError.set(null);

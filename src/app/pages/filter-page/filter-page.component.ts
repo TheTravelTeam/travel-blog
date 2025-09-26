@@ -1,4 +1,13 @@
-import { Component, ElementRef, ViewChild, computed, effect, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  ViewChild,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { AccordionComponent } from '../../components/Atoms/accordion/accordion.component';
 import { CheckboxComponent } from 'components/Atoms/Checkbox/checkbox.component';
 import { IconComponent } from 'components/Atoms/Icon/icon.component';
@@ -24,6 +33,7 @@ export class FilterPageComponent {
   public router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly searchService = inject(SearchService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private breakpointService = inject(BreakpointService);
   isTabletOrMobile = this.breakpointService.isMobileOrTablet;
@@ -66,7 +76,7 @@ export class FilterPageComponent {
 
     this.route.queryParamMap
       .pipe(
-        takeUntilDestroyed(),
+        takeUntilDestroyed(this.destroyRef),
         map((params) => (params.get('q') ?? '').trim()),
         distinctUntilChanged(),
         switchMap((query) => {
