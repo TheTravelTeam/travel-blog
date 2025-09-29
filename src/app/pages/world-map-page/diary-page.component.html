@@ -112,7 +112,10 @@
             (isEditingChange)="onStepEditModeChange(step, $event)"
           >
             <div class="step__content__container">
-              <p>{{ step.description }}</p>
+              <div
+                class="step__content ql-editor"
+                [innerHTML]="step.description | safeHtml"
+              ></div>
 
               <div class="step__media__wrapper">
                 @if (medias.length > 1) {

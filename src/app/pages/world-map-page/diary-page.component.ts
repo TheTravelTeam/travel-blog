@@ -35,6 +35,7 @@ import { IconComponent } from 'components/Atoms/Icon/icon.component';
 import { MediaPayload, StepFormResult } from '@model/stepFormResult.model';
 import { MediaService } from '@service/media.service';
 import { CreateMediaDto } from '@dto/create-media.dto';
+import { SafeHtmlPipe } from 'shared/pipes/safe-html.pipe';
 
 type DiaryOwnerInfo = {
   id: number;
@@ -54,6 +55,7 @@ type DiaryOwnerInfo = {
     AvatarComponent,
     CreateStepFormComponent,
     IconComponent,
+    SafeHtmlPipe,
   ],
   templateUrl: './diary-page.component.html',
   styleUrl: './diary-page.component.scss',
