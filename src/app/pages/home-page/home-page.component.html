@@ -11,13 +11,20 @@
   <div class="iconContainer arrow">
     <img src="Images/arrow_secondary.svg" />
   </div>
-  @if (breakpoint.isMobile()) {
+  @if (breakpoint.isMobileOrTablet()) {
     <div class="mobile-header-content">
-      <h1>Un site de voyage unique pour toutes vos aventures</h1>
+      <div class="mobile-header-title">
+        <h2>Travelblog</h2>
+        <h1>Vivez et revives vos plus beaux voyages</h1>
+
+      </div>
       <div class="title-with-cards">
+        <div>
+
+        </div>
         <h2>Découvrez votre future destination</h2>
         <div class="tripCardsList">
-          @for (card of cards.slice(0, 1); track card.id) {
+          @for (card of cards; track card.id) {
             <app-visual-trip-card
               [id]="card.id"
               [title]="card.title"
@@ -31,7 +38,7 @@
       </div>
     </div>
   }
-  @if (breakpoint.isDesktop() || breakpoint.isTablet()) {
+  @if (breakpoint.isDesktop()) {
     <div
       class="titleContainer"
       [ngClass]="{
@@ -40,13 +47,14 @@
       }"
     >
       <h1>Un site de voyage unique pour toutes vos aventures</h1>
+      <h2>Vivez et revivez vos plus beaux voyages</h2>
     </div>
   }
 </header>
 <main>
   <section>
     @if (breakpoint.isDesktop()) {
-      <h2>Découvrez votre future destination</h2>
+      <h2 class="subtitle-card">Découvrez votre future destination</h2>
       <div class="arrowWithIcon">
         <div class="iconContainer">
           <img src="Images/arrow_secondary.svg" />
@@ -54,8 +62,8 @@
         <app-icon class="absolute" name="travel" color="secondary" size="xl"></app-icon>
       </div>
     }
-    @if (breakpoint.isMobile()) {
-      <h2>Découvrez plus de destinations</h2>
+    @if (breakpoint.isMobileOrTablet()) {
+      <h2  class="subtitle-card">Découvrez plus de destinations</h2>
       <div class="arrowWithIcon mobile">
         <div class="iconContainer">
           <img src="Images/arrow_secondary_short.svg" />
@@ -72,7 +80,7 @@
       ></app-visual-trip-card>
     }
     @if (breakpoint.isDesktop()) {
-      <div class="tripCardsList">
+      <div class="tripCardsList tripCardsList--grid">
         @for (card of cards.slice(0, 4); track card.id) {
           <app-visual-trip-card
             [id]="card.id"
@@ -95,25 +103,8 @@
       <app-icon class="absolute" name="explore" color="primary" size="xl"></app-icon>
     </div>
     <div class="subSection">
-      <div class="destinationsList">
-        @if (breakpoint.isMobile()) {
-          @for (article of articles.slice(0, 1); track article.id) {
-            <app-card
-              borderColor="text-secondary"
-              class="imageDestinationContainer"
-              width="312px"
-              height="220px"
-              radius="lg"
-            >
-              <img [src]="article.src" />
-              <app-chip
-                [children]="article.title"
-                backgroundColor="whiteOpacity"
-                padding="xs"
-              ></app-chip>
-            </app-card>
-          }
-        } @else {
+      @if (breakpoint.isDesktop()) {
+        <div class="destinationsList destinationsList--grid">
           @for (article of articles.slice(0, 6); track article.id) {
             <app-card
               borderColor="text-secondary"
@@ -130,8 +121,27 @@
               ></app-chip>
             </app-card>
           }
-        }
-      </div>
+        </div>
+      } @else {
+        <div class="destinationsList destinationsList--carousel">
+          @for (article of articles; track article.id) {
+            <app-card
+              borderColor="text-secondary"
+              class="imageDestinationContainer"
+              width="312px"
+              height="220px"
+              radius="lg"
+            >
+              <img [src]="article.src" />
+              <app-chip
+                [children]="article.title"
+                backgroundColor="whiteOpacity"
+                padding="xs"
+              ></app-chip>
+            </app-card>
+          }
+        </div>
+      }
       <app-button text="Découvrez nos articles" color="secondary" size="lg"></app-button>
     </div>
   </section>
