@@ -33,6 +33,7 @@ describe('CreateStepFormComponent', () => {
       startDate: '',
       endDate: '',
       themeId: null,
+      themeIds: [],
     });
   }
 
@@ -107,6 +108,8 @@ describe('CreateStepFormComponent', () => {
       isEditing: false,
       comments: [],
       likes: 0,
+      themeIds: [3],
+      themes: [{ id: 3, name: 'Nature', updatedAt: '2023-01-01' } as any],
     };
 
     component.populateFromStep(step);
@@ -124,6 +127,7 @@ describe('CreateStepFormComponent', () => {
         startDate: '2024-07-14T10:00',
         endDate: '2024-07-20T16:30',
         themeId: 3,
+        themeIds: [3],
       })
     );
     expect(component.stepEditorContent).toBe('Description existante');

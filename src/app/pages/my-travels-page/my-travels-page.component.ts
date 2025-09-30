@@ -27,6 +27,7 @@ import {
 } from 'components/Organisms/create-diary-modal/create-diary-modal.component';
 import { CreateDiaryDto } from '@dto/create-diary.dto';
 import { CreateStepDto } from '@dto/create-step.dto';
+import { normalizeThemeIds } from '@utils/theme-selection.util';
 import { ThemeService } from '@service/theme.service';
 import { ItemProps } from '@model/select.model';
 import { MediaService } from '@service/media.service';
@@ -301,12 +302,11 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
     this.createModalError = null;
   }
 
+  /**
+   * Soumet la création d'un carnet puis de sa première étape.
+   * @param payload Combined diary + step form payload.
+   */
   onDiaryCreationSubmit(payload: DiaryCreationPayload): void {
-    /**
-     * Soumet la création d'un carnet puis de sa première étape.
-     * En cas d'échec de création de l'étape, la suppression compensatoire
-     * du carnet peut être ajoutée (rollback) si nécessaire.
-     */
     this.isCreateModalSubmitting = true;
     this.createModalError = null;
 
@@ -347,6 +347,7 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
             city: payload.step.city ?? null,
             country: payload.step.country ?? null,
             continent: payload.step.continent ?? null,
+            themeIds: normalizeThemeIds(payload.step.themeId, payload.step.themeIds),
           };
 
           return this.stepService.addStepToTravel(createdDiary.id, stepPayload).pipe(

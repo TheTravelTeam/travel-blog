@@ -2,6 +2,7 @@ import { computed, Injectable, signal } from '@angular/core';
 import { Step } from '@model/step.model';
 import { TravelDiary } from '@model/travel-diary.model';
 import { Media } from '@model/media.model';
+import { Theme } from '@model/theme.model';
 
 /**
  * Service de coordination entre la carte et les pages consommant les carnets.
@@ -17,6 +18,7 @@ export class TravelMapStateService {
   currentDiary = signal<TravelDiary | null>(null);
   currentDiaryId = signal<number | null>(null);
   allDiaries = signal<TravelDiary[]>([]);
+  visibleDiaries = signal<TravelDiary[]>([]);
   openedStepId = signal<number | null>(null);
   openedCommentStepId = signal<number | null>(null);
   mapCenterCoords = signal<{ lat: number; lng: number } | null>(null);
@@ -29,6 +31,7 @@ export class TravelMapStateService {
   panelHeight = signal<'collapsed' | 'expanded' | 'collapsedDiary'>('collapsed');
 
   totalStepsCount = computed(() => this.steps().length);
+  private hasCustomVisibleDiaries = signal(false);
 
   // --- Ouverture automatique de la modale de création ---
   shouldOpenCreateModal = signal(false);
@@ -36,12 +39,17 @@ export class TravelMapStateService {
    * Demande l'ouverture automatique de la modale de création
    * au prochain chargement de la page `/travels`.
    */
+  /** Requests the opening of the create diary modal on the next navigation. */
   requestCreateModal() {
     this.shouldOpenCreateModal.set(true);
   }
   /**
    * Consomme le drapeau d'ouverture de la modale de création et le réinitialise.
    * Retourne true si une ouverture a été demandée, false sinon.
+   */
+  /**
+   * Consumes the flag triggering the create modal.
+   * @returns True when an opening was requested.
    */
   consumeCreateModalRequest(): boolean {
     const flag = this.shouldOpenCreateModal();
@@ -57,12 +65,16 @@ export class TravelMapStateService {
    * Demande l'ouverture automatique de la modale d'édition pour un carnet donné.
    * @param id Identifiant du carnet à éditer
    */
+  /**
+   * Schedules an edit modal opening for the provided diary id.
+   * @param id Identifier of the diary to edit.
+   */
   requestEditDiary(id: number) {
     this.requestedEditDiaryId.set(id);
   }
   /**
-   * Consomme l'id du carnet à éditer et le réinitialise.
-   * @returns L'id du carnet s'il existait, sinon null.
+   * Consumes the pending edit request if any.
+   * @returns The targeted diary id or null.
    */
   consumeRequestedEditDiary(): number | null {
     const id = this.requestedEditDiaryId();
@@ -73,35 +85,97 @@ export class TravelMapStateService {
   }
 
   // ✅ Méthodes utilitaires
+  /**
+   * Updates the shared list of steps (normalised beforehand).
+   * @param steps Steps to inject in the shared state.
+   */
   setSteps(steps: Step[]) {
-    this.steps.set(steps);
+    this.steps.set(this.normaliseSteps(steps));
   }
 
+  /**
+   * Stores the currently focused diary.
+   * @param diary Diary instance or null when none is selected.
+   */
   setCurrentDiary(diary: TravelDiary | null) {
-    this.currentDiary.set(diary);
+    if (!diary) {
+      this.currentDiary.set(null);
+      return;
+    }
+
+    this.currentDiary.set({
+      ...diary,
+      steps: this.normaliseSteps(diary.steps),
+    });
   }
 
+  /** Updates the identifier of the current diary. */
   setCurrentDiaryId(id: number | null) {
     this.currentDiaryId.set(id);
   }
 
+  /**
+   * Replaces the full list of diaries and normalises their steps.
+   * @param diaries Diaries to expose to the application.
+   */
   setAllDiaries(diaries: TravelDiary[]) {
-    this.allDiaries.set(diaries);
+    if (!Array.isArray(diaries)) {
+      this.allDiaries.set([]);
+      if (!this.hasCustomVisibleDiaries()) {
+        this.visibleDiaries.set([]);
+      }
+      return;
+    }
+
+    const normalised = this.normaliseDiaryList(diaries);
+
+    this.allDiaries.set(normalised);
+    if (!this.hasCustomVisibleDiaries()) {
+      this.visibleDiaries.set(normalised);
+    }
   }
 
+  /**
+   * Declares the diaries that should be displayed on the map.
+   * @param diaries Filtered diaries subset or null to revert to the full list.
+   */
+  setVisibleDiaries(diaries: TravelDiary[] | null) {
+    if (Array.isArray(diaries)) {
+      this.visibleDiaries.set(this.normaliseDiaryList(diaries));
+      this.hasCustomVisibleDiaries.set(true);
+      return;
+    }
+
+    this.visibleDiaries.set(this.allDiaries());
+    this.hasCustomVisibleDiaries.set(false);
+  }
+
+  /**
+   * Marks a step as opened in the detail panel.
+   * @param stepId Identifier to select or null to clear.
+   */
   setOpenedStepId(stepId: number | null) {
     this.openedStepId.set(stepId);
     // this.updateProgress();
   }
 
+  /**
+   * Toggles the comment panel for a given step.
+   * @param stepId Step identifier or null to hide the panel.
+   */
   setOpenedCommentStepId(stepId: number | null) {
     this.openedCommentStepId.set(stepId);
   }
 
+  /**
+   * Updates the map center coordinates used by the UI.
+   * @param coords Coordinates or null to reset.
+   */
   setMapCenterCoords(coords: { lat: number; lng: number } | null) {
     this.mapCenterCoords.set(coords);
   }
 
+  /** Resets every shared state slice to its initial value. */
   reset() {
     this.steps.set([]);
     this.currentDiary.set(null);
@@ -114,7 +188,8 @@ export class TravelMapStateService {
   }
 
   /**
-   * Retourne l'URL du média principal d'un carnet (ou le premier média d'étape en fallback).
+   * Picks a best-effort cover URL from either the diary cover or its steps.
+   * @param diary Diary or partial diary carrying media information.
    */
   getDiaryCoverUrl(diary: TravelDiary | { media?: Media | null; steps?: Step[] | null }): string {
     if (!diary) {
@@ -137,7 +212,10 @@ export class TravelMapStateService {
     return '';
   }
 
-  /** Agrège les médias d'une étape. */
+  /**
+   * Returns every media associated with the provided step.
+   * @param step Target step.
+   */
   getStepMediaList(step: Step | null | undefined): Media[] {
     if (!step) {
       return [];
@@ -152,7 +230,10 @@ export class TravelMapStateService {
     return mediaList;
   }
 
-  /** Retourne la première URL exploitable depuis une structure hétérogène. */
+  /**
+   * Finds the first usable media URL in the provided structure.
+   * @param source Single media or list of medias.
+   */
   private pickFirstUrl(source: Media | Media[] | null | undefined): string | null {
     if (!source) {
       return null;
@@ -161,5 +242,34 @@ export class TravelMapStateService {
     const medias = Array.isArray(source) ? source : [source];
     const media = medias.find((item) => typeof item?.fileUrl === 'string' && item.fileUrl.trim());
     return media?.fileUrl ?? null;
+  }
+
+  /**
+   * Normalises theme-related fields on incoming step collections.
+   * @param steps Raw steps coming from the backend.
+   */
+  private normaliseSteps(steps: Step[] | null | undefined): Step[] {
+    if (!Array.isArray(steps)) {
+      return [];
+    }
+
+    return steps.map((step) => ({
+      ...step,
+      themeIds: Array.isArray(step?.themeIds)
+        ? step.themeIds.filter((value): value is number => Number.isFinite(value as number))
+        : [],
+      themes: Array.isArray(step?.themes) ? (step.themes as Theme[]) : [],
+    })) as Step[];
+  }
+
+  private normaliseDiaryList(diaries: TravelDiary[] | null | undefined): TravelDiary[] {
+    if (!Array.isArray(diaries)) {
+      return [];
+    }
+
+    return diaries.map((diary) => ({
+      ...diary,
+      steps: this.normaliseSteps(diary.steps),
+    }));
   }
 }

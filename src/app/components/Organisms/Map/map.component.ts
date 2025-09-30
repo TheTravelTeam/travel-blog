@@ -70,6 +70,14 @@ export class MapComponent implements AfterViewInit, OnChanges {
         this.loadStepsForCurrentDiary();
       }
     });
+
+    effect(() => {
+      const diaries = this.state.visibleDiaries();
+      if (!this.map || !this.diaryMarkersLayer) {
+        return;
+      }
+      this.renderDiaryMarkers(diaries);
+    });
   }
 
   private http = inject(HttpClient);
@@ -80,6 +88,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
   private readonly authService = inject(AuthService);
 
   private map!: L.Map;
+  private diaryMarkersLayer: L.LayerGroup | null = null;
   public currentDiaryId: number | null = null;
   public currentUser: User | null = null;
   public userLoc: L.LatLng | null = null;
@@ -166,6 +175,8 @@ export class MapComponent implements AfterViewInit, OnChanges {
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       { attribution: 'Tiles © Esri' }
     ).addTo(this.map);
+
+    this.diaryMarkersLayer = L.layerGroup().addTo(this.map);
 
     this.getGeolocalisation();
     this.map.on('click', (e: L.LeafletMouseEvent) => this.handleCreateOnMapClick(e));
@@ -271,36 +282,50 @@ export class MapComponent implements AfterViewInit, OnChanges {
    */
   private loadAllDiaries(): void {
     this.stepService.getAllDiaries().subscribe((diaries: TravelDiary[]) => {
-      // Émettre l'événement d'initialisation
+      this.state.setAllDiaries(diaries);
       this.mapInitialized.emit({ diaries });
+    });
+  }
 
-      diaries.forEach((diary: TravelDiary) => {
-        const fileUrl = this.state.getDiaryCoverUrl(diary) || '/icon/logo.svg';
-        const html = `
-          <div class="custom-marker">
-            <img src="${fileUrl}" class="size-md" alt="avatar" />
-          </div>
-        `;
+  /**
+   * (Re)renders diary markers based on the currently visible diaries list.
+   * @param diaries Diaries that should appear on the map.
+   */
+  private renderDiaryMarkers(diaries: TravelDiary[]): void {
+    const layer = this.diaryMarkersLayer;
+    if (!layer || !this.map) {
+      return;
+    }
 
-        const icon = L.divIcon({
-          html,
-          className: '',
-          iconSize: [50, 50],
-          iconAnchor: [25, 25],
+    layer.clearLayers();
+
+    diaries.forEach((diary) => {
+      const fileUrl = this.state.getDiaryCoverUrl(diary) || '/icon/logo.svg';
+      const html = `
+        <div class="custom-marker">
+          <img src="${fileUrl}" class="size-md" alt="avatar" />
+        </div>
+      `;
+
+      const icon = L.divIcon({
+        html,
+        className: '',
+        iconSize: [50, 50],
+        iconAnchor: [25, 25],
+      });
+
+      const marker = L.marker([diary.latitude, diary.longitude], { icon }).addTo(layer);
+
+      marker.on('click', () => {
+        this.currentDiaryId = diary.id;
+        layer.clearLayers();
+        this.map.eachLayer((layer) => {
+          if (layer instanceof L.Polyline || layer instanceof L.Marker) {
+            this.map.removeLayer(layer);
+          }
         });
-
-        const marker = L.marker([diary.latitude, diary.longitude], { icon }).addTo(this.map);
-        marker.on('click', () => {
-          this.currentDiaryId = diary.id;
-          this.map.eachLayer((layer) => {
-            if (layer instanceof L.Polyline || layer instanceof L.Marker) {
-              this.map.removeLayer(layer);
-            }
-          });
-          // 🧭 Naviguer proprement avec Angular :
-          this.router.navigate(['/travels', diary.id]);
-          this.loadStepsForCurrentDiary();
-        });
+        this.router.navigate(['/travels', diary.id]).catch(() => undefined);
+        this.loadStepsForCurrentDiary();
       });
     });
   }
@@ -440,6 +465,11 @@ export class MapComponent implements AfterViewInit, OnChanges {
   /**
    * Sauver step
    */
+  /**
+   * Persists a quick step generated from the map directly.
+   * @param lat Latitude clicked by the user.
+   * @param lng Longitude clicked by the user.
+   */
   private saveStep(lat: number, lng: number): void {
     const newStep: CreateStepDto = {
       title: `Step ${Date.now()}`,
@@ -448,6 +478,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
       longitude: lng,
       travelDiaryId: this.currentDiaryId!,
       status: 'IN_PROGRESS',
+      themeIds: [],
     };
 
     this.stepService.addStepToTravel(this.currentDiaryId!, newStep).subscribe({

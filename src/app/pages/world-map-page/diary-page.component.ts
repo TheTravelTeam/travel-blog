@@ -31,6 +31,8 @@ import { CreateStepDto } from '@dto/create-step.dto';
 import { ItemProps } from '@model/select.model';
 import { ThemeService } from '@service/theme.service';
 import { TravelDiary } from '@model/travel-diary.model';
+import { Theme } from '@model/theme.model';
+import { normalizeThemeSelection } from '@utils/theme-selection.util';
 import { IconComponent } from 'components/Atoms/Icon/icon.component';
 import { MediaPayload, StepFormResult } from '@model/stepFormResult.model';
 import { MediaService } from '@service/media.service';
@@ -129,11 +131,19 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
 
   readonly isEditingStep = computed(() => this.activeEditingStep() !== null);
 
+  /**
+   * Generates an accessible label for the owner navigation link.
+   * @param owner Diary owner metadata.
+   */
   getOwnerLinkAriaLabel(owner: DiaryOwnerInfo): string {
     const label = owner.label?.trim();
     return label ? `Voir les carnets de ${label}` : 'Voir les carnets de cet utilisateur';
   }
 
+  /**
+   * Navigates to the owner's diary list when possible.
+   * @param owner Owner metadata or null when unavailable.
+   */
   onOwnerNavigate(owner: DiaryOwnerInfo | null): void {
     if (!owner) {
       return;
@@ -144,9 +154,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Opens the creation modal for the diary owner and ensures a clean form state.
-   */
+  /** Opens the creation modal when the current user owns the diary. */
   onCreateStepClick(): void {
     if (!this.isDiaryOwner()) {
       return;
@@ -160,9 +168,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     queueMicrotask(() => this.createStepForm?.reset());
   }
 
-  /**
-   * Hides the modal and reverts to the read-only view when the user aborts the flow.
-   */
+  /** Closes the step form and clears the editing state. */
   onStepFormCancel(): void {
     this.isStepFormVisible.set(false);
     this.stepFormError.set(null);
@@ -171,8 +177,8 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Handles both creation and edition flows depending on whether a step is currently selected.
-   * Normalises the payload before hitting the API and refreshes the diary to keep the UI in sync.
+   * Persist the submitted step (create or update) and refresh the diary.
+   * @param formValue Normalised form payload.
    */
   onStepFormSubmit(formValue: StepFormResult): void {
     const diaryId = this.state.currentDiaryId() ?? this.state.currentDiary()?.id ?? null;
@@ -182,6 +188,11 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     }
 
     const editingStep = this.activeEditingStep();
+
+    const { themeIds: themeIdsPayload } = normalizeThemeSelection(
+      formValue.themeId,
+      formValue.themeIds
+    );
 
     const payload: CreateStepDto = {
       title: formValue.title,
@@ -195,6 +206,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
       city: formValue.city,
       country: formValue.country,
       continent: formValue.continent,
+      themeIds: themeIdsPayload,
     };
 
     const desiredMedia = Array.isArray(formValue.media) ? formValue.media : [];
@@ -252,6 +264,12 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Synchronises the server-side media list with the desired list.
+   * @param stepId Identifier of the step to update.
+   * @param existingMedia Media currently attached to the step.
+   * @param desiredMedia Media requested by the form.
+   */
   private syncStepMedia(
     stepId: number,
     existingMedia: Media[] | undefined,
@@ -308,6 +326,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     return delete$.pipe(switchMap(() => create$));
   }
 
+  /** Loads themes once so the selector displays them. */
   private ensureThemesLoaded(): void {
     if (this.stepThemes().length || this.themeFetchSub) {
       return;
@@ -333,6 +352,10 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
       });
   }
 
+  /**
+   * Normalises a diary after a mutation and pushes it to the shared state.
+   * @param updatedDiary Fresh diary returned by the backend.
+   */
   private applyUpdatedDiary(updatedDiary: TravelDiary): void {
     const normalizedSteps = this.normalizeSteps(updatedDiary.steps);
     const normalizedDiary: TravelDiary = {
@@ -360,6 +383,10 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Ensures the diary steps contain consistent editing/theme metadata.
+   * @param rawSteps Steps coming from the API.
+   */
   private normalizeSteps(rawSteps: TravelDiary['steps']): Step[] {
     if (!Array.isArray(rawSteps)) {
       return [];
@@ -367,10 +394,15 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
 
     return rawSteps.map((step) => ({
       ...step,
+      themeIds: Array.isArray(step?.themeIds)
+        ? step.themeIds.filter((value): value is number => Number.isFinite(value as number))
+        : [],
+      themes: Array.isArray(step?.themes) ? (step.themes as Theme[]) : [],
       isEditing: typeof step?.isEditing === 'boolean' ? step.isEditing : false,
     })) as Step[];
   }
 
+  /** Subscribes to the route params to keep the state in sync. */
   ngOnInit(): void {
     this.activatedRoute.paramMap.subscribe((params) => {
       const id = params.get('id');
@@ -381,12 +413,17 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     });
   }
 
+  /** Releases subscriptions held by the component. */
   ngOnDestroy(): void {
     this.ownerFetchSub?.unsubscribe();
     this.themeFetchSub?.unsubscribe();
     this.stepCreationSub?.unsubscribe();
   }
 
+  /**
+   * Determines the owner metadata from multiple backend shapes.
+   * @param diary Diary payload coming from the store.
+   */
   private resolveDiaryOwner(diary: unknown) {
     this.ownerFetchSub?.unsubscribe();
     this.ownerFetchSub = null;
@@ -428,6 +465,10 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     this.fetchDiaryOwner(ownerId);
   }
 
+  /**
+   * Fetches owner information when only the id is available.
+   * @param ownerId Identifier of the diary owner.
+   */
   private fetchDiaryOwner(ownerId: number) {
     this.ownerFetchSub = this.userService
       .getUserProfile(ownerId)
@@ -446,6 +487,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
       });
   }
 
+  /** Toggles the diary detail panel height. */
   togglePanel() {
     if (!this.state.currentDiary()) {
       // Si pas de diary, toggle simple entre collapsed/expanded
