@@ -33,6 +33,7 @@ describe('StepService', () => {
       latitude: 1,
       longitude: 2,
       travelDiaryId: 5,
+      themeIds: [4, 4, 12],
     };
 
     let response: Step | undefined;
@@ -43,7 +44,10 @@ describe('StepService', () => {
 
     const req = httpMock.expectOne(`${environment.apiUrl}/steps`);
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual(payload);
+    expect(req.request.body).toEqual({
+      ...payload,
+      themeIds: [4, 12],
+    });
 
     const mockStep: Step = {
       id: 42,
@@ -59,6 +63,8 @@ describe('StepService', () => {
       isEditing: false,
       comments: [],
       likes: 0,
+      themeIds: [4, 12],
+      themes: [],
     };
 
     req.flush(mockStep);
@@ -73,6 +79,7 @@ describe('StepService', () => {
       latitude: 5,
       longitude: 6,
       travelDiaryId: 9,
+      themeIds: [Number.NaN, 7],
     };
 
     let response: Step | undefined;
@@ -83,7 +90,10 @@ describe('StepService', () => {
 
     const req = httpMock.expectOne(`${environment.apiUrl}/steps/42`);
     expect(req.request.method).toBe('PUT');
-    expect(req.request.body).toEqual(payload);
+    expect(req.request.body).toEqual({
+      ...payload,
+      themeIds: [7],
+    });
 
     const mockStep: Step = {
       id: 42,
@@ -101,6 +111,8 @@ describe('StepService', () => {
       isEditing: false,
       comments: [],
       likes: 10,
+      themeIds: [7],
+      themes: [],
     };
 
     req.flush(mockStep);

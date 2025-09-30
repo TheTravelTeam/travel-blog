@@ -44,6 +44,7 @@ export class SelectComponent implements OnChanges {
   @Input() withMutipleSelect: SelectProps['withMultipleSelect'] =
     selectDefaultProps['withMultipleSelect'];
   @Input() selectedId: number | null = null;
+  @Input() selectedIds: number[] | null = null;
   /*********endregion Inputs *********/
 
   // *********region Ouput *********
@@ -79,7 +80,11 @@ export class SelectComponent implements OnChanges {
   /********endregion internal property *********/
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['selectedId'] || changes['itemsList']) {
+    if (this.withMutipleSelect) {
+      if (changes['selectedIds'] || changes['itemsList']) {
+        this.syncMultiSelectionFromInputs();
+      }
+    } else if (changes['selectedId'] || changes['itemsList']) {
       this.syncSelectionFromInputs();
     }
   }
@@ -110,6 +115,17 @@ export class SelectComponent implements OnChanges {
 
     const matchingItem = this.itemsList.find((item) => item.id === this.selectedId);
     this.oneItemSelected.set(matchingItem);
+  }
+
+  private syncMultiSelectionFromInputs(): void {
+    if (!Array.isArray(this.itemsList) || !this.itemsList.length) {
+      this.itemsSelected.set([]);
+      return;
+    }
+
+    const ids = Array.isArray(this.selectedIds) ? this.selectedIds : [];
+    const selected = this.itemsList.filter((item) => ids.includes(item.id));
+    this.itemsSelected.set(selected);
   }
 
   /*********region dropdown controls ***********/
@@ -174,7 +190,8 @@ export class SelectComponent implements OnChanges {
         }
         this.itemsSelected.set(this.selectService.toggleItem(item, selected));
       }
-      this.selectOnChange.emit(this.oneItemSelected());
+      const currentSelection = this.itemsSelected();
+      this.selectOnChange.emit(currentSelection);
     } else {
       this.oneItemSelected.set(item);
       this.selectedId = item.id;

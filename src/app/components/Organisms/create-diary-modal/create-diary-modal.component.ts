@@ -7,6 +7,7 @@ import { TextInputComponent } from 'components/Atoms/text-input/text-input.compo
 import { EditorComponent } from 'shared/editor/editor.component';
 import { SelectComponent } from 'components/Atoms/select/select.component';
 import { ItemProps } from '@model/select.model';
+import { normalizeThemeSelection } from '@utils/theme-selection.util';
 import {
   LocationPickerModalComponent,
   LocationPickerResult,
@@ -46,6 +47,7 @@ export interface StepFormPayload {
   startDate: string | null;
   endDate: string | null;
   themeId: number | null;
+  themeIds: number[];
 }
 
 export interface DiaryCreationPayload {
@@ -213,10 +215,15 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
       startDate: this.fb.control(''),
       endDate: this.fb.control(''),
       themeId: this.fb.control<number | null>(null),
+      themeIds: this.fb.control<number[]>([]),
     });
   }
 
   /** Keep the diary rich-text editor synchronous with the form control. */
+  /**
+   * Syncs the diary editor content with the form control.
+   * @param content HTML payload emitted by the editor.
+   */
   onDiaryEditorChange(content: string): void {
     this.diaryEditorContent = content;
     this.diaryForm.patchValue({ description: content ?? '' }, { emitEvent: false });
@@ -224,13 +231,17 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
   }
 
   /** Keep the step rich-text editor synchronous with the form control. */
+  /**
+   * Syncs the step editor content with the step form control.
+   * @param content HTML payload emitted by the editor.
+   */
   onStepEditorChange(content: string): void {
     this.stepEditorContent = content;
     this.stepForm.patchValue({ description: content ?? '' }, { emitEvent: false });
     this.stepForm.get('description')?.markAsDirty();
   }
 
-  /** Handle submission of the diary stage; switches to the step stage in create mode. */
+  /** Handles submission of the diary stage and switches to the step stage. */
   handleDiarySubmit(): void {
     /**
      * Soumission de l'étape 'carnet'.
@@ -274,6 +285,7 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
           startDate: null,
           endDate: null,
           themeId: null,
+          themeIds: [],
         },
       });
       return;
@@ -285,7 +297,7 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
     this.stage = 'step';
   }
 
-  /** Final submission of the wizard combining both diary and step payloads. */
+  /** Final submission handler that emits the diary + step payload upstream. */
   handleStepSubmit(): void {
     /**
      * Soumission de l'étape 'step' (création uniquement).
@@ -320,6 +332,8 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
       canComment: !!diaryRaw.canComment,
     };
 
+    const { themeIds, primaryThemeId } = normalizeThemeSelection(raw.themeId, raw.themeIds);
+
     const stepPayload: StepFormPayload = {
       title: (raw.title ?? '').trim(),
       city: raw.city?.toString().trim() || null,
@@ -335,7 +349,8 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
       })),
       startDate: this.normalizeDateInput(raw.startDate),
       endDate: this.normalizeDateInput(raw.endDate),
-      themeId: raw.themeId ?? null,
+      themeId: primaryThemeId,
+      themeIds,
     };
     this.submitDiary.emit({ diary: diaryPayload, step: stepPayload });
   }
@@ -349,6 +364,10 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
     this.resetForms();
   }
 
+  /**
+   * Handles cover file selection and forwards it to Cloudinary.
+   * @param event Native input event carrying the file.
+   */
   onCoverFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -389,6 +408,10 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
    * Return a translated validation message for the embedded step form.
    * Mirrors the behaviour of the standalone component for consistency.
    */
+  /**
+   * Return a translated validation message for the embedded step form.
+   * @param controlName Step form control name.
+   */
   getStepControlError(controlName: string): string | undefined {
     const control = this.stepForm.get(controlName);
     if (!control || !control.invalid || (!control.touched && !control.dirty)) {
@@ -419,13 +442,22 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
     return undefined;
   }
 
+  /**
+   * Keeps the step theme controls in sync with the multi-select widget.
+   * @param selection Selected items emitted by the select component.
+   */
   onThemeChange(selection: ItemProps | ItemProps[]): void {
-    const item = Array.isArray(selection) ? selection[0] : selection;
-    const parsed = item ? Number(item.id) : null;
-    const themeId = typeof parsed === 'number' && Number.isFinite(parsed) ? parsed : null;
-    this.stepForm.patchValue({ themeId });
+    const items = Array.isArray(selection) ? selection : selection ? [selection] : [];
+    const themeIds = items.map((item) => Number(item?.id)).filter((id) => Number.isFinite(id));
+
+    const primaryThemeId = themeIds.length ? themeIds[0] : null;
+
+    this.stepForm.patchValue({ themeId: primaryThemeId, themeIds });
+    this.stepForm.get('themeId')?.markAsDirty();
+    this.stepForm.get('themeIds')?.markAsDirty();
   }
 
+  /** Navigate back to the diary stage (create mode only). */
   /** Navigate back to the diary stage (create mode only). */
   goBackToDiaryStage(): void {
     if (this.isSubmitting) {
@@ -440,11 +472,13 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
   }
 
   /** Open the shared location picker modal for the step section. */
+  /** Open the shared location picker modal for the step section. */
   openStepLocationModal(): void {
     this.stepGeocodingError = null;
     this.isStepLocationModalOpen = true;
   }
 
+  /** Close the step location picker modal. */
   /** Close the step location picker modal. */
   closeStepLocationModal(): void {
     this.isStepLocationModalOpen = false;
@@ -597,6 +631,7 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
       startDate: '',
       endDate: '',
       themeId: null,
+      themeIds: [],
     });
     this.stepMediaItems = [];
     this.isStepMediaUploading = false;

@@ -50,7 +50,8 @@
         [itemsList]="availableThemes"
         label="Thème"
         placeholder="Choisissez un thème"
-        [selectedId]="stepForm.get('themeId')?.value ?? null"
+        [withMutipleSelect]="true"
+        [selectedIds]="stepForm.get('themeIds')?.value ?? []"
         [disabled]="availableThemes.length === 0"
         (selectOnChange)="onThemeChange($event)"
       ></app-select>

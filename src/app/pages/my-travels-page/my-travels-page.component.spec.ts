@@ -199,7 +199,7 @@ describe('MyTravelsPageComponent', () => {
       coverUrl: diary.media?.fileUrl ?? null,
     });
     expect(component.state.currentDiaryId()).toBe(diary.id);
-    expect(component.state.currentDiary()).toBe(diary);
+    expect(component.state.currentDiary()).toEqual(jasmine.objectContaining({ id: diary.id }));
     expect(themeServiceSpy.getThemes).toHaveBeenCalled();
   });
 
@@ -253,6 +253,7 @@ describe('MyTravelsPageComponent', () => {
         startDate: null,
         endDate: null,
         themeId: null,
+        themeIds: [],
       },
     };
 

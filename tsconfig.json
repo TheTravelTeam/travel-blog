@@ -24,7 +24,8 @@
     "paths": {
       "@model/*": ["shared/model/*"],
       "@dto/*": ["shared/dto/*"],
-      "@service/*": ["core/services/*"]
+      "@service/*": ["core/services/*"],
+      "@utils/*": ["shared/utils/*"]
     }
   },
   "angularCompilerOptions": {
