@@ -157,9 +157,10 @@
               <div class="step__action__btn">
                 <app-button
                   [startIcon]="true"
-                  icon="favorite"
+                  [icon]="step.viewerHasLiked ? 'favorite' : 'favorite_border'"
                   type="like"
-                  text="{{ step.likes }}"
+                  [text]="formatLikeLabel(step)"
+                  [isDisabled]="isStepLikePending(step.id)"
                   (btnClick)="handleButtonClick($event, step)"
                 ></app-button>
                 <app-button

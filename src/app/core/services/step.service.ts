@@ -45,7 +45,9 @@ export class StepService {
    */
   addStepToTravel(_travelId: number, newStep: CreateStepDto): Observable<Step> {
     // Backend expects POST /steps with travelDiaryId in body and returns the created Step
-    return this.http.post<Step>(`${this.baseUrl}/steps`, this.normalisePayload(newStep));
+    return this.http
+      .post<Step>(`${this.baseUrl}/steps`, this.normalisePayload(newStep))
+      .pipe(map((step) => this.normaliseStepResponse(step)));
   }
 
   /**
@@ -54,7 +56,26 @@ export class StepService {
    * @param payload New values to persist.
    */
   updateStep(stepId: number, payload: CreateStepDto): Observable<Step> {
-    return this.http.put<Step>(`${this.baseUrl}/steps/${stepId}`, this.normalisePayload(payload));
+    return this.http
+      .put<Step>(`${this.baseUrl}/steps/${stepId}`, this.normalisePayload(payload))
+      .pipe(map((step) => this.normaliseStepResponse(step)));
+  }
+
+  /**
+   * Toggles the like counter for the targeted step using the backend contract.
+   * @param stepId Identifier of the step to update.
+   * @param increment True to like, false to unlike the step.
+   */
+  updateStepLikes(stepId: number, increment: boolean): Observable<Step> {
+    return this.http
+      .patch<Step>(
+        `${this.baseUrl}/steps/${stepId}/likes`,
+        this.buildLikePayload(increment),
+        {
+          withCredentials: environment.useCredentials,
+        }
+      )
+      .pipe(map((step) => this.normaliseStepResponse(step)));
   }
 
   /**
@@ -107,6 +128,35 @@ export class StepService {
     return {
       ...payload,
       themeIds: normalizeThemeIds(null, payload.themeIds),
+    };
+  }
+
+  /** Harmonises differing API representations (likesCount vs likes). */
+  private normaliseStepResponse(step: Step): Step {
+    const likesCount = this.resolveLikeCounter(step);
+
+    return {
+      ...step,
+      likes: likesCount,
+      likesCount,
+    };
+  }
+
+  private resolveLikeCounter(step: Partial<Step> | null | undefined): number {
+    const raw = step?.likesCount ?? step?.likes ?? 0;
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed)) {
+      return 0;
+    }
+
+    return Math.max(0, Math.round(parsed));
+  }
+
+  private buildLikePayload(increment: boolean): { increment: boolean; delta: number } {
+    return {
+      increment,
+      /** Maintains compatibility with legacy endpoints still expecting a numeric delta. */
+      delta: increment ? 1 : -1,
     };
   }
 }

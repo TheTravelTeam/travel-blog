@@ -32,6 +32,7 @@ export type IconName =
   | 'search'
   | 'hiking'
   | 'favorite'
+  | 'favorite_border'
   | 'chat_bubble'
   | 'chat_bubble_outline'
   | 'help'

@@ -63,6 +63,7 @@ describe('StepService', () => {
       isEditing: false,
       comments: [],
       likes: 0,
+      likesCount: 0,
       themeIds: [4, 12],
       themes: [],
     };
@@ -111,6 +112,7 @@ describe('StepService', () => {
       isEditing: false,
       comments: [],
       likes: 10,
+      likesCount: 10,
       themeIds: [7],
       themes: [],
     };
@@ -118,6 +120,93 @@ describe('StepService', () => {
     req.flush(mockStep);
 
     expect(response).toEqual(mockStep);
+  });
+
+  it('should PATCH step like increment and normalise the response', () => {
+    let response: Step | undefined;
+
+    service.updateStepLikes(42, true).subscribe((step) => {
+      response = step;
+    });
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/steps/42/likes`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ increment: true, delta: 1 });
+    expect(req.request.withCredentials).toBe(environment.useCredentials);
+
+    const mockBackendStep = {
+      id: 42,
+      title: 'Titre modifié',
+      description: 'Desc modifiée',
+      latitude: 5,
+      longitude: 6,
+      media: [],
+      country: 'France',
+      city: 'Paris',
+      continent: 'Europe',
+      startDate: null,
+      isEditing: false,
+      comments: [],
+      likesCount: 11,
+      themeIds: [],
+      themes: [],
+    } satisfies Partial<Step> & { likesCount: number };
+
+    req.flush(mockBackendStep);
+
+    expect(response).toEqual({ ...mockBackendStep, likes: 11, likesCount: 11 });
+  });
+
+  it('should PATCH step like decrement and normalise the response', () => {
+    let response: Step | undefined;
+
+    service.updateStepLikes(42, false).subscribe((step) => {
+      response = step;
+    });
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/steps/42/likes`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ increment: false, delta: -1 });
+    expect(req.request.withCredentials).toBe(environment.useCredentials);
+
+    const mockBackendStep = {
+      id: 42,
+      title: 'Titre modifié',
+      description: 'Desc modifiée',
+      latitude: 5,
+      longitude: 6,
+      media: [],
+      country: 'France',
+      city: 'Paris',
+      continent: 'Europe',
+      startDate: null,
+      isEditing: false,
+      comments: [],
+      likesCount: 4,
+      themeIds: [],
+      themes: [],
+    } satisfies Partial<Step> & { likesCount: number };
+
+    req.flush(mockBackendStep);
+
+    expect(response).toEqual({ ...mockBackendStep, likes: 4, likesCount: 4 });
+  });
+
+  it('should coerce string like counters returned by the backend', () => {
+    let response: Step | undefined;
+
+    service.updateStepLikes(9, true).subscribe((step) => {
+      response = step;
+    });
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/steps/9/likes`);
+    req.flush({
+      id: 9,
+      likesCount: '3',
+    } as unknown as Step);
+
+    expect(response?.likes).toBe(3);
+    expect(response?.likesCount).toBe(3);
   });
 
   it('should DELETE a step and return void', () => {
