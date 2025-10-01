@@ -134,6 +134,7 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
 
           this.diariesList = diaries ?? [];
           this.state.setAllDiaries(this.diariesList);
+          this.state.setVisibleDiaries(this.diariesList);
           this.panelError = null;
 
           // Si on a demandé à ouvrir la modale de création
@@ -150,6 +151,7 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
             }
           }
           this.state.setAllDiaries(this.diariesList);
+          this.state.setVisibleDiaries(this.diariesList);
           this.panelError = null;
         },
         error: (err) => {

@@ -184,7 +184,27 @@ export class TravelMapStateService {
     this.openedCommentStepId.set(null);
     this.mapCenterCoords.set(null);
     this.allDiaries.set([]);
+    this.visibleDiaries.set([]);
+    this.hasCustomVisibleDiaries.set(false);
     // this.completedSteps.set(0);
+  }
+
+  /**
+   * Clears the currently selected diary while keeping the loaded diaries list.
+   * Typically used when returning to the overview map.
+   */
+  clearCurrentDiarySelection(options?: { preserveVisibleDiaries?: boolean }): void {
+    const preserveVisible = options?.preserveVisibleDiaries ?? false;
+
+    this.setSteps([]);
+    this.setCurrentDiary(null);
+    this.setCurrentDiaryId(null);
+    this.setOpenedStepId(null);
+    this.setOpenedCommentStepId(null);
+    this.setMapCenterCoords(null);
+    if (!preserveVisible) {
+      this.setVisibleDiaries(null);
+    }
   }
 
   /**

@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, computed, inject, signal, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import {
   MapComponent,
   MapDiarySelectedEvent,
@@ -6,9 +6,10 @@ import {
   MapStepSelectedEvent,
 } from 'components/Organisms/Map/map.component';
 import { CommonModule } from '@angular/common';
-import { Router, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { TravelMapStateService } from '@service/travel-map-state.service';
 import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-travel-map-layout-page',
@@ -20,6 +21,7 @@ export class TravelMapLayoutPageComponent implements OnInit, OnDestroy {
   readonly state = inject(TravelMapStateService);
   private router = inject(Router);
   private routeSub?: Subscription;
+  @ViewChild(MapComponent) private mapComponent?: MapComponent;
 
   public userId = 1;
   readonly currentRoute = signal(this.router.url);
@@ -29,9 +31,13 @@ export class TravelMapLayoutPageComponent implements OnInit, OnDestroy {
   readonly isMyTravelsPage = computed(() => /^\/travels\/users\/\d+$/.test(this.currentRoute()));
 
   ngOnInit(): void {
-    this.routeSub = this.router.events.subscribe(() => {
-      this.currentRoute.set(this.router.url);
-    });
+    this.routeSub = this.router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe((event) => {
+        this.handleNavigation(event.urlAfterRedirects ?? event.url);
+      });
+
+    this.handleNavigation(this.router.url);
   }
 
   ngOnDestroy(): void {
@@ -64,5 +70,39 @@ export class TravelMapLayoutPageComponent implements OnInit, OnDestroy {
   onRenitializeDiaries(): void {
     this.state.reset();
     this.state.panelHeight.set('collapsed');
+  }
+
+  private handleNavigation(url: string): void {
+    if (!url) {
+      return;
+    }
+
+    this.currentRoute.set(url);
+
+    const [path] = url.split('?');
+
+    if (!path.startsWith('/travels')) {
+      this.state.reset();
+      this.state.panelHeight.set('collapsed');
+      return;
+    }
+
+    if (path === '/travels') {
+      this.state.reset();
+      this.state.panelHeight.set('collapsed');
+      this.mapComponent?.backToDiaries({ skipNavigation: true, skipStateReset: true });
+      return;
+    }
+
+    if (/^\/travels\/users\/\d+$/.test(path)) {
+      this.state.clearCurrentDiarySelection({ preserveVisibleDiaries: true });
+      this.state.setVisibleDiaries([]);
+      this.state.panelHeight.set('collapsed');
+      this.mapComponent?.backToDiaries({
+        skipNavigation: true,
+        skipStateReset: true,
+        skipGlobalReload: true,
+      });
+    }
   }
 }

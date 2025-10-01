@@ -529,15 +529,14 @@ export class FilterPageComponent {
     return Number.isNaN(parsed.getTime()) ? null : parsed;
   }
 
-  // Reset du scroll avec des signals & un sélector via Angular ci dessus
+  /**
+   * Connects route-aware signals to the shared filter state without using the deprecated allowSignalWrites flag.
+   */
   constructor() {
-    effect(
-      () => {
-        const filtered = this.filteredDiaries();
-        this.state.setVisibleDiaries(filtered.length ? filtered : null);
-      },
-      { allowSignalWrites: true }
-    );
+    effect(() => {
+      const filtered = this.filteredDiaries();
+      this.state.setVisibleDiaries(filtered.length ? filtered : null);
+    });
 
     this.destroyRef.onDestroy(() => {
       this.state.setVisibleDiaries(null);
