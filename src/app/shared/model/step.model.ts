@@ -25,6 +25,10 @@ export interface Step {
   isEditing: boolean;
   comments?: Comment[];
   likes: number;
+  /** Nouvelle propriété backend alignée pour les likes. */
+  likesCount?: number;
+  /** Indique si le viewer courant a déjà liké l'étape (stockage client). */
+  viewerHasLiked?: boolean;
   /** Associations héritées d'anciennes réponses (conservées pour compat). */
   stepThemes?: { id?: number | null; theme?: Theme | null }[];
 }

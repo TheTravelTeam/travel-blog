@@ -24,6 +24,7 @@ export class TravelMapStateService {
   openedStepId = signal<number | null>(null);
   openedCommentStepId = signal<number | null>(null);
   mapCenterCoords = signal<{ lat: number; lng: number } | null>(null);
+  private likedStepIds = signal<Set<number>>(this.loadLikedStepsFromStorage());
   completedSteps = computed(() => {
     const currentStepId = this.openedStepId();
     const steps = this.steps();
@@ -195,6 +196,59 @@ export class TravelMapStateService {
   }
 
   /**
+   * Indicates whether the viewer has already liked the provided step.
+   * @param stepId Target step identifier.
+   */
+  hasViewerLikedStep(stepId: number | null | undefined): boolean {
+    return typeof stepId === 'number' && this.likedStepIds().has(stepId);
+  }
+
+  /**
+   * Updates the like counter for a given step and persists the viewer's preference locally.
+   * @param stepId Identifier of the targeted step.
+   * @param likes Likes value to persist.
+   * @param liked Whether the viewer currently likes the step.
+   */
+  updateStepLikeState(stepId: number, likes: number, liked: boolean): void {
+    if (!Number.isFinite(stepId)) {
+      return;
+    }
+
+    const safeLikes = Math.max(0, Math.round(likes));
+    let hasChanged = false;
+
+    const mapStep = (target: Step): Step => {
+      if (target.id !== stepId) {
+        return target;
+      }
+
+      hasChanged = true;
+      return {
+        ...target,
+        likes: safeLikes,
+        likesCount: safeLikes,
+        viewerHasLiked: liked,
+      };
+    };
+
+    const updatedSteps = this.steps().map(mapStep);
+
+    if (!hasChanged) {
+      return;
+    }
+
+    this.steps.set(updatedSteps);
+
+    const diary = this.currentDiary();
+    if (diary) {
+      const updatedDiarySteps = diary.steps.map(mapStep);
+      this.currentDiary.set({ ...diary, steps: updatedDiarySteps });
+    }
+
+    this.persistViewerLike(stepId, liked);
+  }
+
+  /**
    * Clears the currently selected diary while keeping the loaded diaries list.
    * Typically used when returning to the overview map.
    */
@@ -278,13 +332,20 @@ export class TravelMapStateService {
       return [];
     }
 
-    return steps.map((step) => ({
-      ...step,
-      themeIds: Array.isArray(step?.themeIds)
-        ? step.themeIds.filter((value): value is number => Number.isFinite(value as number))
-        : [],
-      themes: Array.isArray(step?.themes) ? (step.themes as Theme[]) : [],
-    })) as Step[];
+    return steps.map((step) => {
+      const likesCount = this.coerceLikes(step?.likesCount ?? step?.likes ?? 0);
+
+      return {
+        ...step,
+        themeIds: Array.isArray(step?.themeIds)
+          ? step.themeIds.filter((value): value is number => Number.isFinite(value as number))
+          : [],
+        themes: Array.isArray(step?.themes) ? (step.themes as Theme[]) : [],
+        likes: likesCount,
+        likesCount,
+        viewerHasLiked: this.hasViewerLikedStep(step?.id),
+      } as Step;
+    });
   }
 
   private normaliseDiaryList(diaries: TravelDiary[] | null | undefined): TravelDiary[] {
@@ -358,5 +419,69 @@ export class TravelMapStateService {
     }
 
     return value.trim().toUpperCase().replace(/[\s_-]+/g, '');
+  }
+
+  private loadLikedStepsFromStorage(): Set<number> {
+    if (typeof window === 'undefined') {
+      return new Set();
+    }
+
+    try {
+      const stored = window.localStorage.getItem('travel-blog.viewer-liked-steps');
+      if (!stored) {
+        return new Set();
+      }
+
+      const parsed = JSON.parse(stored);
+      if (!Array.isArray(parsed)) {
+        return new Set();
+      }
+
+      const numbers = parsed
+        .map((value) => (Number.isFinite(value) ? Number(value) : null))
+        .filter((value): value is number => value !== null);
+
+      return new Set(numbers);
+    } catch {
+      return new Set();
+    }
+  }
+
+  private persistViewerLike(stepId: number, liked: boolean): void {
+    this.updateLikedSteps((set) => {
+      if (liked) {
+        set.add(stepId);
+      } else {
+        set.delete(stepId);
+      }
+    });
+  }
+
+  private updateLikedSteps(mutator: (set: Set<number>) => void): void {
+    const next = new Set(this.likedStepIds());
+    mutator(next);
+    this.likedStepIds.set(next);
+
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(
+        'travel-blog.viewer-liked-steps',
+        JSON.stringify(Array.from(next.values()))
+      );
+    } catch {
+      /* Storage failures can be ignored without impacting UX */
+    }
+  }
+
+  private coerceLikes(value: unknown): number {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+      return 0;
+    }
+
+    return Math.max(0, Math.round(parsed));
   }
 }

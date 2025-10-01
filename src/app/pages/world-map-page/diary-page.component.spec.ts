@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 
@@ -12,6 +12,7 @@ import { TravelDiary } from '@model/travel-diary.model';
 import { Step } from '@model/step.model';
 import { UserProfileDto } from '@dto/user-profile.dto';
 import { User } from '@model/user.model';
+import { environment } from '../../../environments/environment';
 
 class CommentServiceStub {
   create = jasmine.createSpy('create');
@@ -55,6 +56,7 @@ describe('DiaryPageComponent', () => {
   let fixture: ComponentFixture<DiaryPageComponent>;
   let commentService: CommentServiceStub;
   let userService: UserServiceStub;
+  let httpMock: HttpTestingController;
 
   const mockUser: User = {
     id: 99,
@@ -85,6 +87,8 @@ describe('DiaryPageComponent', () => {
     isEditing: false,
     comments: [],
     likes: 0,
+    likesCount: 0,
+    viewerHasLiked: false,
     stepThemes: [],
   };
 
@@ -104,6 +108,10 @@ describe('DiaryPageComponent', () => {
   };
 
   beforeEach(async () => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.clear();
+    }
+
     await TestBed.configureTestingModule({
       imports: [DiaryPageComponent],
       providers: [
@@ -119,6 +127,7 @@ describe('DiaryPageComponent', () => {
     component = fixture.componentInstance;
     commentService = TestBed.inject(CommentService) as unknown as CommentServiceStub;
     userService = TestBed.inject(UserService) as unknown as UserServiceStub;
+    httpMock = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
 
     commentService.create.calls.reset();
@@ -310,5 +319,176 @@ describe('DiaryPageComponent', () => {
     expect(component.isCommentEditing(comment.id)).toBeFalse();
     expect(component.isCommentUpdating(comment.id)).toBeFalse();
     expect(component.getCommentEditError(comment.id)).toBeNull();
+  });
+
+  it('should optimistically increment likes and sync with the backend response', () => {
+    const diary: TravelDiary = {
+      ...baseDiary,
+      steps: [{ ...baseStep, likes: 2, likesCount: 2 }],
+    };
+
+    component.state.setCurrentDiary(diary);
+    component.state.setSteps(diary.steps);
+
+    const step = component.state.steps()[0];
+    const initialLikes = step.likes;
+
+    component.handleButtonClick('like', step);
+
+    expect(component.isStepLikePending(step.id)).toBeTrue();
+    expect(component.state.steps()[0].likes).toBe(initialLikes + 1);
+    expect(component.state.steps()[0].viewerHasLiked).toBeTrue();
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/steps/${step.id}/likes`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ increment: true, delta: 1 });
+
+    req.flush({ ...baseStep, id: step.id, likesCount: initialLikes + 3 });
+
+    expect(component.state.steps()[0].likes).toBe(initialLikes + 3);
+    expect(component.state.steps()[0].viewerHasLiked).toBeTrue();
+    expect(component.isStepLikePending(step.id)).toBeFalse();
+
+    httpMock.verify();
+  });
+
+  it('should revert the optimistic like when the backend request fails', () => {
+    const diary: TravelDiary = {
+      ...baseDiary,
+      steps: [{ ...baseStep, likes: 4, likesCount: 4 }],
+    };
+
+    component.state.setCurrentDiary(diary);
+    component.state.setSteps(diary.steps);
+
+    const step = component.state.steps()[0];
+    const initialLikes = step.likes;
+
+    component.handleButtonClick('like', step);
+
+    expect(component.state.steps()[0].likes).toBe(initialLikes + 1);
+    expect(component.isStepLikePending(step.id)).toBeTrue();
+    expect(component.state.steps()[0].viewerHasLiked).toBeTrue();
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/steps/${step.id}/likes`);
+    req.flush('Erreur', { status: 500, statusText: 'Server Error' });
+
+    expect(component.state.steps()[0].likes).toBe(initialLikes);
+    expect(component.state.steps()[0].viewerHasLiked).toBeFalse();
+    expect(component.isStepLikePending(step.id)).toBeFalse();
+
+    httpMock.verify();
+  });
+
+  it('should optimistically decrement likes and sync with the backend response', () => {
+    const likedStep: Step = {
+      ...baseStep,
+      id: 7,
+      likes: 5,
+      likesCount: 5,
+      viewerHasLiked: true,
+    };
+    const diary: TravelDiary = { ...baseDiary, steps: [likedStep] };
+
+    component.state.setCurrentDiary(diary);
+    component.state.setSteps(diary.steps);
+    component.state.updateStepLikeState(likedStep.id, likedStep.likes, true);
+
+    const step = component.state.steps()[0];
+    component.handleButtonClick('like', step);
+
+    expect(component.isStepLikePending(step.id)).toBeTrue();
+    expect(component.state.steps()[0].likes).toBe(likedStep.likes - 1);
+    expect(component.state.steps()[0].viewerHasLiked).toBeFalse();
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/steps/${step.id}/likes`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ increment: false, delta: -1 });
+
+    req.flush({ ...likedStep, likesCount: likedStep.likes - 1 });
+
+    expect(component.state.steps()[0].likes).toBe(likedStep.likes - 1);
+    expect(component.state.steps()[0].viewerHasLiked).toBeFalse();
+    expect(component.isStepLikePending(step.id)).toBeFalse();
+
+    httpMock.verify();
+  });
+
+  it('should revert the optimistic decrement when the backend request fails', () => {
+    const likedStep: Step = {
+      ...baseStep,
+      id: 8,
+      likes: 3,
+      likesCount: 3,
+      viewerHasLiked: true,
+    };
+    const diary: TravelDiary = { ...baseDiary, steps: [likedStep] };
+
+    component.state.setCurrentDiary(diary);
+    component.state.setSteps(diary.steps);
+    component.state.updateStepLikeState(likedStep.id, likedStep.likes, true);
+
+    const step = component.state.steps()[0];
+    component.handleButtonClick('like', step);
+
+    expect(component.state.steps()[0].likes).toBe(likedStep.likes - 1);
+    expect(component.state.steps()[0].viewerHasLiked).toBeFalse();
+    expect(component.isStepLikePending(step.id)).toBeTrue();
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/steps/${step.id}/likes`);
+    req.flush('Erreur', { status: 500, statusText: 'Server Error' });
+
+    expect(component.state.steps()[0].likes).toBe(likedStep.likes);
+    expect(component.state.steps()[0].viewerHasLiked).toBeTrue();
+    expect(component.isStepLikePending(step.id)).toBeFalse();
+
+    httpMock.verify();
+  });
+
+  it('should hide the like label when the counter is zero', () => {
+    const step: Step = { ...baseStep, likes: 0 };
+
+    expect(component.formatLikeLabel(step)).toBe('');
+    expect(component.formatLikeLabel(null)).toBe('');
+  });
+
+  it('should format the like label with a positive counter', () => {
+    const step: Step = { ...baseStep, likes: 7 };
+
+    expect(component.formatLikeLabel(step)).toBe('7');
+  });
+
+  it('should coerce string like counters when formatting the label', () => {
+    const step: Step = { ...baseStep, likes: '3' as unknown as number };
+
+    expect(component.formatLikeLabel(step)).toBe('3');
+    expect(component.formatLikeLabel({ ...step, likes: undefined, likesCount: '2' as unknown as number })).toBe('2');
+  });
+
+  it('should avoid refetching the owner profile when likes update locally', () => {
+    const getProfileSpy = spyOn(userService, 'getUserProfile').and.returnValue(
+      of({
+        id: 1,
+        pseudo: 'owner',
+        travelDiaries: [],
+      })
+    );
+
+    const diary = {
+      ...baseDiary,
+      user: undefined as unknown as User,
+      userId: 1,
+    } as TravelDiary;
+
+    component.state.setCurrentDiary(diary);
+    component.state.setSteps(diary.steps);
+
+    expect(getProfileSpy).toHaveBeenCalledTimes(1);
+
+    getProfileSpy.calls.reset();
+
+    component.state.updateStepLikeState(baseStep.id, 1, true);
+
+    expect(getProfileSpy).not.toHaveBeenCalled();
   });
 });

@@ -83,6 +83,8 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
 
   private readonly diaryOwner = signal<DiaryOwnerInfo | null>(null);
   private ownerFetchSub: Subscription | null = null;
+  private pendingOwnerFetchId: number | null = null;
+  private lastResolvedOwnerId: number | null = null;
   private themeFetchSub: Subscription | null = null;
   private stepCreationSub: Subscription | null = null;
   private readonly commentCreationSubs = new Map<number, Subscription>();
@@ -102,6 +104,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
   readonly commentEditErrors = signal<Record<number, string | null>>({});
   readonly commentUpdating = signal<Record<number, boolean>>({});
   readonly editingCommentId = signal<number | null>(null);
+  readonly stepLikePending = signal<Record<number, boolean>>({});
 
   readonly currentViewerId = computed(() => this.userService.currentUserId());
 
@@ -548,7 +551,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
 
   /** Releases subscriptions held by the component. */
   ngOnDestroy(): void {
-    this.ownerFetchSub?.unsubscribe();
+    this.cancelOwnerFetch();
     this.themeFetchSub?.unsubscribe();
     this.stepCreationSub?.unsubscribe();
     this.commentCreationSubs.forEach((sub) => sub.unsubscribe());
@@ -564,17 +567,17 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
    * @param diary Diary payload coming from the store.
    */
   private resolveDiaryOwner(diary: unknown) {
-    this.ownerFetchSub?.unsubscribe();
-    this.ownerFetchSub = null;
-
     if (!diary || typeof diary !== 'object') {
       this.diaryOwner.set(null);
+      this.lastResolvedOwnerId = null;
+      this.cancelOwnerFetch();
       return;
     }
 
     const diaryWithUser = diary as { user?: unknown; userId?: number };
     const userField = diaryWithUser.user;
     const fallbackId = typeof diaryWithUser.userId === 'number' ? diaryWithUser.userId : undefined;
+    const currentOwner = this.diaryOwner();
 
     if (userField && typeof userField === 'object') {
       const user = userField as Partial<User>;
@@ -582,14 +585,32 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
 
       if (typeof id !== 'number') {
         this.diaryOwner.set(null);
+        this.lastResolvedOwnerId = null;
+        this.cancelOwnerFetch();
         return;
       }
 
-      this.diaryOwner.set({
+      const nextOwner: DiaryOwnerInfo = {
         id,
         avatar: user.avatar ?? null,
         label: this.pickUserLabel(user, ''),
-      });
+      };
+
+      if (
+        !currentOwner ||
+        currentOwner.id !== nextOwner.id ||
+        currentOwner.avatar !== nextOwner.avatar ||
+        currentOwner.label !== nextOwner.label
+      ) {
+        this.diaryOwner.set(nextOwner);
+      }
+
+      this.lastResolvedOwnerId = nextOwner.id;
+
+      if (this.pendingOwnerFetchId !== null) {
+        this.cancelOwnerFetch();
+      }
+
       return;
     }
 
@@ -597,10 +618,24 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
 
     if (typeof ownerId !== 'number') {
       this.diaryOwner.set(null);
+      this.lastResolvedOwnerId = null;
+      this.cancelOwnerFetch();
       return;
     }
 
-    this.diaryOwner.set({ id: ownerId, avatar: null, label: '' });
+    if (
+      currentOwner?.id === ownerId &&
+      (this.lastResolvedOwnerId === ownerId || this.pendingOwnerFetchId === ownerId)
+    ) {
+      return;
+    }
+
+    if (!currentOwner || currentOwner.id !== ownerId) {
+      this.diaryOwner.set({ id: ownerId, avatar: null, label: '' });
+    }
+
+    this.lastResolvedOwnerId = null;
+
     this.fetchDiaryOwner(ownerId);
   }
 
@@ -609,7 +644,13 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
    * @param ownerId Identifier of the diary owner.
    */
   private fetchDiaryOwner(ownerId: number) {
-    this.ownerFetchSub = this.userService
+    if (this.pendingOwnerFetchId === ownerId) {
+      return;
+    }
+
+    this.cancelOwnerFetch();
+
+    const subscription = this.userService
       .getUserProfile(ownerId)
       .pipe(take(1))
       .subscribe({
@@ -619,11 +660,33 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
             avatar: profile.avatar ?? null,
             label: this.pickUserLabel(profile, profile.email ?? ''),
           });
+          this.lastResolvedOwnerId = profile.id;
         },
         error: () => {
           this.diaryOwner.set({ id: ownerId, avatar: null, label: '' });
+          this.lastResolvedOwnerId = ownerId;
         },
       });
+
+    subscription.add(() => {
+      if (this.pendingOwnerFetchId === ownerId) {
+        this.pendingOwnerFetchId = null;
+      }
+      if (this.ownerFetchSub === subscription) {
+        this.ownerFetchSub = null;
+      }
+    });
+
+    this.pendingOwnerFetchId = ownerId;
+    this.ownerFetchSub = subscription;
+  }
+
+  private cancelOwnerFetch(): void {
+    if (this.ownerFetchSub) {
+      this.ownerFetchSub.unsubscribe();
+    }
+    this.ownerFetchSub = null;
+    this.pendingOwnerFetchId = null;
   }
 
   /** Toggles the diary detail panel height. */
@@ -713,6 +776,16 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
         lng: step.longitude,
       });
     }
+  }
+
+  formatLikeLabel(step: Step | null | undefined): string {
+    const raw = step?.likes ?? step?.likesCount ?? 0;
+    const likes = Number(raw);
+    if (!Number.isFinite(likes) || likes <= 0) {
+      return '';
+    }
+
+    return String(Math.max(1, Math.round(likes)));
   }
 
   getCommentLabel(step: Step) {
@@ -1011,8 +1084,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
 
   handleButtonClick(action: string, step: Step): void {
     if (action === 'like') {
-      console.info(`Step ${step.id} liké ! Total : ${step.likes}`);
-      // Logique d'ajout de like dans le step -- Si pas déjà aimé en fonction de l'user
+      this.onStepLike(step);
     } else if (action === 'comment') {
       console.info(`Afficher les commentaires du step ${step.id}`);
       // Gérer l'ouverture d'une section commentaires ou autre
@@ -1023,6 +1095,73 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
         this.setCommentError(step.id, null);
       }
     }
+  }
+
+  /** Indicates whether a like request is currently pending for the provided step. */
+  isStepLikePending(stepId: number): boolean {
+    return !!this.stepLikePending()[stepId];
+  }
+
+  /**
+   * Performs an optimistic like increment and syncs it with the backend.
+   * @param step Target step selected by the user.
+   */
+  private onStepLike(step: Step): void {
+    const stepId = typeof step?.id === 'number' ? step.id : null;
+    if (stepId === null) {
+      return;
+    }
+
+    if (this.isStepLikePending(stepId)) {
+      return;
+    }
+
+    const currentLikes = Number.isFinite(step?.likes) ? step.likes : 0;
+    const hasLiked = this.state.hasViewerLikedStep(stepId);
+    const increment = !hasLiked;
+    const delta = increment ? 1 : -1;
+    const optimisticLikes = Math.max(0, currentLikes + delta);
+    const optimisticLikeFlag = increment;
+
+    this.setStepLikePending(stepId, true);
+    this.state.updateStepLikeState(stepId, optimisticLikes, optimisticLikeFlag);
+
+    this.stepService
+      .updateStepLikes(stepId, increment)
+      .pipe(take(1))
+      .subscribe({
+        next: (updatedStep) => {
+          const finalLikes = this.resolveLikesFromResponse(updatedStep, optimisticLikes);
+          this.state.updateStepLikeState(stepId, finalLikes, optimisticLikeFlag);
+          this.setStepLikePending(stepId, false);
+        },
+        error: () => {
+          this.state.updateStepLikeState(stepId, currentLikes, hasLiked);
+          this.setStepLikePending(stepId, false);
+        },
+      });
+  }
+
+  /** Tracks the pending status of a like update for the provided step. */
+  private setStepLikePending(stepId: number, isPending: boolean): void {
+    this.stepLikePending.update((state) => ({ ...state, [stepId]: isPending }));
+  }
+
+  /**
+   * Retrieves the likes counter from a backend response while handling legacy fields.
+   * @param step Response payload coming from the API.
+   * @param fallback Value to return when the response is missing the counter.
+   */
+  private resolveLikesFromResponse(step: Partial<Step> | null | undefined, fallback: number): number {
+    if (Number.isFinite(step?.likesCount)) {
+      return Math.max(0, Number(step?.likesCount));
+    }
+
+    if (Number.isFinite(step?.likes)) {
+      return Math.max(0, Number(step?.likes));
+    }
+
+    return Math.max(0, Math.round(fallback));
   }
 
   /** Clears the tracked error message for the provided step. */
