@@ -20,12 +20,11 @@ describe('TravelMapStateService', () => {
   it('should clear current diary selection without dropping loaded diaries', () => {
     const user: User = {
       id: 1,
+      pseudo: 'traveler',
       avatar: 'avatar.jpg',
       biography: 'Traveller',
       enabled: true,
       status: 'ACTIVE',
-      userName: 'traveler',
-      username: 'traveler',
     };
 
     const step: Step = {
@@ -97,12 +96,11 @@ describe('TravelMapStateService', () => {
       steps: [],
       user: {
         id: 2,
+        pseudo: 'explorer',
         avatar: 'avatar.jpg',
         biography: 'Traveller',
         enabled: true,
         status: 'ACTIVE',
-        userName: 'explorer',
-        username: 'explorer',
       },
       media: null,
     };
@@ -131,12 +129,11 @@ describe('TravelMapStateService', () => {
       steps: [],
       user: {
         id: 3,
+        pseudo: 'wanderer',
         avatar: 'avatar.jpg',
         biography: 'Traveller',
         enabled: true,
         status: 'ACTIVE',
-        userName: 'wanderer',
-        username: 'wanderer',
       },
       media: null,
     };
