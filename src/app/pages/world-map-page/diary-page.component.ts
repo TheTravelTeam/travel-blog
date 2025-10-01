@@ -89,7 +89,10 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
   readonly stepThemes = signal<ItemProps[]>([]);
   readonly activeEditingStep = signal<Step | null>(null);
 
-  // Reset du scroll avec des signals & un sélector via Angular ci dessus
+  /**
+   * Wires reactive effects that keep route-driven signals aligned with the diary view.
+   * Signal writes happen under Angular's default permissions, so no allowSignalWrites flag is required.
+   */
   constructor() {
     effect(() => {
       if (this.state.panelHeight() === 'collapsedDiary') {
@@ -100,12 +103,9 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
       }
     });
 
-    effect(
-      () => {
-        this.resolveDiaryOwner(this.state.currentDiary());
-      },
-      { allowSignalWrites: true }
-    );
+    effect(() => {
+      this.resolveDiaryOwner(this.state.currentDiary());
+    });
 
     effect(() => {
       const editingStep = this.activeEditingStep();

@@ -495,29 +495,24 @@ export class MapComponent implements AfterViewInit, OnChanges {
   /**
    * Retour sur les journaux
    */
-  public backToDiaries(): void {
-    this.clearMapLayers();
-    this.viewMode = true;
-    this.currentDiaryId = null;
-    this.lastPoint = null;
-    this.loadAllDiaries();
-    if (navigator.geolocation) {
-      this.getGeolocalisation();
-      if (this.userLoc) {
-        this.map.flyTo(this.userLoc, 10, {
-          animate: true,
-          duration: 1.5,
-        });
-      }
-    } else {
-      this.map.flyTo([48.86, 2.333], 10, {
-        animate: true,
-        duration: 1.5,
-      });
+  public backToDiaries(options?: {
+    skipNavigation?: boolean;
+    skipStateReset?: boolean;
+    skipGlobalReload?: boolean;
+  }): void {
+    const skipNavigation = options?.skipNavigation ?? false;
+    const skipStateReset = options?.skipStateReset ?? false;
+    const skipGlobalReload = options?.skipGlobalReload ?? false;
+
+    this.resetMapToDiaryOverview({ skipGlobalReload });
+
+    if (!skipStateReset) {
+      this.renitializedDiaries.emit();
     }
-    this.renitializedDiaries.emit();
-    // 🧭 Naviguer proprement avec Angular :
-    this.router.navigate(['/travels']);
+
+    if (!skipNavigation) {
+      this.router.navigate(['/travels']).catch(() => undefined);
+    }
   }
 
   /**
@@ -534,5 +529,42 @@ export class MapComponent implements AfterViewInit, OnChanges {
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       { attribution: 'Tiles © Esri' }
     ).addTo(this.map);
+  }
+
+  private resetMapToDiaryOverview(options?: { skipGlobalReload?: boolean }): void {
+    const skipGlobalReload = options?.skipGlobalReload ?? false;
+
+    if (!this.map) {
+      return;
+    }
+
+    this.diaryMarkersLayer?.clearLayers();
+    this.clearMapLayers();
+    this.viewMode = true;
+    this.currentDiaryId = null;
+    this.lastPoint = null;
+
+    const diaries = this.state.visibleDiaries();
+    if (Array.isArray(diaries) && diaries.length) {
+      this.renderDiaryMarkers(diaries);
+      this.mapInitialized.emit({ diaries });
+    } else if (!skipGlobalReload) {
+      this.loadAllDiaries();
+    }
+
+    if (navigator.geolocation) {
+      this.getGeolocalisation();
+      if (this.userLoc) {
+        this.map.flyTo(this.userLoc, 10, {
+          animate: true,
+          duration: 1.5,
+        });
+      }
+    } else {
+      this.map.flyTo([48.86, 2.333], 10, {
+        animate: true,
+        duration: 1.5,
+      });
+    }
   }
 }
