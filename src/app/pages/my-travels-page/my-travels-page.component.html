@@ -33,23 +33,25 @@
             color="primary"
           ></app-divider>
         </div>
-        <div class="my-diaries__detail-panel__header--btn">
-          <app-button
-            [isActionBtn]="true"
-            size="md"
-            color="primary"
-            type="standard"
-            icon="add"
-            (btnClick)="openCreateModal()"
-          ></app-button>
-          <p>Ajouter un carnet</p>
-        </div>
       }
     </div>
 
     <div class="my-diaries__detail-panel__body">
       @if (panelError) {
         <p class="my-diaries__error-message">{{ panelError }}</p>
+      }
+      @if (isOwner()) {
+        <div class="my-diaries__add-button">
+          <app-button
+            [startIcon]="true"
+            color="primary"
+            icon="add"
+            text="Ajouter"
+            size="auto"
+            type="standard"
+            (btnClick)="openCreateModal()"
+          ></app-button>
+        </div>
       }
       @for (diary of diariesList; track $index) {
         <app-travel-diary-card
@@ -65,24 +67,6 @@
           (delete)="onDiaryDelete(diary)"
         ></app-travel-diary-card>
       }
-    </div>
-    <div class="my-diaries__button-container">
-      <app-button
-        [startIcon]="true"
-        color="secondary"
-        icon="delete"
-        text="Supprimer"
-        size="auto"
-      ></app-button>
-      <app-button
-        [startIcon]="true"
-        color="primary"
-        icon="add"
-        text="Ajouter"
-        size="auto"
-        type="standard"
-        (btnClick)="openCreateModal()"
-      ></app-button>
     </div>
   </div>
 

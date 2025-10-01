@@ -32,13 +32,6 @@
         font-size: 1.2rem;
       }
 
-      &--btn {
-        display: flex;
-        align-items: center;
-        width: 100%;
-        gap: 0.5rem;
-        color: $primaryColor;
-      }
     }
 
     &__body {
@@ -105,20 +98,17 @@
     }
   }
 
-  &__button-container {
+  &__add-button {
     display: flex;
-    gap: 0.5rem;
     width: 100%;
-    justify-content: center;
+    justify-content: flex-start;
+    align-self: stretch;
+    margin-bottom: 0.5rem;
   }
 }
 
 @media screen and (min-width: 430px) {
   .my-diaries {
-    &__button-container {
-      gap: 2rem;
-    }
-
     &__detail-panel {
       padding: 0 1.5rem 0.5rem 1.5rem;
     }
