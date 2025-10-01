@@ -421,10 +421,9 @@ export class MapComponent implements AfterViewInit, OnChanges {
 
     if (medias && medias.length > 0) {
       compRef.setInput('picture', medias[0].fileUrl);
-    } else if (currentUser?.username && currentUser?.username.length > 0) {
-      compRef.setInput('label', currentUser.username);
     } else {
-      compRef.setInput('label', '');
+      const label = typeof currentUser?.pseudo === 'string' ? currentUser.pseudo.trim() : '';
+      compRef.setInput('label', label);
     }
 
     compRef.setInput('color', 'mint');

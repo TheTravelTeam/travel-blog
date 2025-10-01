@@ -134,6 +134,7 @@
                       sizes="100vw"
                       loading="lazy"
                       decoding="async"
+                      alt=""
                     />
                   }
                 </div>
@@ -177,16 +178,113 @@
                         }"
                       >
                         <p class="step_comment__user">
-                          {{ comment.user.username }}
+                          {{ getCommentAuthor(comment) }}
                           <span class="step_comment__date">{{
                             comment.updatedAt | date: 'dd/MM/yyyy'
                           }}</span>
                         </p>
-                        <p class="step_comment__content">{{ comment.content }}</p>
+                        @if (isCommentEditing(comment.id)) {
+                          <form
+                            class="step_comment__edit-form"
+                            (ngSubmit)="onSubmitCommentEdit(step, comment)"
+                          >
+                            <textarea
+                              rows="3"
+                              [ngModel]="getCommentEditDraft(comment.id)"
+                              (ngModelChange)="onCommentEditDraftChange(comment.id, $event)"
+                              name="edit-comment-{{ comment.id }}"
+                              [disabled]="isCommentUpdating(comment.id)"
+                            ></textarea>
+
+                            @if (getCommentEditError(comment.id)) {
+                              <p class="step_comment__error">{{
+                                getCommentEditError(comment.id)
+                              }}</p>
+                            }
+
+                            <div class="step_comment__actions">
+                              <button
+                                type="button"
+                                class="step_comment__action"
+                                (click)="onCancelCommentEdit()"
+                                [disabled]="isCommentUpdating(comment.id)"
+                              >
+                                Annuler
+                              </button>
+                              <button
+                                type="submit"
+                                class="step_comment__action step_comment__action--primary"
+                                [disabled]="isCommentUpdating(comment.id)"
+                              >
+                                Enregistrer
+                              </button>
+                            </div>
+                          </form>
+                        } @else {
+                          <p class="step_comment__content">{{ comment.content }}</p>
+                        }
+
+                        @if (canManageComment(comment) && !isCommentEditing(comment.id)) {
+                          <div class="step_comment__footer">
+                            <button
+                              type="button"
+                              class="step_comment__action"
+                              (click)="onEditComment(step, comment)"
+                              [disabled]="isCommentDeleting(comment.id) || isCommentEditing(comment.id)"
+                            >
+                              Modifier
+                            </button>
+                            <button
+                              type="button"
+                              class="step_comment__action step_comment__action--danger"
+                              (click)="onDeleteComment(step, comment)"
+                              [disabled]="isCommentDeleting(comment.id)"
+                            >
+                              Supprimer
+                            </button>
+                          </div>
+                        }
                       </div>
                     }
                   } @else {
                     <p>Aucun commentaire pour le moment.</p>
+                  }
+
+                  @if (!canDiaryReceiveComments()) {
+                    <p class="step_comment__message">
+                      Les commentaires sont désactivés pour ce carnet.
+                    </p>
+                  } @else if (!isAuthenticated()) {
+                    <p class="step_comment__message">
+                      Connectez-vous pour commenter cette étape.
+                    </p>
+                  } @else {
+                    <form class="step_comment__form" (ngSubmit)="onSubmitComment(step)">
+                      <label class="visually-hidden" [for]="'comment-' + step.id">
+                        Ajouter un commentaire pour {{ step.title }}
+                      </label>
+                      <textarea
+                        [id]="'comment-' + step.id"
+                        name="comment-{{ step.id }}"
+                        rows="3"
+                        placeholder="Écrire un commentaire..."
+                        [ngModel]="getCommentDraft(step.id)"
+                        (ngModelChange)="onCommentDraftChange(step.id, $event)"
+                        [disabled]="isCommentSubmitting(step.id)"
+                      ></textarea>
+
+                      @if (getCommentError(step.id)) {
+                        <p class="step_comment__error">{{ getCommentError(step.id) }}</p>
+                      }
+
+                      <app-button
+                        text="Publier"
+                        color="primary"
+                        type="standard"
+                        htmlType="submit"
+                        [isDisabled]="isCommentSubmitting(step.id)"
+                      ></app-button>
+                    </form>
                   }
                 </div>
               }

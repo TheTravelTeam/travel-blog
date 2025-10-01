@@ -29,4 +29,6 @@ export interface TravelDiary {
   media: Media | null;
   /** Identifiant simple de l'auteur lorsque l'API ne renvoie pas l'objet complet. */
   userId?: number;
+  /** Indique si les visiteurs peuvent poster des commentaires. */
+  canComment?: boolean;
 }
