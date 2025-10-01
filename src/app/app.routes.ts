@@ -8,6 +8,8 @@ import { TestPageComponent } from 'pages/test-page/test-page.component';
 import { LoginFormComponent } from './components/Organisms/login-form/login-form.component';
 import { RegisterFormComponent } from './components/Organisms/register-form/register-form.component';
 import { MePageComponent } from './pages/me-page/me-page.component';
+import { ForgotPasswordFormComponent } from './components/Organisms/forgot-password-form/forgot-password-form.component';
+import { ResetPasswordPageComponent } from './pages/reset-password-page/reset-password-page.component';
 
 export const routes: Routes = [
   {
@@ -17,6 +19,8 @@ export const routes: Routes = [
   },
   { path: 'login', component: LoginFormComponent },
   { path: 'register', component: RegisterFormComponent },
+  { path: 'forgot-password', component: ForgotPasswordFormComponent },
+  { path: 'reset-password', component: ResetPasswordPageComponent },
   { path: 'me', component: MePageComponent },
   {
     path: 'travels',
