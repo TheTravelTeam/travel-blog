@@ -111,6 +111,9 @@ export class TravelMapStateService {
 
   /** Updates the identifier of the current diary. */
   setCurrentDiaryId(id: number | null) {
+    if (this.currentDiaryId() === id) {
+      return;
+    }
     this.currentDiaryId.set(id);
   }
 
