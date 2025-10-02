@@ -5,6 +5,7 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { UserService } from '@service/user.service';
 import { BreakpointService } from '@service/breakpoint.service';
 import { AuthService } from '@service/auth.service';
+import { StepService } from '@service/step.service';
 import { of } from 'rxjs';
 import { TravelDiary } from '@model/travel-diary.model';
 import { UserProfile } from '@model/user-profile.model';
@@ -22,6 +23,11 @@ class MockBreakpointService {
 
 class MockAuthService {
   clearToken = jasmine.createSpy();
+}
+
+class MockStepService {
+  updateDiary = jasmine.createSpy('updateDiary').and.returnValue(of(mockDiaries[0]));
+  deleteDiary = jasmine.createSpy('deleteDiary').and.returnValue(of(void 0));
 }
 
 const mockDiaries: TravelDiary[] = [
@@ -54,7 +60,7 @@ const mockProfile: UserProfile = {
   email: 'alice@example.com',
   biography: 'Passionnée de voyages',
   avatar: '',
-  roles: ['USER'],
+  roles: ['USER', 'ADMIN'],
   enabled: true,
   travelDiaries: mockDiaries,
 };
@@ -73,6 +79,7 @@ describe('MePageComponent', () => {
         { provide: UserService, useClass: MockUserService },
         { provide: BreakpointService, useClass: MockBreakpointService },
         { provide: AuthService, useClass: MockAuthService },
+        { provide: StepService, useClass: MockStepService },
       ],
     }).compileComponents();
 
@@ -101,6 +108,7 @@ describe('MePageComponent', () => {
       'info',
       'diaries',
       'articles',
+      'users',
     ]);
   });
 });
