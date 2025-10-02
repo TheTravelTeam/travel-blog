@@ -1,0 +1,258 @@
+<div class="admin-users">
+  <div class="admin-users__header">
+    <h2>Gestion des utilisateurs</h2>
+    <app-button
+      text="Actualiser"
+      color="secondary"
+      radius="border_lg"
+      size="auto"
+      icon="travel_explore"
+      [startIcon]="true"
+      [isDisabled]="managedUsersLoading()"
+      (btnClick)="reload()"
+    ></app-button>
+  </div>
+
+  @if (!selectedUser()) {
+    <div class="admin-users__panel">
+      <div class="admin-users__panel-head">
+        <h3>Liste des utilisateurs</h3>
+      </div>
+
+      <div class="admin-users__panel-search">
+        <div class="admin-users__search">
+          <app-icon name="search" size="sm"></app-icon>
+          <input
+            type="search"
+            placeholder="Rechercher un utilisateur"
+            [value]="searchTerm()"
+            (input)="onSearch(($any($event.target)).value)"
+          />
+        </div>
+      </div>
+
+      @if (managedUsersLoading()) {
+        <p class="admin-users__loading">Chargement des utilisateurs…</p>
+      } @else {
+        @if (managedUsersError()) {
+          <div class="admin-users__error">
+            <p>{{ managedUsersError() }}</p>
+            <app-button
+              text="Réessayer"
+              color="secondary"
+              radius="border_lg"
+              size="auto"
+              icon="travel_explore"
+              [startIcon]="true"
+              (btnClick)="reload()"
+            ></app-button>
+          </div>
+        }
+
+        @if (filteredUsers().length) {
+          <ul class="admin-users__list-content">
+            @for (user of filteredUsers(); track user.id) {
+              <li class="admin-users__card">
+                <div class="admin-users__card-main">
+                  <div>
+                    <p class="admin-users__card-name">{{ user.name }}</p>
+                    <span class="admin-users__card-email">{{ user.email }}</span>
+                  </div>
+                  <span class="admin-users__card-role" [ngClass]="{ 'admin-users__card-role--admin': user.isAdmin }">
+                    {{ user.isAdmin ? 'Admin' : 'Voyageur' }}
+                  </span>
+                </div>
+                <div class="admin-users__card-actions">
+                  <app-button
+                    text="Voir les carnets"
+                    color="primary"
+                    radius="border_lg"
+                    size="auto"
+                    icon="import_contacts"
+                    [startIcon]="true"
+                    (btnClick)="onSelectUser(user.id)"
+                  ></app-button>
+                  <app-button
+                    [text]="user.isAdmin ? 'Retirer admin' : 'Définir admin'"
+                    color="secondary"
+                    radius="border_lg"
+                    size="auto"
+                    icon="edit_square"
+                    [startIcon]="true"
+                    [isDisabled]="isUserActionPending(user.id)"
+                    (btnClick)="toggleAdmin(user.id)"
+                  ></app-button>
+                  <button
+                    type="button"
+                    class="admin-users__icon-btn admin-users__icon-btn--danger"
+                    aria-label="Supprimer l'utilisateur"
+                    [disabled]="isUserActionPending(user.id)"
+                    (click)="removeUser(user.id)"
+                  >
+                    <app-icon name="delete" size="sm"></app-icon>
+                  </button>
+                </div>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="admin-users__empty">Aucun utilisateur trouvé.</p>
+        }
+      }
+    </div>
+  } @else {
+    <div class="admin-users__panel">
+      <div class="admin-users__panel-head admin-users__panel-head--back">
+        <button
+          type="button"
+          class="admin-users__ghost-link"
+          (click)="clearSelection()"
+          aria-label="Retour à la liste des utilisateurs"
+        >
+          ← Retour à la liste
+        </button>
+        <div>
+          <h3>Détails de l'utilisateur</h3>
+          <p class="admin-users__card-name">{{ selectedUser()?.name }}</p>
+          <span class="admin-users__card-email">{{ selectedUser()?.email }}</span>
+        </div>
+      </div>
+
+      <div class="admin-users__panel-body">
+        @if (selectedUserLoading()) {
+          <p class="admin-users__loading">Chargement des carnets…</p>
+        } @else {
+          @if (selectedUserError()) {
+            <div class="admin-users__error">
+              <p>{{ selectedUserError() }}</p>
+              <app-button
+                text="Réessayer"
+                color="secondary"
+                radius="border_lg"
+                size="auto"
+                icon="travel_explore"
+                [startIcon]="true"
+                (btnClick)="onSelectUser(selectedUserId()!)"
+              ></app-button>
+            </div>
+          }
+        }
+
+        <h4>Liste des carnets</h4>
+
+        @if (diaryFeedback()) {
+          <div
+            class="admin-users__feedback"
+            [ngClass]="{
+              'admin-users__feedback--error': diaryFeedback()?.type === 'error',
+              'admin-users__feedback--success': diaryFeedback()?.type === 'success'
+            }"
+          >
+            {{ diaryFeedback()?.message }}
+          </div>
+        }
+
+        @if (!selectedUserLoading() && !selectedUserError() && (selectedUser()?.diaries?.length ?? 0)) {
+          <ul class="admin-users__diaries">
+            @for (diary of selectedUser()?.diaries ?? []; track diary.id) {
+              <li class="admin-users__diary-card">
+                <app-travel-diary-card
+                  [id]="diary.id"
+                  [title]="diary.title"
+                  [image]="getDiaryCover(diary)"
+                  [description]="getDiarySubtitle(diary)"
+                  [showInlineActions]="false"
+                ></app-travel-diary-card>
+
+                <div class="admin-users__diary-footer">
+                  <div class="admin-users__diary-meta">
+                    @if (diary.destination) {
+                      <span>
+                        <app-icon name="location_on" size="sm"></app-icon>
+                        {{ diary.destination }}
+                      </span>
+                    }
+                    @if (diary.durationLabel) {
+                      <span>
+                        <app-icon name="calendar_today" size="sm"></app-icon>
+                        {{ diary.durationLabel }}
+                      </span>
+                    }
+                    @if (typeof diary.stepCount === 'number') {
+                      <span>
+                        <app-icon name="travel_explore" size="sm"></app-icon>
+                        {{ diary.stepCount }} étape{{ diary.stepCount > 1 ? 's' : '' }}
+                      </span>
+                    }
+                    <span class="admin-users__diary-pill" [ngClass]="{ 'admin-users__diary-pill--private': diary.isPrivate }">
+                      {{ diary.isPrivate ? 'Privé' : 'Public' }}
+                    </span>
+                    <span class="admin-users__diary-pill" [ngClass]="{ 'admin-users__diary-pill--disabled': diary.status === 'DISABLED' }">
+                      {{ getDiaryStatusLabel(diary) }}
+                    </span>
+                    <span class="admin-users__diary-pill" [ngClass]="{ 'admin-users__diary-pill--draft': diary.isPublished === false }">
+                      {{ getDiaryPublicationLabel(diary) }}
+                    </span>
+                  </div>
+
+                  <div class="admin-users__diary-actions" [ngClass]="{ 'admin-users__diary-actions--compact': isMobile() }">
+                    @if (isMobile()) {
+                      <app-button
+                        [isActionBtn]="true"
+                        [icon]="getDiaryStatusToggleIcon(diary)"
+                        color="secondary"
+                        (btnClick)="toggleDiaryStatus(selectedUser()!.id, diary.id)"
+                      ></app-button>
+                      <app-button
+                        [isActionBtn]="true"
+                        [icon]="diary.isPrivate ? 'visibility' : 'visibility_off'"
+                        color="danger"
+                        (btnClick)="toggleDiaryPrivacy(selectedUser()!.id, diary.id)"
+                      ></app-button>
+                      <app-button
+                        [isActionBtn]="true"
+                        icon="delete"
+                        color="danger"
+                        (btnClick)="deleteDiary(selectedUser()!.id, diary.id)"
+                      ></app-button>
+                    } @else {
+                      <app-button
+                        [text]="getDiaryStatusToggleLabel(diary)"
+                        color="secondary"
+                        radius="border_lg"
+                        size="auto"
+                        [startIcon]="true"
+                        [icon]="getDiaryStatusToggleIcon(diary)"
+                        (btnClick)="toggleDiaryStatus(selectedUser()!.id, diary.id)"
+                      ></app-button>
+                      <app-button
+                        [text]="diary.isPrivate ? 'Rendre public' : 'Rendre privé'"
+                        color="danger"
+                        radius="border_lg"
+                        size="auto"
+                        [startIcon]="true"
+                       [icon]="diary.isPrivate ? 'visibility' : 'visibility_off'"
+                        (btnClick)="toggleDiaryPrivacy(selectedUser()!.id, diary.id)"
+                      ></app-button>
+                      <app-button
+                        text="Supprimer"
+                        color="danger"
+                        radius="border_lg"
+                        size="auto"
+                        icon="delete"
+                        [startIcon]="true"
+                        (btnClick)="deleteDiary(selectedUser()!.id, diary.id)"
+                      ></app-button>
+                    }
+                  </div>
+                </div>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="admin-users__empty">Aucun carnet associé pour le moment.</p>
+        }
+      </div>
+    </div>
+  }
+</div>

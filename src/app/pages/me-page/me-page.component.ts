@@ -11,6 +11,7 @@ import { TextInputComponent } from 'components/Atoms/text-input/text-input.compo
 import { EditorComponent } from '../../shared/editor/editor.component';
 import { TravelDiaryCardComponent } from 'components/Molecules/Card-ready-to-use/travel-diary-card/travel-diary-card.component';
 import { SelectComponent } from 'components/Atoms/select/select.component';
+import { AdminUsersSectionComponent } from './components/admin-users-section/admin-users-section.component';
 import { Router } from '@angular/router';
 import { BreakpointService } from '@service/breakpoint.service';
 import { UserService } from '@service/user.service';
@@ -31,9 +32,6 @@ import {
   ArticleItem,
   INITIAL_ARTICLE_DRAFT,
   INITIAL_PROFILE_FORM,
-  ManagedDiarySummary,
-  ManagedUser,
-  ManagedUserAction,
   NormalizedDiary,
   ProfileFormState,
   SectionId,
@@ -58,6 +56,7 @@ import {
     EditorComponent,
     TravelDiaryCardComponent,
     SelectComponent,
+    AdminUsersSectionComponent,
   ],
   templateUrl: './me-page.component.html',
   styleUrl: './me-page.component.scss',
@@ -86,8 +85,6 @@ export class MePageComponent implements OnInit, OnDestroy {
   readonly diariesError = signal<string | null>(null);
 
   readonly openSection = signal<SectionId | null>('info');
-  readonly searchTerm = signal('');
-  readonly selectedManagedUserId = signal<number | null>(null);
   readonly articleDraft = signal<ArticleDraft>({ ...INITIAL_ARTICLE_DRAFT });
   readonly articleMediaSlots = signal(3);
   readonly profileForm = signal<ProfileFormState>({ ...INITIAL_PROFILE_FORM });
@@ -103,15 +100,6 @@ export class MePageComponent implements OnInit, OnDestroy {
   readonly profileDeleteError = signal<string | null>(null);
 
   private readonly defaultDiaryCover = '/Images/nosy-iranja.jpg';
-  private managedUsersLoaded = false;
-
-  readonly managedUsers = signal<ManagedUser[]>([]);
-  readonly managedUsersLoading = signal(false);
-  readonly managedUsersError = signal<string | null>(null);
-  readonly selectedManagedUser = signal<ManagedUser | null>(null);
-  readonly managedUserDetailsLoading = signal(false);
-  readonly managedUserDetailsError = signal<string | null>(null);
-  readonly managedUserAction = signal<ManagedUserAction | null>(null);
 
   readonly articles = signal<ArticleItem[]>([]);
   readonly articlesLoading = signal(false);
@@ -138,16 +126,6 @@ export class MePageComponent implements OnInit, OnDestroy {
     }
 
     return base;
-  });
-
-  // Simplissime filtrage côté client alimenté par l'input de recherche.
-  readonly filteredManagedUsers = computed(() => {
-    const term = this.searchTerm().trim().toLowerCase();
-    if (!term) {
-      return this.managedUsers();
-    }
-
-    return this.managedUsers().filter((user) => user.name.toLowerCase().includes(term));
   });
 
   readonly filteredArticles = computed(() => {
@@ -234,135 +212,6 @@ export class MePageComponent implements OnInit, OnDestroy {
     return this.openSection() === id;
   }
 
-  /** Met à jour le terme de recherche pour filtrer les utilisateurs gérés. */
-  onSearch(term: string): void {
-    this.searchTerm.set(term);
-  }
-
-  /** Ouvre un utilisateur dans le panneau latéral détaillé. */
-  onSelectManagedUser(userId: number): void {
-    this.selectedManagedUserId.set(userId);
-    this.managedUserDetailsError.set(null);
-    const cached = this.managedUsers().find((user) => user.id === userId) ?? null;
-    this.selectedManagedUser.set(cached);
-    this.managedUserDetailsLoading.set(true);
-
-    this.userService
-      .getUserProfile(userId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (profile) => {
-          const managed = this.mapProfileToManagedUser(profile);
-          this.selectedManagedUser.set(managed);
-          this.managedUsers.update((users) => {
-            const index = users.findIndex((user) => user.id === managed.id);
-            if (index === -1) {
-              return [...users, managed];
-            }
-
-            const clone = [...users];
-            clone[index] = managed;
-            return clone;
-          });
-          this.managedUserDetailsLoading.set(false);
-        },
-        error: (err) => {
-          this.managedUserDetailsLoading.set(false);
-          this.managedUserDetailsError.set(
-            err?.message ?? "Impossible de charger les carnets de l'utilisateur."
-          );
-          console.error('managed user details fetch failed', err);
-        },
-      });
-  }
-
-  /** Ferme le panneau détaillé des utilisateurs administrés. */
-  clearSelectedManagedUser(): void {
-    this.selectedManagedUserId.set(null);
-    this.selectedManagedUser.set(null);
-    this.managedUserDetailsLoading.set(false);
-    this.managedUserDetailsError.set(null);
-  }
-
-  reloadManagedUsers(): void {
-    this.managedUsersLoaded = false;
-    this.loadManagedUsers(true);
-  }
-
-  isManagedUserActionPending(userId: number): boolean {
-    const action = this.managedUserAction();
-    return Boolean(action && action.userId === userId);
-  }
-
-  /** Met à jour le rôle administrateur d'un utilisateur via l'API. */
-  toggleAdmin(userId: number): void {
-    const currentAction = this.managedUserAction();
-    if (currentAction && currentAction.userId === userId) {
-      return;
-    }
-
-    const target = this.managedUsers().find((user) => user.id === userId);
-    if (!target) {
-      return;
-    }
-
-    const admin = !target.isAdmin;
-    this.managedUsersError.set(null);
-    this.setManagedUserAction({ userId, type: 'toggle-role' });
-
-    this.userService
-      .setAdminRole(userId, admin)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (profile) => {
-          const managed = this.mapProfileToManagedUser(profile);
-          this.managedUsers.update((list) =>
-            list.map((user) => (user.id === userId ? managed : user))
-          );
-          if (this.selectedManagedUserId() === userId) {
-            this.selectedManagedUser.set(managed);
-          }
-          this.setManagedUserAction(null);
-        },
-        error: (err) => {
-          this.managedUsersError.set(
-            err?.message ?? 'Impossible de mettre à jour le rôle administrateur.'
-          );
-          this.setManagedUserAction(null);
-          console.error('managed user admin toggle failed', err);
-        },
-      });
-  }
-
-  /** Supprime un utilisateur via l'API puis synchronise la liste locale. */
-  removeManagedUser(userId: number): void {
-    const currentAction = this.managedUserAction();
-    if (currentAction && currentAction.userId === userId) {
-      return;
-    }
-
-    this.managedUsersError.set(null);
-    this.setManagedUserAction({ userId, type: 'delete' });
-
-    this.userService
-      .deleteUser(userId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.managedUsers.update((list) => list.filter((user) => user.id !== userId));
-          if (this.selectedManagedUserId() === userId) {
-            this.clearSelectedManagedUser();
-          }
-          this.setManagedUserAction(null);
-        },
-        error: (err) => {
-          const message = err?.message ?? 'Impossible de supprimer cet utilisateur.';
-          this.managedUsersError.set(message);
-          this.setManagedUserAction(null);
-          console.error('managed user deletion failed', err);
-        },
-      });
-  }
 
   /** Gestion du terme de recherche côté articles. */
   onArticleSearch(term: string): void {
@@ -661,102 +510,21 @@ export class MePageComponent implements OnInit, OnDestroy {
       });
   }
 
-  private loadManagedUsers(force = false): void {
-    if (!this.isAdmin()) {
-      return;
+  private extractBooleanField(
+    diary: TravelDiary,
+    primary: 'private' | 'published',
+    fallback: 'isPrivate' | 'isPublished'
+  ): boolean {
+    const direct = diary[primary];
+    if (typeof direct === 'boolean') {
+      return direct;
     }
 
-    if (!force && (this.managedUsersLoaded || this.managedUsersLoading())) {
-      return;
-    }
-
-    this.managedUsersLoading.set(true);
-    this.managedUsersError.set(null);
-
-    this.userService
-      .getAllUsers()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (profiles) => {
-          const managed = profiles.map((profile) => this.mapProfileToManagedUser(profile));
-          this.managedUsers.set(managed);
-          this.managedUsersLoading.set(false);
-          this.managedUsersLoaded = true;
-          const selectedId = this.selectedManagedUserId();
-          if (selectedId != null) {
-            const updated = managed.find((user) => user.id === selectedId) ?? null;
-            this.selectedManagedUser.set(updated);
-          }
-        },
-        error: (err) => {
-          this.managedUsersLoading.set(false);
-          this.managedUsersError.set(
-            err?.message ?? 'Impossible de charger la liste des utilisateurs.'
-          );
-          console.error('managed users fetch failed', err);
-        },
-      });
+    const fallbackSource = diary as unknown as Record<string, unknown>;
+    const fromApi = fallbackSource[fallback];
+    return typeof fromApi === 'boolean' ? (fromApi as boolean) : false;
   }
 
-  private mapProfileToManagedUser(profile: UserProfileDto): ManagedUser {
-    const diaries = (profile.travelDiaries ?? []).map((diary) =>
-      this.createManagedDiarySummary(diary)
-    );
-
-    return {
-      id: profile.id,
-      name: this.buildUserDisplayName(profile),
-      email: profile.email ?? 'Email non communiqué',
-      isAdmin: (profile.roles ?? []).includes('ADMIN'),
-      diaries,
-    };
-  }
-
-  private buildUserDisplayName(profile: UserProfileDto): string {
-    const firstName = profile.firstName?.trim() ?? '';
-    const lastName = profile.lastName?.trim() ?? '';
-    const fullName = `${firstName} ${lastName}`.trim();
-    return fullName || profile.pseudo;
-  }
-
-  private createManagedDiarySummary(diary: TravelDiary): ManagedDiarySummary {
-    /**
-     * On réutilise la normalisation utilisateur pour conserver un traitement
-     * homogène (steps, médias) puis on délègue la résolution d'image au service
-     * partagé afin d'éviter les divergences entre `/me`, `/travels` et `/travels/users/:id`.
-     */
-    const normalized = this.normalizeDiary(diary);
-    return {
-      id: normalized.id,
-      title: normalized.title,
-      destination: this.getDiaryDestination(normalized),
-      coverUrl: this.travelMapState.getDiaryCoverUrl(normalized) ?? this.defaultDiaryCover,
-      durationLabel: undefined,
-      stepCount: normalized.steps.length,
-      isPrivate: normalized.private,
-    };
-  }
-
-  private getDiaryDestination(diary: NormalizedDiary): string {
-    const firstStep = diary.steps[0];
-    return firstStep?.country || firstStep?.title || '';
-  }
-
-  private resetManagedUsers(): void {
-    this.managedUsers.set([]);
-    this.managedUsersLoaded = false;
-    this.managedUsersError.set(null);
-    this.managedUsersLoading.set(false);
-    this.selectedManagedUserId.set(null);
-    this.selectedManagedUser.set(null);
-    this.managedUserDetailsLoading.set(false);
-    this.managedUserDetailsError.set(null);
-    this.managedUserAction.set(null);
-  }
-
-  private setManagedUserAction(action: ManagedUserAction | null): void {
-    this.managedUserAction.set(action);
-  }
 
   private buildProfileUpdatePayload(): Partial<UserProfileDto> | null {
     const form = this.profileForm();
@@ -899,11 +667,6 @@ export class MePageComponent implements OnInit, OnDestroy {
           this.isLoading.set(false);
           this.profileDeleteSubmitting.set(false);
           this.profileDeleteError.set(null);
-          if (this.isAdmin()) {
-            this.loadManagedUsers();
-          } else {
-            this.resetManagedUsers();
-          }
           console.info('profile loaded', profile);
         },
         error: (err) => {
@@ -937,11 +700,6 @@ export class MePageComponent implements OnInit, OnDestroy {
     return this.travelMapState.getDiaryCoverUrl(diary) || this.defaultDiaryCover;
   }
 
-  /** Couverture utilisée pour les carnets affichés dans le panneau admin. */
-  getManagedDiaryCover(summary: ManagedDiarySummary): string {
-    return summary.coverUrl ?? this.defaultDiaryCover;
-  }
-
   /** Retourne une description prête à afficher pour un carnet utilisateur. */
   getDiaryDescription(diary: NormalizedDiary): string {
     return diary.description?.trim() || 'Description à venir.';
@@ -956,16 +714,6 @@ export class MePageComponent implements OnInit, OnDestroy {
   /** Retourne le pays de la première étape ou un texte de secours. */
   getDiaryCountry(diary: NormalizedDiary): string {
     return diary.steps[0]?.country ?? '';
-  }
-
-  /** Produit un sous-titre pour les carnets affichés dans le panneau admin. */
-  getManagedDiarySubtitle(diary: ManagedDiarySummary): string {
-    const parts = [diary.destination, diary.durationLabel];
-    if (typeof diary.stepCount === 'number') {
-      const label = `${diary.stepCount} étape${diary.stepCount > 1 ? 's' : ''}`;
-      parts.push(label);
-    }
-    return parts.filter(Boolean).join(' • ');
   }
 
   getArticlePreview(html: string | undefined | null): string {
@@ -983,9 +731,13 @@ export class MePageComponent implements OnInit, OnDestroy {
   /** Garantit que les tableaux optionnels des carnets sont toujours définis. */
   private normalizeDiary(diary: TravelDiary): NormalizedDiary {
     const steps = Array.isArray(diary.steps) ? diary.steps : [];
+    const privateValue = this.extractBooleanField(diary, 'private', 'isPrivate');
+    const publishedValue = this.extractBooleanField(diary, 'published', 'isPublished');
 
     return {
       ...diary,
+      private: privateValue,
+      published: publishedValue,
       steps,
     };
   }
@@ -1006,10 +758,6 @@ export class MePageComponent implements OnInit, OnDestroy {
     void this.router.navigate(['/travels', diaryId]);
   }
 
-  openManagedDiary(_userId: number, diaryId: number): void {
-    void this.router.navigate(['/travels', diaryId]);
-  }
-
   toggleDiaryPrivacy(diaryId: number): void {
     this.diaries.update((items) =>
       items.map((diary) =>
@@ -1023,25 +771,7 @@ export class MePageComponent implements OnInit, OnDestroy {
     );
   }
 
-  toggleManagedDiaryPrivacy(userId: number, diaryId: number): void {
-    this.managedUsers.update((users) =>
-      users.map((user) =>
-        user.id === userId
-          ? {
-              ...user,
-              diaries: user.diaries.map((diary) =>
-                diary.id === diaryId
-                  ? {
-                      ...diary,
-                      isPrivate: !diary.isPrivate,
-                    }
-                  : diary
-              ),
-            }
-          : user
-      )
-    );
-  }
+
 
   deleteDiary(diaryId: number): void {
     const snapshotDiaries = this.diaries().map((diary) => ({
@@ -1068,58 +798,4 @@ export class MePageComponent implements OnInit, OnDestroy {
       });
   }
 
-  deleteManagedDiary(userId: number, diaryId: number): void {
-    const snapshotUsers = this.managedUsers().map((user) => ({
-      ...user,
-      diaries: user.diaries.map((diary) => ({ ...diary })),
-    }));
-    const snapshotSelected = (() => {
-      const current = this.selectedManagedUser();
-      if (!current) {
-        return null;
-      }
-      return {
-        ...current,
-        diaries: current.diaries.map((diary) => ({ ...diary })),
-      };
-    })();
-
-    this.managedUserDetailsError.set(null);
-
-    this.managedUsers.update((users) =>
-      users.map((user) =>
-        user.id === userId
-          ? {
-              ...user,
-              diaries: user.diaries.filter((diary) => diary.id !== diaryId),
-            }
-          : user
-      )
-    );
-
-    if (this.selectedManagedUserId() === userId) {
-      this.selectedManagedUser.update((selected) =>
-        selected
-          ? {
-              ...selected,
-              diaries: selected.diaries.filter((diary) => diary.id !== diaryId),
-            }
-          : selected
-      );
-    }
-
-    this.stepService
-      .deleteDiary(diaryId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => undefined,
-        error: (err) => {
-          this.managedUsers.set(snapshotUsers);
-          this.selectedManagedUser.set(snapshotSelected);
-          const message = err?.message ?? 'Impossible de supprimer ce carnet pour le moment.';
-          this.managedUserDetailsError.set(message);
-          console.error('managed diary deletion failed', err);
-        },
-      });
-  }
 }

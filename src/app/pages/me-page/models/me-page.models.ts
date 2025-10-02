@@ -10,29 +10,6 @@ export interface SectionItem {
   adminOnly?: boolean;
 }
 
-export interface ManagedDiarySummary {
-  id: number;
-  title: string;
-  destination?: string;
-  coverUrl?: string | null;
-  durationLabel?: string;
-  stepCount?: number;
-  isPrivate?: boolean;
-}
-
-export interface ManagedUser {
-  id: number;
-  name: string;
-  email: string;
-  isAdmin: boolean;
-  diaries: ManagedDiarySummary[];
-}
-
-export interface ManagedUserAction {
-  userId: number;
-  type: 'delete' | 'toggle-role';
-}
-
 export interface ArticleDraft {
   title: string;
   author: string;
