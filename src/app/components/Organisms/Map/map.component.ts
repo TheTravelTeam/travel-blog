@@ -318,6 +318,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
 
       marker.on('click', () => {
         this.currentDiaryId = diary.id;
+        this.state.setCurrentDiaryId(diary.id);
         layer.clearLayers();
         this.map.eachLayer((layer) => {
           if (layer instanceof L.Polyline || layer instanceof L.Marker) {
@@ -325,7 +326,6 @@ export class MapComponent implements AfterViewInit, OnChanges {
           }
         });
         this.router.navigate(['/travels', diary.id]).catch(() => undefined);
-        this.loadStepsForCurrentDiary();
       });
     });
   }
