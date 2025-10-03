@@ -1,4 +1,4 @@
-<div class="my-diaries">
+<div class="my-diaries" data-test="my-diaries-page">
   <div
     #detailPanel
     class="my-diaries__detail-panel"
@@ -50,22 +50,25 @@
             size="auto"
             type="standard"
             (btnClick)="openCreateModal()"
+            data-test="my-diaries-add"
           ></app-button>
         </div>
       }
       @for (diary of diariesList; track $index) {
-        <app-travel-diary-card
-          [isAltBackground]="$index % 2 === 1 && !isTabletOrMobile()"
-          [ngClass]="{ 'alt-background': $index % 2 === 1 }"
-          [id]="diary.id"
-          [title]="diary.title"
-          [image]="state.getDiaryCoverUrl(diary)"
-          [description]="diary.description"
-          [showInlineActions]="isOwner()"
-          (cardClick)="onDiaryCardClick(diary)"
-          (edit)="onDiaryEdit(diary)"
-          (delete)="onDiaryDelete(diary)"
-        ></app-travel-diary-card>
+        <div class="my-diaries__card" [attr.data-test]="'my-diary-' + diary.id">
+          <app-travel-diary-card
+            [isAltBackground]="$index % 2 === 1 && !isTabletOrMobile()"
+            [ngClass]="{ 'alt-background': $index % 2 === 1 }"
+            [id]="diary.id"
+            [title]="diary.title"
+            [image]="state.getDiaryCoverUrl(diary)"
+            [description]="diary.description"
+            [showInlineActions]="isOwner()"
+            (cardClick)="onDiaryCardClick(diary)"
+            (edit)="onDiaryEdit(diary)"
+            (delete)="onDiaryDelete(diary)"
+          ></app-travel-diary-card>
+        </div>
       }
     </div>
   </div>

@@ -31,6 +31,9 @@ export class AccordionComponent implements OnChanges {
   @Input() isOpen: AccordionProps['isOpen'] = accordionDefaultProps['isOpen'];
   @Input() role: AccordionProps['role'] = accordionDefaultProps['role'];
   @Input() subTitle: AccordionProps['country'];
+  @Input() dataTest?: string;
+  @Input() editDataTest?: string;
+  @Input() deleteDataTest?: string;
   @Input()
   set startDate(value: Date | string | undefined) {
     this._startDate = value ? new Date(value) : undefined;

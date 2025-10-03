@@ -27,6 +27,7 @@
             [formControl]="searchControl"
             (focus)="onSearchFocus()"
             (blur)="onSearchBlur()"
+            data-test="topbar-search-input"
           />
           @if (searchControl.value.trim().length) {
             <button
@@ -57,7 +58,11 @@
                   <ul>
                     @for (result of diaryResults(); track result.id) {
                       <li>
-                        <button type="button" (click)="onSearchResultClick(result)">
+                        <button
+                          type="button"
+                          (click)="onSearchResultClick(result)"
+                          [attr.data-test]="'topbar-search-result-' + result.id"
+                        >
                           <span class="topbar__search-label">{{ result.label }}</span>
                           @if (result.description) {
                             <span class="topbar__search-description">{{ result.description }}</span>
@@ -74,7 +79,11 @@
                   <ul>
                     @for (result of stepResults(); track result.id) {
                       <li>
-                        <button type="button" (click)="onSearchResultClick(result)">
+                        <button
+                          type="button"
+                          (click)="onSearchResultClick(result)"
+                          [attr.data-test]="'topbar-search-result-' + result.id"
+                        >
                           <span class="topbar__search-label">{{ result.label }}</span>
                           <span class="topbar__search-description">
                             @if (result.diaryTitle) {
@@ -107,7 +116,11 @@
           Articles
         </a>
         @if (canDisplayDiariesLink) {
-          <a [routerLink]="['/travels/users', currentUserId()]" class="topbar__link">
+          <a
+            [routerLink]="['/travels/users', currentUserId()]"
+            class="topbar__link"
+            data-test="topbar-my-diaries"
+          >
             <app-icon name="import_contacts" [size]="iconSize()" />
             Mes carnets
           </a>
@@ -115,7 +128,7 @@
       </nav>
       <div class="topbar__actions">
         @if (isAuthenticated()) {
-          <a routerLink="/me" class="topbar__profile">
+          <a routerLink="/me" class="topbar__profile" data-test="topbar-me">
             <app-avatar
               [label]="avatarLabel()"
               [picture]="avatarPicture()"
@@ -128,6 +141,7 @@
             color="secondary"
             text="Déconnexion"
             (btnClick)="onLogout()"
+            data-test="topbar-logout"
           />
         } @else {
           <app-button
@@ -148,7 +162,11 @@
           <app-icon name="map_search" [size]="iconSize()" />
         </a>
         @if (canDisplayDiariesLink) {
-          <a [routerLink]="['/travels/users', currentUserId()]" class="topbar__link__mobile">
+          <a
+            [routerLink]="['/travels/users', currentUserId()]"
+            class="topbar__link__mobile"
+            data-test="topbar-my-diaries"
+          >
             <app-icon name="import_contacts" [size]="iconSize()" />
           </a>
         }
@@ -168,6 +186,7 @@
             color="secondary"
             text="Déconnexion"
             (btnClick)="onLogout()"
+            data-test="topbar-logout"
           />
         } @else {
           <app-button

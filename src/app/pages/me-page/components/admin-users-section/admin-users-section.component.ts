@@ -65,6 +65,7 @@ export class AdminUsersSectionComponent implements OnInit, OnDestroy {
   readonly managedUsers = signal<AdminUserSummary[]>([]);
   readonly managedUsersLoading = signal(false);
   readonly managedUsersError = signal<string | null>(null);
+  readonly userFeedback = signal<{ type: 'success' | 'error'; message: string } | null>(null);
 
   readonly selectedUser = signal<AdminUserSummary | null>(null);
   readonly selectedUserId = signal<number | null>(null);
@@ -174,6 +175,7 @@ export class AdminUsersSectionComponent implements OnInit, OnDestroy {
 
     const admin = !target.isAdmin;
     this.managedUsersError.set(null);
+    this.userFeedback.set(null);
     this.userAction.set(userId);
 
     this.userService
@@ -183,26 +185,60 @@ export class AdminUsersSectionComponent implements OnInit, OnDestroy {
         next: (profile) => {
           const summary = this.mapProfileToUser(profile);
           this.refreshUsersList(summary);
+          this.userFeedback.set({
+            type: 'success',
+            message: admin
+              ? 'Rôle administrateur attribué avec succès.'
+              : 'Rôle administrateur retiré avec succès.',
+          });
           this.userAction.set(null);
         },
         error: (err) => {
-          this.managedUsersError.set(
-            err?.message ?? "Impossible de mettre à jour le rôle administrateur."
-          );
+          const message =
+            err?.message ?? "Impossible de mettre à jour le rôle administrateur.";
+          this.managedUsersError.set(message);
+          this.userFeedback.set({ type: 'error', message });
           this.userAction.set(null);
           console.error('admin toggle failed', err);
         },
       });
   }
 
-  /**
-   * Placeholder for user deletion. Kept for parity with design but not wired yet.
-   */
   removeUser(userId: number): void {
     if (this.isUserActionPending(userId)) {
       return;
     }
-    this.managedUsersError.set('Suppression utilisateur non implémentée dans cette version.');
+    const exists = this.managedUsers().some((user) => user.id === userId);
+    if (!exists) {
+      return;
+    }
+
+    this.managedUsersError.set(null);
+    this.userFeedback.set(null);
+    this.userAction.set(userId);
+
+    this.userService
+      .deleteUser(userId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.userAction.set(null);
+          this.managedUsers.update((users) => users.filter((user) => user.id !== userId));
+
+          if (this.selectedUserId() === userId) {
+            this.clearSelection();
+          }
+
+          this.userFeedback.set({ type: 'success', message: 'Utilisateur supprimé avec succès.' });
+        },
+        error: (err: HttpErrorResponse) => {
+          const message =
+            err?.message ?? "Impossible de supprimer l'utilisateur pour le moment.";
+          this.userFeedback.set({ type: 'error', message });
+          this.userAction.set(null);
+          console.error('admin delete user failed', err);
+        },
+      });
   }
 
   /**
@@ -290,7 +326,32 @@ export class AdminUsersSectionComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.diaryFeedback.set({ type: 'error', message: 'Suppression de carnet non disponible.' });
+    const diaryExists = user.diaries.some((entry) => entry.id === diaryId);
+    if (!diaryExists) {
+      return;
+    }
+
+    this.diaryFeedback.set(null);
+    this.markDiaryAction(userId, diaryId, true);
+
+    this.stepService
+      .deleteDiary(diaryId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.markDiaryAction(userId, diaryId, false);
+          this.removeDiaryState(userId, diaryId);
+          this.diaryFeedback.set({ type: 'success', message: 'Carnet supprimé avec succès.' });
+        },
+        error: (err) => {
+          this.markDiaryAction(userId, diaryId, false);
+          this.diaryFeedback.set({
+            type: 'error',
+            message: this.mapDiaryError(err, 'Impossible de supprimer le carnet.'),
+          });
+          console.error('admin diary delete failed', err);
+        },
+      });
   }
 
   /** Resolves the cover image URL to display for a diary card. */
@@ -394,6 +455,9 @@ export class AdminUsersSectionComponent implements OnInit, OnDestroy {
 
     this.managedUsersLoading.set(true);
     this.managedUsersError.set(null);
+    if (force) {
+      this.userFeedback.set(null);
+    }
 
     this.userService
       .getAllUsers()
@@ -484,6 +548,24 @@ export class AdminUsersSectionComponent implements OnInit, OnDestroy {
         clone[index] = merged;
         return clone;
       })();
+      this.selectedUser.set({ ...selected, diaries });
+    }
+  }
+
+  private removeDiaryState(userId: number, diaryId: number): void {
+    this.managedUsers.update((users) =>
+      users.map((user) => {
+        if (user.id !== userId) {
+          return user;
+        }
+        const diaries = user.diaries.filter((entry) => entry.id !== diaryId);
+        return { ...user, diaries } satisfies AdminUserSummary;
+      })
+    );
+
+    const selected = this.selectedUser();
+    if (selected && selected.id === userId) {
+      const diaries = selected.diaries.filter((entry) => entry.id !== diaryId);
       this.selectedUser.set({ ...selected, diaries });
     }
   }
