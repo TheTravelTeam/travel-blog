@@ -10,6 +10,7 @@
       [startIcon]="true"
       [isDisabled]="managedUsersLoading()"
       (btnClick)="reload()"
+      data-test="admin-users-refresh"
     ></app-button>
   </div>
 
@@ -27,9 +28,23 @@
             placeholder="Rechercher un utilisateur"
             [value]="searchTerm()"
             (input)="onSearch(($any($event.target)).value)"
+            data-test="admin-users-search"
           />
         </div>
       </div>
+
+      @if (userFeedback()) {
+        <div
+          class="admin-users__feedback"
+          [ngClass]="{
+            'admin-users__feedback--error': userFeedback()?.type === 'error',
+            'admin-users__feedback--success': userFeedback()?.type === 'success'
+          }"
+          data-test="admin-users-feedback"
+        >
+          {{ userFeedback()?.message }}
+        </div>
+      }
 
       @if (managedUsersLoading()) {
         <p class="admin-users__loading">Chargement des utilisateurs…</p>
@@ -50,9 +65,9 @@
         }
 
         @if (filteredUsers().length) {
-          <ul class="admin-users__list-content">
+          <ul class="admin-users__list-content" data-test="admin-users-list">
             @for (user of filteredUsers(); track user.id) {
-              <li class="admin-users__card">
+              <li class="admin-users__card" [attr.data-test]="'admin-user-' + user.id">
                 <div class="admin-users__card-main">
                   <div>
                     <p class="admin-users__card-name">{{ user.name }}</p>
@@ -71,6 +86,7 @@
                     icon="import_contacts"
                     [startIcon]="true"
                     (btnClick)="onSelectUser(user.id)"
+                    [attr.data-test]="'admin-user-view-diaries-' + user.id"
                   ></app-button>
                   <app-button
                     [text]="user.isAdmin ? 'Retirer admin' : 'Définir admin'"
@@ -81,6 +97,7 @@
                     [startIcon]="true"
                     [isDisabled]="isUserActionPending(user.id)"
                     (btnClick)="toggleAdmin(user.id)"
+                    [attr.data-test]="'admin-user-toggle-role-' + user.id"
                   ></app-button>
                   <button
                     type="button"
@@ -88,6 +105,7 @@
                     aria-label="Supprimer l'utilisateur"
                     [disabled]="isUserActionPending(user.id)"
                     (click)="removeUser(user.id)"
+                    [attr.data-test]="'admin-user-delete-' + user.id"
                   >
                     <app-icon name="delete" size="sm"></app-icon>
                   </button>
@@ -108,6 +126,7 @@
           class="admin-users__ghost-link"
           (click)="clearSelection()"
           aria-label="Retour à la liste des utilisateurs"
+          data-test="admin-users-back"
         >
           ← Retour à la liste
         </button>
@@ -147,15 +166,16 @@
               'admin-users__feedback--error': diaryFeedback()?.type === 'error',
               'admin-users__feedback--success': diaryFeedback()?.type === 'success'
             }"
+            data-test="admin-diaries-feedback"
           >
             {{ diaryFeedback()?.message }}
           </div>
         }
 
         @if (!selectedUserLoading() && !selectedUserError() && (selectedUser()?.diaries?.length ?? 0)) {
-          <ul class="admin-users__diaries">
+          <ul class="admin-users__diaries" data-test="admin-diaries-list">
             @for (diary of selectedUser()?.diaries ?? []; track diary.id) {
-              <li class="admin-users__diary-card">
+              <li class="admin-users__diary-card" [attr.data-test]="'admin-diary-' + diary.id">
                 <app-travel-diary-card
                   [id]="diary.id"
                   [title]="diary.title"
@@ -190,30 +210,37 @@
                     <span class="admin-users__diary-pill" [ngClass]="{ 'admin-users__diary-pill--disabled': diary.status === 'DISABLED' }">
                       {{ getDiaryStatusLabel(diary) }}
                     </span>
-                    <span class="admin-users__diary-pill" [ngClass]="{ 'admin-users__diary-pill--draft': diary.isPublished === false }">
+                    <span class="admin-users__diary-pill" [ngClass]="{ 'admin-users__diary-pill--draft': !diary.isPublished }">
                       {{ getDiaryPublicationLabel(diary) }}
                     </span>
                   </div>
 
-                  <div class="admin-users__diary-actions" [ngClass]="{ 'admin-users__diary-actions--compact': isMobile() }">
+                  <div
+                    class="admin-users__diary-actions"
+                    [ngClass]="{ 'admin-users__diary-actions--compact': isMobile() }"
+                    [attr.data-test]="'admin-diary-actions-' + diary.id"
+                  >
                     @if (isMobile()) {
                       <app-button
                         [isActionBtn]="true"
                         [icon]="getDiaryStatusToggleIcon(diary)"
                         color="secondary"
                         (btnClick)="toggleDiaryStatus(selectedUser()!.id, diary.id)"
+                        [attr.data-test]="'admin-diary-toggle-status-' + diary.id"
                       ></app-button>
                       <app-button
                         [isActionBtn]="true"
                         [icon]="diary.isPrivate ? 'visibility' : 'visibility_off'"
                         color="danger"
                         (btnClick)="toggleDiaryPrivacy(selectedUser()!.id, diary.id)"
+                        [attr.data-test]="'admin-diary-toggle-privacy-' + diary.id"
                       ></app-button>
                       <app-button
                         [isActionBtn]="true"
                         icon="delete"
                         color="danger"
                         (btnClick)="deleteDiary(selectedUser()!.id, diary.id)"
+                        [attr.data-test]="'admin-diary-delete-' + diary.id"
                       ></app-button>
                     } @else {
                       <app-button
@@ -224,6 +251,7 @@
                         [startIcon]="true"
                         [icon]="getDiaryStatusToggleIcon(diary)"
                         (btnClick)="toggleDiaryStatus(selectedUser()!.id, diary.id)"
+                        [attr.data-test]="'admin-diary-toggle-status-' + diary.id"
                       ></app-button>
                       <app-button
                         [text]="diary.isPrivate ? 'Rendre public' : 'Rendre privé'"
@@ -231,8 +259,9 @@
                         radius="border_lg"
                         size="auto"
                         [startIcon]="true"
-                       [icon]="diary.isPrivate ? 'visibility' : 'visibility_off'"
+                        [icon]="diary.isPrivate ? 'visibility' : 'visibility_off'"
                         (btnClick)="toggleDiaryPrivacy(selectedUser()!.id, diary.id)"
+                        [attr.data-test]="'admin-diary-toggle-privacy-' + diary.id"
                       ></app-button>
                       <app-button
                         text="Supprimer"
@@ -242,6 +271,7 @@
                         icon="delete"
                         [startIcon]="true"
                         (btnClick)="deleteDiary(selectedUser()!.id, diary.id)"
+                        [attr.data-test]="'admin-diary-delete-' + diary.id"
                       ></app-button>
                     }
                   </div>

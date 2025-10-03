@@ -1,4 +1,9 @@
-<form class="create-step" [formGroup]="stepForm" (ngSubmit)="handleSubmit()">
+<form
+  class="create-step"
+  [formGroup]="stepForm"
+  (ngSubmit)="handleSubmit()"
+  data-test="create-step-form"
+>
   <section class="create-step__section">
     <h3>Nouvelle étape</h3>
     <div class="create-step__grid">
@@ -8,6 +13,7 @@
         placeholder="Nom de l'étape"
         [isRequired]="true"
         [errorMessage]="getControlError('title')"
+        data-test="step-form-title"
       ></app-text-input>
 
       <app-text-input
@@ -16,6 +22,7 @@
         placeholder="Ville"
         [isRequired]="true"
         [errorMessage]="getControlError('city')"
+        data-test="step-form-city"
       ></app-text-input>
       <app-text-input
         formControlName="country"
@@ -23,6 +30,7 @@
         placeholder="Pays"
         [isRequired]="true"
         [errorMessage]="getControlError('country')"
+        data-test="step-form-country"
       ></app-text-input>
       <app-text-input
         formControlName="continent"
@@ -30,6 +38,7 @@
         placeholder="Continent"
         [isRequired]="true"
         [errorMessage]="getControlError('continent')"
+        data-test="step-form-continent"
       ></app-text-input>
 
       <app-text-input
@@ -37,6 +46,7 @@
         label="Début de l'étape"
         placeholder="Date et heure"
         type="datetime-local"
+        data-test="step-form-start"
       ></app-text-input>
 
       <app-text-input
@@ -44,6 +54,7 @@
         label="Fin de l'étape"
         placeholder="Date et heure"
         type="datetime-local"
+        data-test="step-form-end"
       ></app-text-input>
 
       <app-select
@@ -54,6 +65,7 @@
         [selectedIds]="stepForm.get('themeIds')?.value ?? []"
         [disabled]="availableThemes.length === 0"
         (selectOnChange)="onThemeChange($event)"
+        data-test="step-form-themes"
       ></app-select>
 
       <div class="create-step__location">
@@ -66,6 +78,7 @@
             radius="border_lg"
             htmlType="button"
             (btnClick)="openLocationModal()"
+            data-test="step-form-location"
           ></app-button>
           <span class="create-step__location-summary">{{
             locationEnrichmentSummary || selectedCoordinatesSummary
@@ -92,6 +105,7 @@
         (itemsChange)="onMediaItemsChange($event)"
         (primaryChange)="onPrimaryMediaChange($event)"
         (uploadingChange)="onMediaUploadStateChange($event)"
+        data-test="step-form-media"
       >
       </app-media-grid-uploader>
     </div>
@@ -118,6 +132,7 @@
       htmlType="button"
       [isDisabled]="isSubmitting"
       (btnClick)="handleCancel()"
+      data-test="step-form-cancel"
     ></app-button>
     <app-button
       text="Enregistrer l'étape"
@@ -126,6 +141,7 @@
       radius="border_lg"
       htmlType="submit"
       [isDisabled]="stepForm.invalid || isSubmitting || isMediaUploading"
+      data-test="step-form-submit"
     ></app-button>
   </div>
 </form>

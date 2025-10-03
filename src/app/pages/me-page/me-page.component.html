@@ -48,6 +48,7 @@
                 size="auto"
                 [color]="isSectionOpen(section.id) ? 'secondary' : 'danger'"
                 (btnClick)="setActiveSection(section.id)"
+                [attr.data-test]="section.id"
               ></app-button>
             }
             <app-button
@@ -57,6 +58,7 @@
               size="auto"
               radius="border_lg"
               (btnClick)="logout()"
+              data-test="logout-button"
             ></app-button>
           </div>
 
@@ -181,6 +183,7 @@
                       [startIcon]="true"
                       icon="add"
                       (btnClick)="openMyTravelsForCreation()"
+                      data-test="create-button"
                     ></app-button>
                   </div>
                   @if (diariesError()) {

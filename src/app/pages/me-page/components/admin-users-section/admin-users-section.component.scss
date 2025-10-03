@@ -255,6 +255,11 @@
   color: $primaryColor;
 }
 
+.admin-users__feedback--success {
+  background: rgba($primaryColor, 0.08);
+  color: $primaryColor;
+}
+
 .admin-users__feedback--error {
   background: rgba($secondaryColor, 0.08);
   color: $secondaryColor;

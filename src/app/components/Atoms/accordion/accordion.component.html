@@ -1,4 +1,8 @@
-<div [class]="['accordion__container', isFilter && 'filter']" (clickOutside)="closeDropdown()">
+<div
+  [class]="['accordion__container', isFilter && 'filter']"
+  (clickOutside)="closeDropdown()"
+  [attr.data-test]="dataTest ?? null"
+>
   <div class="accordion__header">
     <div class="accordion__header__title" (click)="onToggleOpen()" (click)="onStepClick()">
       <h3>{{ title }}</h3>
@@ -9,6 +13,7 @@
               (click)="onToggleEdit($event)"
               class="accordion__header__title--button"
               [attr.aria-label]="`modifier ${title}`"
+              [attr.data-test]="editDataTest ?? null"
             >
               <app-icon name="edit" size="md" color="primary"></app-icon>
             </button>
@@ -16,6 +21,7 @@
               (click)="onDelete($event)"
               class="accordion__header__title--button danger"
               [attr.aria-label]="`supprimer ${title}`"
+              [attr.data-test]="deleteDataTest ?? null"
             >
               <app-icon name="delete" size="md" color="danger"></app-icon>
             </button>

@@ -93,24 +93,29 @@
               radius="border_lg"
               (btnClick)="onCreateStepClick()"
               [isDisabled]="isStepFormVisible()"
+              data-test="diary-add-step"
             ></app-button>
           </div>
         }
         @for (step of state.steps(); track $index) {
           @let medias = getStepMedias(step);
-          <app-accordion
-            [id]="step.id"
-            [title]="step.title"
-            [subTitle]="step.country"
-            [startDate]="step.startDate ?? undefined"
-            [isOpen]="state.openedStepId() === step.id"
-            (toggleOpen)="onAccordionToggle(step.id, $event)"
-            (stepClicked)="onStepClicked($event)"
-            (remove)="onDeleteSteps(step.id)"
-            [role]="viewerIsOwner ? 'owner' : 'reader'"
-            [(isEditing)]="step.isEditing"
-            (isEditingChange)="onStepEditModeChange(step, $event)"
-          >
+          <div class="worldMap__step" [attr.data-test]="'diary-step-' + step.id">
+            <app-accordion
+              [id]="step.id"
+              [title]="step.title"
+              [subTitle]="step.country"
+              [startDate]="step.startDate ?? undefined"
+              [isOpen]="state.openedStepId() === step.id"
+              (toggleOpen)="onAccordionToggle(step.id, $event)"
+              (stepClicked)="onStepClicked($event)"
+              (remove)="onDeleteSteps(step.id)"
+              [role]="viewerIsOwner ? 'owner' : 'reader'"
+              [(isEditing)]="step.isEditing"
+              (isEditingChange)="onStepEditModeChange(step, $event)"
+              [dataTest]="'step-accordion-' + step.id"
+              [editDataTest]="'step-edit-' + step.id"
+              [deleteDataTest]="'step-delete-' + step.id"
+            >
             <div class="step__content__container">
               <div
                 class="step__content ql-editor"
@@ -289,7 +294,8 @@
                 </div>
               }
             </div>
-          </app-accordion>
+            </app-accordion>
+          </div>
         }
       </div>
     </div>
