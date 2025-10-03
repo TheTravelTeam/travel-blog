@@ -105,13 +105,14 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
 
   readonly currentViewerId = computed(() => this.userService.currentUserId());
 
+  readonly isViewerDisabled = computed(() => this.userService.isCurrentUserDisabled());
   readonly isAuthenticated = computed(() => this.userService.currentUserId() !== null);
   readonly canDiaryReceiveComments = computed(() => {
     const diary = this.state.currentDiary();
     return diary?.canComment !== false;
   });
   readonly canPostComment = computed(
-    () => this.isAuthenticated() && this.canDiaryReceiveComments()
+    () => this.isAuthenticated() && this.canDiaryReceiveComments() && !this.isViewerDisabled()
   );
 
   /**
@@ -147,6 +148,10 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
   readonly isDiaryOwner = computed(() => {
     const owner = this.diaryOwnerInfo();
     if (!owner) {
+      return false;
+    }
+
+    if (this.isViewerDisabled()) {
       return false;
     }
 
@@ -206,6 +211,13 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
    * @param formValue Normalised form payload.
    */
   onStepFormSubmit(formValue: StepFormResult): void {
+    if (this.isViewerDisabled()) {
+      this.stepFormError.set(
+        'Votre compte est désactivé. Vous ne pouvez plus gérer vos étapes.'
+      );
+      return;
+    }
+
     const diaryId = this.state.currentDiaryId() ?? this.state.currentDiary()?.id ?? null;
     if (!diaryId) {
       this.stepFormError.set("Impossible d'identifier le carnet cible.");
@@ -529,7 +541,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
       const id = params.get('id');
       if (id) {
         // Met à jour l'état global avec l'id du carnet
-        this.state.setCurrentDiaryId(+id); // <-- tu peux juste mettre un `TravelDiary` partiel ici
+        this.state.setCurrentDiaryId(+id);
       }
     });
   }
@@ -659,6 +671,13 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.isViewerDisabled()) {
+      this.stepFormError.set(
+        'Votre compte est désactivé. Vous ne pouvez plus gérer vos étapes.'
+      );
+      return;
+    }
+
     const diaryId = this.state.currentDiaryId() ?? this.state.currentDiary()?.id ?? null;
     if (!diaryId) {
       this.stepFormError.set("Impossible d'identifier le carnet cible.");
@@ -784,6 +803,10 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
       return false;
     }
 
+    if (this.isViewerDisabled()) {
+      return false;
+    }
+
     const viewerId = this.currentViewerId();
     if (!Number.isFinite(viewerId)) {
       return false;
@@ -808,6 +831,14 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
 
     if (!this.isAuthenticated()) {
       this.setCommentError(stepId, 'Vous devez être connecté pour commenter.');
+      return;
+    }
+
+    if (this.isViewerDisabled()) {
+      this.setCommentError(
+        stepId,
+        'Votre compte est désactivé. Vous ne pouvez plus commenter.'
+      );
       return;
     }
 
@@ -1118,6 +1149,10 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
    */
   onStepEditModeChange(step: Step, isEditing: boolean): void {
     if (!step?.id) {
+      return;
+    }
+
+    if (this.isViewerDisabled()) {
       return;
     }
 

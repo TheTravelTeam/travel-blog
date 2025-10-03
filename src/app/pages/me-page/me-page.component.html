@@ -183,10 +183,16 @@
                       [startIcon]="true"
                       icon="add"
                       (btnClick)="openMyTravelsForCreation()"
+                      [isDisabled]="isCurrentUserDisabled()"
                       data-test="create-button"
                     ></app-button>
                   </div>
-                  @if (diariesError()) {
+                  @if (isCurrentUserDisabled()) {
+                    <p class="me-page__form-error">
+                      Votre compte est désactivé. Vous ne pouvez plus créer ou modifier de carnet.
+                    </p>
+                  }
+                  @if (!isCurrentUserDisabled() && diariesError()) {
                     <p class="me-page__form-error">{{ diariesError() }}</p>
                   }
                   @if (diaries().length) {
@@ -214,12 +220,13 @@
                                 <app-icon name="calendar_today" size="sm"></app-icon>
                                 {{ getDiaryStepLabel(diary) }}
                               </span>
-                              <span class="me-page__diary-visibility" [ngClass]="{
-                                'me-page__diary-visibility--private': diary.private
-                              }">
-                                {{ diary.private ? 'Privé' : 'Public' }}
-                              </span>
-                            </div>
+                            <span class="me-page__diary-visibility" [ngClass]="{
+                              'me-page__diary-visibility--private': diary.private
+                            }">
+                              {{ diary.private ? 'Privé' : 'Public' }}
+                            </span>
+                          </div>
+                          @if (!isCurrentUserDisabled()) {
                             <div
                               class="me-page__diary-actions"
                               [ngClass]="{ 'me-page__diary-actions--compact': isMobile() }"
@@ -273,6 +280,7 @@
                                 ></app-button>
                               }
                             </div>
+                          }
                           </div>
                         </li>
                       }

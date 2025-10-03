@@ -22,6 +22,7 @@ class CommentServiceStub {
 
 class UserServiceStub {
   private currentId: number | null = 1;
+  private disabled = false;
 
   currentUserId(): number | null {
     return this.currentId;
@@ -29,6 +30,14 @@ class UserServiceStub {
 
   setCurrentUserId(value: number | null): void {
     this.currentId = value;
+  }
+
+  setDisabled(value: boolean): void {
+    this.disabled = value;
+  }
+
+  isCurrentUserDisabled(): boolean {
+    return this.disabled;
   }
 
   getUserProfile(): ReturnType<UserService['getUserProfile']> {
@@ -115,6 +124,8 @@ describe('DiaryPageComponent', () => {
     commentService.create.calls.reset();
     commentService.delete.calls.reset();
     commentService.update.calls.reset();
+    userService.setCurrentUserId(1);
+    userService.setDisabled(false);
   });
 
   it('should create', () => {
@@ -130,6 +141,21 @@ describe('DiaryPageComponent', () => {
     component.onSubmitComment(baseStep);
 
     expect(component.getCommentError(baseStep.id)).toBe('Vous devez être connecté pour commenter.');
+    expect(commentService.create).not.toHaveBeenCalled();
+  });
+
+  it('should reject comment submission when the account is disabled', () => {
+    userService.setCurrentUserId(1);
+    userService.setDisabled(true);
+    component.state.setCurrentDiary(baseDiary);
+    component.state.setSteps(baseDiary.steps);
+    component.onCommentDraftChange(baseStep.id, 'Test');
+
+    component.onSubmitComment(baseStep);
+
+    expect(component.getCommentError(baseStep.id)).toBe(
+      'Votre compte est désactivé. Vous ne pouvez plus commenter.'
+    );
     expect(commentService.create).not.toHaveBeenCalled();
   });
 

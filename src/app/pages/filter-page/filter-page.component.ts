@@ -122,9 +122,14 @@ export class FilterPageComponent {
     );
   });
 
-  readonly diaryMetaList = computed(() =>
-    this.state.allDiaries().map((diary) => this.buildDiaryMeta(diary))
-  );
+  readonly diaryMetaList = computed(() => {
+    const diaries = this.state.allDiaries();
+    if (!Array.isArray(diaries)) {
+      return [] as DiaryMeta[];
+    }
+
+    return diaries.map((diary) => this.buildDiaryMeta(diary));
+  });
 
   readonly diaryMetaMap = computed(() => {
     const map = new Map<number, DiaryMeta>();

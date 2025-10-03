@@ -12,7 +12,14 @@ describe('MapComponent', () => {
       imports: [MapComponent],
       providers: [
         provideHttpClient(),
-        { provide: UserService, useValue: { currentUserId: () => 1 } },
+        {
+          provide: UserService,
+          useValue: {
+            currentUserId: () => 1,
+            isCurrentUserDisabled: () => false,
+            isCurrentUserAdmin: () => false,
+          },
+        },
       ],
     }).compileComponents();
 

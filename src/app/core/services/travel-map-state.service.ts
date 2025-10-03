@@ -13,6 +13,8 @@ import { Theme } from '@model/theme.model';
   providedIn: 'root',
 })
 export class TravelMapStateService {
+  private readonly blockedDiaryStatuses = new Set(['DISABLED']);
+  private readonly blockedAccountStatuses = new Set(['DISABLED', 'BLOCKED', 'INACTIVE']);
   // 📌 Toutes les données partagées entre les composants
   steps = signal<Step[]>([]);
   currentDiary = signal<TravelDiary | null>(null);
@@ -294,5 +296,67 @@ export class TravelMapStateService {
       ...diary,
       steps: this.normaliseSteps(diary.steps),
     }));
+  }
+
+  /**
+   * Determines whether a diary can be displayed to the current audience.
+   * Rejects diaries disabled by moderation as well as diaries owned by disabled users.
+   * @param diary Diary instance to evaluate.
+   */
+  isDiaryAccessible(
+    diary: TravelDiary | null | undefined,
+    options?: { viewerId?: number | null; viewerIsAdmin?: boolean }
+  ): boolean {
+    if (!diary) {
+      return false;
+    }
+
+    const viewerId = options?.viewerId ?? null;
+    const viewerIsAdmin = options?.viewerIsAdmin ?? false;
+
+    if (viewerIsAdmin) {
+      return true;
+    }
+
+    const diaryOwnerId = typeof diary.user?.id === 'number' ? diary.user.id : null;
+    const isViewerOwner = diaryOwnerId !== null && diaryOwnerId === viewerId;
+
+    if (isViewerOwner) {
+      return true;
+    }
+
+    if (this.isStatusBlocked(diary.status, this.blockedDiaryStatuses)) {
+      return false;
+    }
+
+    const owner = diary.user;
+    if (!owner) {
+      return true;
+    }
+
+    if (owner.enabled === false) {
+      return false;
+    }
+
+    if (this.isStatusBlocked(owner.status, this.blockedAccountStatuses)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /** Normalises raw status values and compares them against the provided blacklist. */
+  private isStatusBlocked(value: unknown, blacklist: Set<string>): boolean {
+    const normalized = this.normalizeStatus(value);
+    return normalized !== '' && blacklist.has(normalized);
+  }
+
+  /** Formats status strings to simplify comparisons (uppercase + stripped separators). */
+  private normalizeStatus(value: unknown): string {
+    if (typeof value !== 'string') {
+      return '';
+    }
+
+    return value.trim().toUpperCase().replace(/[\s_-]+/g, '');
   }
 }

@@ -146,4 +146,86 @@ describe('TravelMapStateService', () => {
     expect(service.visibleDiaries().length).toBe(1);
     expect(service.visibleDiaries()[0].id).toBe(diary.id);
   });
+
+  describe('isDiaryAccessible', () => {
+    const buildDiary = (overrides: Partial<TravelDiary> = {}): TravelDiary => ({
+      id: 99,
+      title: 'Accessible diary',
+      latitude: 0,
+      longitude: 0,
+      private: false,
+      published: true,
+      status: 'PUBLISHED',
+      description: 'Diary used for accessibility checks.',
+      steps: [],
+      user: {
+        id: 7,
+        pseudo: 'owner',
+        avatar: null,
+        biography: 'Traveller',
+        enabled: true,
+        status: 'ACTIVE',
+      },
+      media: null,
+      ...overrides,
+    });
+
+    it('should allow active diaries owned by active users', () => {
+      const diary = buildDiary();
+      expect(service.isDiaryAccessible(diary)).toBeTrue();
+    });
+
+    it('should reject diaries disabled by moderation', () => {
+      const diary = buildDiary({ status: 'DISABLED' });
+      expect(service.isDiaryAccessible(diary)).toBeFalse();
+    });
+
+    it('should reject diaries whose owner account is disabled', () => {
+      const diary = buildDiary({
+        user: {
+          id: 8,
+          pseudo: 'blocked-owner',
+          avatar: null,
+          biography: null,
+          enabled: false,
+          status: 'BLOCKED',
+        },
+      });
+
+      expect(service.isDiaryAccessible(diary)).toBeFalse();
+    });
+
+    it('should reject when owner status is provided in a non canonical format', () => {
+      const diary = buildDiary({
+        user: {
+          id: 9,
+          pseudo: 'inactive-owner',
+          avatar: null,
+          biography: null,
+          enabled: true,
+          status: 'in active',
+        },
+      });
+
+      expect(service.isDiaryAccessible(diary)).toBeFalse();
+    });
+
+    it('should allow the owner to access a disabled diary', () => {
+      const diary = buildDiary({ status: 'DISABLED' });
+      const isAccessible = service.isDiaryAccessible(diary, {
+        viewerId: diary.user.id,
+      });
+
+      expect(isAccessible).toBeTrue();
+    });
+
+    it('should allow an admin to access a disabled diary', () => {
+      const diary = buildDiary({ status: 'DISABLED' });
+      const isAccessible = service.isDiaryAccessible(diary, {
+        viewerIsAdmin: true,
+      });
+
+      expect(isAccessible).toBeTrue();
+    });
+  });
 });

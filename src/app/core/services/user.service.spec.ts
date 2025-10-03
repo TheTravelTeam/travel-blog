@@ -132,4 +132,45 @@ describe('UserService', () => {
 
     expect(receivedRoles).toEqual(['USER']);
   });
+
+  it('should detect current user admin role', () => {
+    const dto: UserProfileDto = {
+      id: 101,
+      pseudo: 'admin-user',
+      roles: ['ROLE_USER', 'ROLE_ADMIN'],
+      travelDiaries: [],
+    };
+
+    authService.saveCurrentUser(dto);
+
+    expect(userService.isCurrentUserAdmin()).toBeTrue();
+  });
+
+  it('should return false for non admin user', () => {
+    const dto: UserProfileDto = {
+      id: 202,
+      pseudo: 'regular-user',
+      roles: ['ROLE_USER'],
+      travelDiaries: [],
+    };
+
+    authService.saveCurrentUser(dto);
+
+    expect(userService.isCurrentUserAdmin()).toBeFalse();
+  });
+
+  it('should consider blocked status as disabled', () => {
+    const dto: UserProfileDto = {
+      id: 99,
+      pseudo: 'blocked-user',
+      roles: ['ROLE_USER'],
+      status: 'blocked',
+      enabled: true,
+      travelDiaries: [],
+    };
+
+    authService.saveCurrentUser(dto);
+
+    expect(userService.isCurrentUserDisabled()).toBeTrue();
+  });
 });

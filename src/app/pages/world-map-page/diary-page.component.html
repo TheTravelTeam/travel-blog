@@ -263,6 +263,10 @@
                     <p class="step_comment__message">
                       Connectez-vous pour commenter cette étape.
                     </p>
+                  } @else if (isViewerDisabled()) {
+                    <p class="step_comment__message">
+                      Votre compte est désactivé. Vous ne pouvez plus commenter cette étape.
+                    </p>
                   } @else {
                     <form class="step_comment__form" (ngSubmit)="onSubmitComment(step)">
                       <label class="visually-hidden" [for]="'comment-' + step.id">
