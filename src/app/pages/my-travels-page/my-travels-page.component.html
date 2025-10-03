@@ -40,6 +40,11 @@
       @if (panelError) {
         <p class="my-diaries__error-message">{{ panelError }}</p>
       }
+      @if (isCurrentUserDisabled() && !panelError) {
+        <p class="my-diaries__error-message">
+          Votre compte est désactivé. Vous pouvez consulter vos carnets mais plus les modifier.
+        </p>
+      }
       @if (isOwner()) {
         <div class="my-diaries__add-button">
           <app-button

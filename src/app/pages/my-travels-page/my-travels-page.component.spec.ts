@@ -215,6 +215,21 @@ describe('MyTravelsPageComponent', () => {
     expect(component.panelError).toBeNull();
   });
 
+  it('should treat a disabled user as a visitor', () => {
+    authServiceStub.setCurrentUser({
+      id: 1,
+      pseudo: 'mock',
+      firstName: 'Mock',
+      lastName: 'User',
+      roles: ['ROLE_USER'],
+      travelDiaries: [],
+      status: 'blocked',
+      enabled: true,
+    });
+
+    expect(component.isOwner()).toBeFalse();
+  });
+
   it('should restore diaries when deletion fails', () => {
     const diary = component.diariesList[0];
     stepServiceSpy.deleteDiary.and.returnValue(throwError(() => new Error('delete failed')));

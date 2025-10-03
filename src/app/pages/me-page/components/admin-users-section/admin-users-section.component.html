@@ -71,11 +71,26 @@
                 <div class="admin-users__card-main">
                   <div>
                     <p class="admin-users__card-name">{{ user.name }}</p>
-                    <span class="admin-users__card-email">{{ user.email }}</span>
+                    <span class="admin-users__card-email">
+                      {{ user.email ?? 'Email non communiqué' }}
+                    </span>
                   </div>
-                  <span class="admin-users__card-role" [ngClass]="{ 'admin-users__card-role--admin': user.isAdmin }">
-                    {{ user.isAdmin ? 'Admin' : 'Voyageur' }}
-                  </span>
+                  <div class="admin-users__card-badges">
+                    <span
+                      class="admin-users__card-role"
+                      [ngClass]="{ 'admin-users__card-role--admin': user.isAdmin }"
+                    >
+                      {{ user.isAdmin ? 'Admin' : 'Voyageur' }}
+                    </span>
+                    <span
+                      class="admin-users__card-status"
+                      [ngClass]="{
+                        'admin-users__card-status--blocked': user.status?.toUpperCase() === 'BLOCKED'
+                      }"
+                    >
+                      {{ getUserStatusLabel(user) }}
+                    </span>
+                  </div>
                 </div>
                 <div class="admin-users__card-actions">
                   <app-button
@@ -98,6 +113,17 @@
                     [isDisabled]="isUserActionPending(user.id)"
                     (btnClick)="toggleAdmin(user.id)"
                     [attr.data-test]="'admin-user-toggle-role-' + user.id"
+                  ></app-button>
+                  <app-button
+                    [text]="getUserStatusToggleLabel(user)"
+                    color="danger"
+                    radius="border_lg"
+                    size="auto"
+                    [startIcon]="true"
+                    [icon]="getUserStatusToggleIcon(user)"
+                    [isDisabled]="isUserActionPending(user.id)"
+                    (btnClick)="blockUser(user.id)"
+                    [attr.data-test]="'admin-user-toggle-status-' + user.id"
                   ></app-button>
                   <button
                     type="button"
@@ -133,7 +159,9 @@
         <div>
           <h3>Détails de l'utilisateur</h3>
           <p class="admin-users__card-name">{{ selectedUser()?.name }}</p>
-          <span class="admin-users__card-email">{{ selectedUser()?.email }}</span>
+          <span class="admin-users__card-email">
+            {{ selectedUser()?.email ?? 'Email non communiqué' }}
+          </span>
         </div>
       </div>
 
@@ -182,6 +210,7 @@
                   [image]="getDiaryCover(diary)"
                   [description]="getDiarySubtitle(diary)"
                   [showInlineActions]="false"
+                  (cardClick)="openDiaryOnMap(diary.id)"
                 ></app-travel-diary-card>
 
                 <div class="admin-users__diary-footer">

@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { ButtonComponent } from 'components/Atoms/Button/button.component';
@@ -35,8 +36,14 @@ interface AdminDiarySummary {
 interface AdminUserSummary {
   id: number;
   name: string;
-  email: string;
+  email: string | null;
+  pseudo: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  biography?: string | null;
+  avatar?: string | null;
   isAdmin: boolean;
+  status: string | null;
   diaries: AdminDiarySummary[];
 }
 
@@ -56,6 +63,7 @@ export class AdminUsersSectionComponent implements OnInit, OnDestroy {
   private readonly stepService = inject(StepService);
   private readonly travelMapState = inject(TravelMapStateService);
   private readonly breakpointService = inject(BreakpointService);
+  private readonly router = inject(Router);
   private readonly destroy$ = new Subject<void>();
   private readonly defaultDiaryCover = '/Images/nosy-iranja.jpg';
 
@@ -158,6 +166,33 @@ export class AdminUsersSectionComponent implements OnInit, OnDestroy {
     return this.userAction() === userId;
   }
 
+  getUserStatusLabel(user: AdminUserSummary): string {
+    const status = user.status?.toUpperCase();
+    switch (status) {
+      case 'BLOCKED':
+        return 'Bloqué';
+      case 'SUSPENDED':
+        return 'Suspendu';
+      case 'INACTIVE':
+        return 'Inactif';
+      case 'ACTIVE':
+      case 'ENABLED':
+        return 'Actif';
+      default:
+        return status ?? 'Statut inconnu';
+    }
+  }
+
+  getUserStatusToggleLabel(user: AdminUserSummary): string {
+    const isBlocked = user.status?.toUpperCase() === 'BLOCKED';
+    return isBlocked ? 'Réactiver' : 'Bloquer';
+  }
+
+  getUserStatusToggleIcon(user: AdminUserSummary): IconName {
+    const isBlocked = user.status?.toUpperCase() === 'BLOCKED';
+    return isBlocked ? 'check_circle' : 'disabled_by_default';
+  }
+
   /** Indicates if an asynchronous diary action is currently running. */
   isDiaryActionPending(userId: number, diaryId: number): boolean {
     return this.pendingDiaryActions().has(this.getDiaryActionKey(userId, diaryId));
@@ -204,6 +239,70 @@ export class AdminUsersSectionComponent implements OnInit, OnDestroy {
       });
   }
 
+  blockUser(userId: number): void {
+    if (this.isUserActionPending(userId)) {
+      return;
+    }
+
+    const target = this.managedUsers().find((user) => user.id === userId);
+    if (!target) {
+      return;
+    }
+
+    const email = (target.email ?? '').trim();
+    const pseudo = target.pseudo.trim();
+
+    if (!email || !pseudo) {
+      this.userFeedback.set({
+        type: 'error',
+        message:
+          "Impossible d'actualiser le statut : l'utilisateur ne possède pas d'email ou de pseudo valide.",
+      });
+      return;
+    }
+
+    const nextStatus = target.status?.toUpperCase() === 'BLOCKED' ? 'ACTIVE' : 'BLOCKED';
+
+    this.managedUsersError.set(null);
+    this.userFeedback.set(null);
+    this.userAction.set(userId);
+
+    const payload = this.buildUserUpdatePayload(target, nextStatus, email, pseudo);
+
+    this.userService
+      .updateUser(userId, payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (profile) => {
+          const summary = this.mapProfileToUser(profile);
+          if (!profile.travelDiaries?.length) {
+            const existing = this.selectedUserId() === userId
+              ? this.selectedUser()
+              : this.managedUsers().find((user) => user.id === userId) ?? null;
+            if (existing) {
+              summary.diaries = existing.diaries;
+            }
+          }
+          this.refreshUsersList(summary);
+          this.userFeedback.set({
+            type: 'success',
+            message:
+              nextStatus === 'BLOCKED'
+                ? 'Utilisateur bloqué avec succès.'
+                : 'Utilisateur réactivé avec succès.',
+          });
+          this.userAction.set(null);
+        },
+        error: (err) => {
+          const message = err?.message ?? 'Impossible de mettre à jour le statut utilisateur.';
+          this.managedUsersError.set(message);
+          this.userFeedback.set({ type: 'error', message });
+          this.userAction.set(null);
+          console.error('admin user status update failed', err);
+        },
+      });
+  }
+
   removeUser(userId: number): void {
     if (this.isUserActionPending(userId)) {
       return;
@@ -239,6 +338,11 @@ export class AdminUsersSectionComponent implements OnInit, OnDestroy {
           console.error('admin delete user failed', err);
         },
       });
+  }
+
+  /** Redirects administrators to the travels map focused on the selected diary. */
+  openDiaryOnMap(diaryId: number): void {
+    void this.router.navigate(['/travels', diaryId]);
   }
 
   /**
@@ -480,11 +584,18 @@ export class AdminUsersSectionComponent implements OnInit, OnDestroy {
 
   private mapProfileToUser(profile: UserProfileDto): AdminUserSummary {
     const diaries = (profile.travelDiaries ?? []).map((diary) => this.createManagedDiarySummary(diary));
+    const status = profile.status ? profile.status.toUpperCase() : null;
     return {
       id: profile.id,
       name: this.buildDisplayName(profile),
-      email: profile.email ?? 'Email non communiqué',
+      email: profile.email ?? null,
+      pseudo: profile.pseudo,
+      firstName: profile.firstName ?? null,
+      lastName: profile.lastName ?? null,
+      biography: profile.biography ?? null,
+      avatar: profile.avatar ?? null,
       isAdmin: (profile.roles ?? []).includes('ADMIN'),
+      status,
       diaries,
     };
   }
@@ -610,5 +721,30 @@ export class AdminUsersSectionComponent implements OnInit, OnDestroy {
       return err.message as string;
     }
     return fallback;
+  }
+
+  private buildUserUpdatePayload(
+    target: AdminUserSummary,
+    nextStatus: string,
+    email: string,
+    pseudo: string
+  ): Partial<UserProfileDto> {
+    const payload: Partial<UserProfileDto> = {
+      status: nextStatus,
+      pseudo,
+      email,
+    };
+
+    if (target.firstName) {
+      payload.firstName = target.firstName;
+    }
+    if (target.lastName) {
+      payload.lastName = target.lastName;
+    }
+    if (typeof target.biography === 'string') {
+      payload.biography = target.biography;
+    }
+
+    return payload;
   }
 }

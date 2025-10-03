@@ -111,6 +111,7 @@ export class MePageComponent implements OnInit, OnDestroy {
 
   readonly roleBadges = computed(() => this.profile()?.roles ?? []);
   readonly isAdmin = computed(() => this.roleBadges().includes('ADMIN'));
+  readonly isCurrentUserDisabled = computed(() => this.userService.isCurrentUserDisabled());
   readonly userRoleLabel = computed(() => (this.isAdmin() ? 'Administrateur' : 'Voyageur'));
 
   // Construit le menu latéral : ajoute l'onglet admin si l'utilisateur possède le rôle adéquat.
@@ -182,6 +183,10 @@ export class MePageComponent implements OnInit, OnDestroy {
    * La création se fait toujours sur `/travels/users/{userId}`.
    */
   openMyTravelsForCreation(): void {
+    if (this.forbidDiaryAction('Votre compte est désactivé. Vous ne pouvez plus créer de carnet.')) {
+      return;
+    }
+
     const current = this.profile();
     const userId = current?.id ?? this.userService.currentUserId();
     if (typeof userId !== 'number' || Number.isNaN(userId)) {
@@ -197,6 +202,12 @@ export class MePageComponent implements OnInit, OnDestroy {
    * Ouvre la page voyages utilisateur et demande l'édition du carnet donné.
    */
   openDiaryForEdit(diaryId: number): void {
+    if (
+      this.forbidDiaryAction('Votre compte est désactivé. Vous ne pouvez plus modifier de carnet.')
+    ) {
+      return;
+    }
+
     const current = this.profile();
     const userId = current?.id ?? this.userService.currentUserId();
     if (typeof userId !== 'number' || Number.isNaN(userId)) {
@@ -742,6 +753,15 @@ export class MePageComponent implements OnInit, OnDestroy {
     };
   }
 
+  private forbidDiaryAction(message: string): boolean {
+    if (!this.userService.isCurrentUserDisabled()) {
+      return false;
+    }
+
+    this.diariesError.set(message);
+    return true;
+  }
+
   private stripHtml(html: string): string {
     return html
       .replace(/<[^>]*>/g, ' ')
@@ -759,6 +779,12 @@ export class MePageComponent implements OnInit, OnDestroy {
   }
 
   toggleDiaryPrivacy(diaryId: number): void {
+    if (
+      this.forbidDiaryAction('Votre compte est désactivé. Vous ne pouvez plus gérer vos carnets.')
+    ) {
+      return;
+    }
+
     this.diaries.update((items) =>
       items.map((diary) =>
         diary.id === diaryId
@@ -774,6 +800,12 @@ export class MePageComponent implements OnInit, OnDestroy {
 
 
   deleteDiary(diaryId: number): void {
+    if (
+      this.forbidDiaryAction('Votre compte est désactivé. Vous ne pouvez plus gérer vos carnets.')
+    ) {
+      return;
+    }
+
     const snapshotDiaries = this.diaries().map((diary) => ({
       ...diary,
       media: diary.media ? { ...diary.media } : null,

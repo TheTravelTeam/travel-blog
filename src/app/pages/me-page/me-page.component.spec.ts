@@ -15,6 +15,8 @@ class MockUserService {
   getCurrentUserProfile = jasmine
     .createSpy()
     .and.returnValue(of(mockProfile));
+  currentUserId = jasmine.createSpy().and.returnValue(mockProfile.id);
+  isCurrentUserDisabled = jasmine.createSpy().and.returnValue(false);
 }
 
 class MockBreakpointService {

@@ -147,6 +147,31 @@
   color: $secondaryColor;
 }
 
+.admin-users__card-badges {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.admin-users__card-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  background: rgba($successColor, 0.12);
+  color: $successColor;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.admin-users__card-status--blocked {
+  background: rgba($dangerColor, 0.15);
+  color: $dangerColor;
+}
+
 .admin-users__card-actions {
   display: flex;
   flex-wrap: wrap;

@@ -222,6 +222,11 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.userService.isCurrentUserDisabled()) {
+      this.panelError = 'Votre compte est désactivé. Vous ne pouvez plus modifier de carnet.';
+      return;
+    }
+
     // Ouvre directement la modale d'édition avec les données pré-remplies
     this.openEditModal(diary);
   }
@@ -231,6 +236,11 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
    */
   onDiaryDelete(diary: TravelDiary): void {
     if (!diary) {
+      return;
+    }
+
+    if (this.userService.isCurrentUserDisabled()) {
+      this.panelError = 'Votre compte est désactivé. Vous ne pouvez plus gérer vos carnets.';
       return;
     }
 
@@ -264,6 +274,11 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
      * Ouvre la modale en mode création de carnet.
      * Réinitialise les erreurs et charge les thèmes au besoin.
      */
+    if (this.userService.isCurrentUserDisabled()) {
+      this.panelError = 'Votre compte est désactivé. Vous ne pouvez plus créer de carnet.';
+      return;
+    }
+
     this.createModalError = null;
     this.isCreateModalSubmitting = false;
     this.isEditMode = false;
@@ -277,6 +292,11 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
      * Ouvre la modale en mode édition pour le carnet fourni.
      * Pré-remplit les champs carnet et positionne l'identité du carnet courant.
      */
+    if (this.userService.isCurrentUserDisabled()) {
+      this.panelError = 'Votre compte est désactivé. Vous ne pouvez plus modifier de carnet.';
+      return;
+    }
+
     this.createModalError = null;
     this.isCreateModalSubmitting = false;
     this.isEditMode = true;
@@ -309,6 +329,12 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
    * @param payload Combined diary + step form payload.
    */
   onDiaryCreationSubmit(payload: DiaryCreationPayload): void {
+    if (this.userService.isCurrentUserDisabled()) {
+      this.createModalError = 'Votre compte est désactivé. Vous ne pouvez plus créer de carnet.';
+      this.isCreateModalSubmitting = false;
+      return;
+    }
+
     this.isCreateModalSubmitting = true;
     this.createModalError = null;
 
@@ -397,6 +423,12 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
      * Met à jour uniquement les champs du carnet (pas les étapes).
      * Construit un payload conforme à UpdateTravelDiaryDTO (scalaires).
      */
+    if (this.userService.isCurrentUserDisabled()) {
+      this.createModalError = 'Votre compte est désactivé. Vous ne pouvez plus modifier de carnet.';
+      this.isCreateModalSubmitting = false;
+      return;
+    }
+
     if (!this.state.currentDiaryId() && !this.state.currentDiary()) {
       // Fallback: rien à éditer
       this.createModalError = 'Aucun carnet à modifier.';
@@ -556,7 +588,14 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
     if (typeof this.currentProfileUserId !== 'number' || Number.isNaN(this.currentProfileUserId)) {
       return false;
     }
+    if (this.userService.isCurrentUserDisabled()) {
+      return false;
+    }
     // Propriétaire si l'utilisateur connecté correspond à l'utilisateur de la page
     return currentUserId === this.currentProfileUserId;
+  }
+
+  isCurrentUserDisabled(): boolean {
+    return this.userService.isCurrentUserDisabled();
   }
 }
