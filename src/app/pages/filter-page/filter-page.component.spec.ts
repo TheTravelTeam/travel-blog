@@ -21,6 +21,10 @@ const routerStub: Partial<Router> = {
 
 const routerNavigateSpy = routerStub.navigate as jasmine.Spy;
 
+const activatedRouteStub = {
+  queryParamMap: queryParams$.asObservable(),
+} as Partial<ActivatedRoute>;
+
 const breakpointStub: Partial<BreakpointService> = {
   isMobile: signal(false),
   isTablet: signal(false),
@@ -46,7 +50,7 @@ describe('FilterPageComponent', () => {
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideAnimations(),
-        { provide: ActivatedRoute, useValue: { queryParamMap: queryParams$.asObservable() } },
+        { provide: ActivatedRoute, useValue: activatedRouteStub },
         { provide: Router, useValue: routerStub },
         { provide: BreakpointService, useValue: breakpointStub },
         { provide: SearchService, useValue: searchServiceStub },
@@ -78,7 +82,7 @@ describe('FilterPageComponent', () => {
     flushMicrotasks();
 
     expect(routerNavigateSpy).toHaveBeenCalledWith([], {
-      relativeTo: jasmine.any(ActivatedRoute),
+      relativeTo: activatedRouteStub,
       queryParams: { q: 'peru' },
       queryParamsHandling: 'merge',
     });
@@ -95,7 +99,7 @@ describe('FilterPageComponent', () => {
     flushMicrotasks();
 
     expect(routerNavigateSpy).toHaveBeenCalledWith([], {
-      relativeTo: jasmine.any(ActivatedRoute),
+      relativeTo: activatedRouteStub,
       queryParams: { q: null },
       queryParamsHandling: 'merge',
     });
@@ -111,7 +115,7 @@ describe('FilterPageComponent', () => {
     expect(component.activeSearchQuery()).toBe('');
     expect(component.searchResults()).toEqual([]);
     expect(routerNavigateSpy).toHaveBeenCalledWith([], {
-      relativeTo: jasmine.any(ActivatedRoute),
+      relativeTo: activatedRouteStub,
       queryParams: { q: null },
       queryParamsHandling: 'merge',
     });
