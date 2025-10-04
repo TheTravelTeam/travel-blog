@@ -510,6 +510,26 @@ app-accordion {
     width: fit-content;
     font-size: 0.7rem;
   }
+
+  &__clear {
+    background: transparent;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      color: rgba(0, 0, 0, 0.8);
+      outline: none;
+    }
+
+    .material-symbols-outlined {
+      font-size: 1.2rem;
+    }
+  }
 }
 
 @media screen and (min-width: 600px) {

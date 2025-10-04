@@ -13,11 +13,20 @@ import { CheckboxComponent } from 'components/Atoms/Checkbox/checkbox.component'
 import { IconComponent } from 'components/Atoms/Icon/icon.component';
 import { DividerComponent } from 'components/Atoms/Divider/divider.component';
 import { CommonModule } from '@angular/common';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { BreakpointService } from '@service/breakpoint.service';
 import { TravelMapStateService } from '@service/travel-map-state.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { map, distinctUntilChanged, switchMap, tap, finalize, catchError } from 'rxjs/operators';
+import {
+  map,
+  distinctUntilChanged,
+  switchMap,
+  tap,
+  finalize,
+  catchError,
+  debounceTime,
+} from 'rxjs/operators';
 import { of } from 'rxjs';
 import { SearchService } from '@service/search.service';
 import { SearchResultItem } from '@model/search-result.model';
@@ -65,7 +74,14 @@ interface DiaryMeta {
 
 @Component({
   selector: 'app-filter-page',
-  imports: [AccordionComponent, CheckboxComponent, IconComponent, DividerComponent, CommonModule],
+  imports: [
+    AccordionComponent,
+    CheckboxComponent,
+    IconComponent,
+    DividerComponent,
+    CommonModule,
+    ReactiveFormsModule,
+  ],
   templateUrl: './filter-page.component.html',
   styleUrl: './filter-page.component.scss',
 })
@@ -86,6 +102,7 @@ export class FilterPageComponent {
   readonly searchResults = signal<SearchResultItem[]>([]);
   readonly isSearchLoading = signal(false);
   readonly searchError = signal<string | null>(null);
+  readonly searchControl = new FormControl('', { nonNullable: true });
 
   readonly hasActiveSearch = computed(() => this.activeSearchQuery().length > 0);
   readonly noSearchResults = computed(
@@ -538,6 +555,23 @@ export class FilterPageComponent {
    * Connects route-aware signals to the shared filter state without using the deprecated allowSignalWrites flag.
    */
   constructor() {
+    this.searchControl.valueChanges
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        map((raw) => raw.trim()),
+        debounceTime(200),
+        distinctUntilChanged()
+      )
+      .subscribe((query) => {
+        void this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: {
+            q: query.length ? query : null,
+          },
+          queryParamsHandling: 'merge',
+        });
+      });
+
     effect(() => {
       const filtered = this.filteredDiaries();
       this.state.setVisibleDiaries(filtered.length ? filtered : null);
@@ -576,6 +610,7 @@ export class FilterPageComponent {
         distinctUntilChanged(),
         switchMap((query) => {
           this.activeSearchQuery.set(query);
+          this.searchControl.setValue(query, { emitEvent: false });
 
           if (!query) {
             this.searchResults.set([]);
@@ -639,7 +674,37 @@ export class FilterPageComponent {
     void this.router.navigate(['/travels', result.diaryId ?? result.id]);
   }
 
+  onSearchSubmit(event: Event): void {
+    event.preventDefault();
+    const query = this.searchControl.value.trim();
+
+    if (!query) {
+      this.clearSearchQuery();
+      return;
+    }
+
+    this.searchControl.setValue(query, { emitEvent: false });
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { q: query },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  onClearSearchClick(): void {
+    this.clearSearchQuery();
+  }
+
   clearSearchQuery(): void {
-    void this.router.navigate(['/travels']);
+    this.activeSearchQuery.set('');
+    this.searchResults.set([]);
+    this.searchError.set(null);
+    this.isSearchLoading.set(false);
+    this.searchControl.setValue('', { emitEvent: false });
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { q: null },
+      queryParamsHandling: 'merge',
+    });
   }
 }
