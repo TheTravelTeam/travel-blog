@@ -25,10 +25,7 @@ export class TravelMapLayoutPageComponent implements OnInit, OnDestroy {
 
   public userId = 1;
   readonly currentRoute = signal(this.router.url);
-  readonly isWorldMapOrFilterpage = computed(
-    () => this.currentRoute() === '/travels' || /^\/travels\/\d+$/.test(this.currentRoute())
-  );
-  readonly isMyTravelsPage = computed(() => /^\/travels\/users\/\d+$/.test(this.currentRoute()));
+  readonly isDiaryPage = computed(() => /^\/travels\/\d+$/.test(this.currentRoute()));
 
   ngOnInit(): void {
     this.routeSub = this.router.events

@@ -23,12 +23,10 @@
   }
 
   .panel-area {
-    &__worldMap {
-      flex: 0 0 40%;
-    }
+    flex: 0 0 40%;
 
-    &__myTravels {
-      flex: 0 0 50%;
+    &.panel-area--diary {
+      flex: 0 0 48%;
     }
   }
 }
