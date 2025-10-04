@@ -55,8 +55,23 @@ export class TravelMapLayoutPageComponent implements OnInit, OnDestroy {
     }
 
     this.state.steps.set(event.steps);
-    this.state.openedStepId.set(event.steps[0]?.id ?? null);
-    this.state.panelHeight.set('collapsedDiary');
+    const requestedStepId = this.extractStepIdFromUrl();
+    const matchedStep =
+      requestedStepId != null
+        ? event.steps.find((step) => step.id === requestedStepId) ?? null
+        : null;
+    const targetedStep = matchedStep ?? event.steps[0] ?? null;
+
+    this.state.openedStepId.set(targetedStep?.id ?? null);
+
+    if (matchedStep) {
+      this.state.mapCenterCoords.set(null);
+      this.state.panelHeight.set('expanded');
+      return;
+    }
+
+    this.state.mapCenterCoords.set(null);
+    this.state.panelHeight.set('expanded');
   }
 
   onStepSelected(event: MapStepSelectedEvent): void {
@@ -79,7 +94,9 @@ export class TravelMapLayoutPageComponent implements OnInit, OnDestroy {
 
     this.currentRoute.set(url);
 
-    const [path] = url.split('?');
+    const [path, query] = url.split('?');
+    const searchParams = new URLSearchParams(query ?? '');
+    const hasSearchQuery = (searchParams.get('q') ?? '').trim().length > 0;
 
     if (!path.startsWith('/travels')) {
       this.state.reset();
@@ -88,6 +105,11 @@ export class TravelMapLayoutPageComponent implements OnInit, OnDestroy {
     }
 
     if (path === '/travels') {
+      if (hasSearchQuery) {
+        this.state.panelHeight.set('expanded');
+        return;
+      }
+
       this.state.reset();
       this.state.panelHeight.set('collapsed');
       this.mapComponent?.backToDiaries({ skipNavigation: true, skipStateReset: true });
@@ -97,12 +119,33 @@ export class TravelMapLayoutPageComponent implements OnInit, OnDestroy {
     if (/^\/travels\/users\/\d+$/.test(path)) {
       this.state.clearCurrentDiarySelection({ preserveVisibleDiaries: true });
       this.state.setVisibleDiaries([]);
-      this.state.panelHeight.set('collapsed');
+      this.state.panelHeight.set('expanded');
       this.mapComponent?.backToDiaries({
         skipNavigation: true,
         skipStateReset: true,
         skipGlobalReload: true,
       });
+      return;
     }
+
+    if (/^\/travels\/\d+$/.test(path)) {
+      this.state.panelHeight.set('expanded');
+    }
+  }
+
+  private extractStepIdFromUrl(): number | null {
+    const [, query] = this.router.url.split('?');
+    if (!query) {
+      return null;
+    }
+
+    const params = new URLSearchParams(query);
+    const raw = params.get('step');
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) ? parsed : null;
   }
 }

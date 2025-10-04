@@ -10,10 +10,28 @@
       </div>
 
       @if (!state.currentDiary() || router.url === '/travels') {
-        <div class="search-bar">
+        <form class="search-bar" role="search" (submit)="onSearchSubmit($event)">
           <span class="search-bar__icon material-symbols-outlined">search</span>
-          <input type="text" class="search-bar__input" placeholder="Hinted search text" />
-        </div>
+          <input
+            type="search"
+            class="search-bar__input"
+            placeholder="Rechercher un carnet ou une étape"
+            autocomplete="off"
+            [formControl]="searchControl"
+            data-test="filter-panel-search-input"
+          />
+          @if (searchControl.value.trim().length) {
+            <button
+              type="button"
+              class="search-bar__clear"
+              aria-label="Effacer la recherche"
+              (mousedown)="$event.preventDefault()"
+              (click)="onClearSearchClick()"
+            >
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          }
+        </form>
       }
     }
     @if (!isTabletOrMobile()) {
