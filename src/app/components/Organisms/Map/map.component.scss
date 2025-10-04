@@ -68,11 +68,15 @@
 @media (max-width: 1024px) {
   .container {
     flex-direction: column;
+    min-height: calc(100vh - var(--top-bar-height, 70.55px));
+    min-height: calc(100dvh - var(--top-bar-height, 70.55px));
   }
 
   .map-container {
-    flex: 1;
+    flex: none;
     min-height: 300px;
+    height: calc(100vh - var(--top-bar-height, 70.55px));
+    height: calc(100dvh - var(--top-bar-height, 70.55px));
   }
 }
 
