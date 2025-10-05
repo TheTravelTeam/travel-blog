@@ -1,0 +1,53 @@
+<section class="articles-page">
+  <div class="articles-page__hero">
+    <img [src]="heroImage()" alt="Destination mise en avant" class="articles-page__hero-image" />
+    <div class="articles-page__hero-overlay"></div>
+  </div>
+
+  <div class="articles-page__body">
+    <app-breadcrumb [breadcrumbItems]="breadcrumbItems()"></app-breadcrumb>
+
+    <header class="articles-page__heading">
+      <h1>Trouver votre destination</h1>
+    </header>
+
+    @if (isLoading()) {
+      <p class="articles-page__status">Chargement des articles…</p>
+    } @else {
+      @if (error()) {
+        <p class="articles-page__status articles-page__status--error">{{ error() }}</p>
+      }
+
+      @if (hasArticles()) {
+        <ul class="articles-page__grid">
+          @for (article of articles(); track trackByArticleId($index, article)) {
+            <li class="articles-page__item">
+              <a class="articles-page__card" [routerLink]="['/article', article.id]">
+                <div class="articles-page__media">
+                  <img [src]="getArticleCover(article)" [alt]="article.title" />
+                </div>
+                <div class="articles-page__card-content">
+                  <h2>{{ article.title }}</h2>
+                  <div class="articles-page__meta">
+                    <span class="articles-page__meta-item">
+                      <app-icon name="location_on" size="sm"></app-icon>
+                      Destination · {{ getArticleCategory(article) }}
+                    </span>
+                    <span class="articles-page__meta-item">
+                      <app-icon name="account_circle" size="sm"></app-icon>
+                      {{ getArticleAuthor(article) }}
+                    </span>
+                  </div>
+                  <p>{{ getArticlePreview(article) }}</p>
+                  <span class="articles-page__link">Lire la suite</span>
+                </div>
+              </a>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="articles-page__status">Aucun article disponible pour le moment.</p>
+      }
+    }
+  </div>
+</section>

@@ -9,6 +9,8 @@ export interface ArticleDto {
   themeId?: number | null;
   themeName?: string | null;
   category?: string | null;
+  coverUrl?: string | null;
+  thumbnailUrl?: string | null;
   theme?: {
     id: number;
     name: string;

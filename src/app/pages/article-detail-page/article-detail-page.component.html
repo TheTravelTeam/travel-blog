@@ -1,0 +1,47 @@
+<section class="article-detail">
+  <div class="article-detail__hero">
+    <img [src]="heroImage()" alt="Illustration de l'article" class="article-detail__hero-image" />
+    <div class="article-detail__hero-overlay"></div>
+  </div>
+
+  <div class="article-detail__body">
+    <app-breadcrumb [breadcrumbItems]="breadcrumbItems()"></app-breadcrumb>
+
+    @if (isLoading()) {
+      <p class="article-detail__status">Chargement de l'article…</p>
+    } @else {
+      @if (error()) {
+        <p class="article-detail__status article-detail__status--error">{{ error() }}</p>
+      } @else {
+        @if (article()) {
+          <article class="article-detail__content">
+            <header class="article-detail__header">
+              <h1>{{ article()!.title }}</h1>
+            </header>
+
+            <div class="article-detail__meta">
+              <span class="article-detail__meta-item">
+                <app-icon name="location_on" size="sm"></app-icon>
+                {{ heroDestination() }}
+              </span>
+              <span class="article-detail__meta-item">
+                <app-icon name="account_circle" size="sm"></app-icon>
+                {{ getArticleAuthor(article()) }}
+              </span>
+              @if (formattedUpdatedAt()) {
+                <span class="article-detail__meta-item">
+                  <app-icon name="calendar_today" size="sm"></app-icon>
+                  Mis à jour le {{ formattedUpdatedAt() }}
+                </span>
+              }
+            </div>
+
+            <div class="article-detail__rich-text" [innerHTML]="article()!.content"></div>
+          </article>
+        } @else {
+          <p class="article-detail__status">Aucun article à afficher.</p>
+        }
+      }
+    }
+  </div>
+</section>

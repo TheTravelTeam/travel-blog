@@ -11,4 +11,6 @@ export interface Article {
   themeId?: number | null;
   userId?: number | null;
   themes?: Theme[];
+  coverUrl?: string | null;
+  thumbnailUrl?: string | null;
 }
