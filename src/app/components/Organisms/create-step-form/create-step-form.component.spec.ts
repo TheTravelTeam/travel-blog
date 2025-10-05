@@ -21,7 +21,7 @@ describe('CreateStepFormComponent', () => {
   });
 
   function setValidBaseFormValues(): void {
-    component.stepForm.setValue({
+    component.stepForm.patchValue({
       title: 'Nouvelle étape test',
       city: 'Paris',
       country: 'France',
@@ -75,18 +75,10 @@ describe('CreateStepFormComponent', () => {
     );
   });
 
-  it('should block submit when location fields are shorter than 2 characters', () => {
-    setValidBaseFormValues();
-    component.stepForm.patchValue({ city: 'A', country: 'B', continent: 'C' });
-
-    const emitSpy = spyOn(component.submitStep, 'emit');
-
-    component.handleSubmit();
-
-    expect(component.stepForm.invalid).toBeTrue();
-    expect(component.stepForm.get('city')?.errors?.['minlength']).toBeTruthy();
-    expect(component.getControlError('city')).toContain('au moins');
-    expect(emitSpy).not.toHaveBeenCalled();
+  it('should keep location identity fields disabled to avoid manual edits', () => {
+    expect(component.stepForm.get('city')?.disabled).toBeTrue();
+    expect(component.stepForm.get('country')?.disabled).toBeTrue();
+    expect(component.stepForm.get('continent')?.disabled).toBeTrue();
   });
 
   it('should populate the form from a Step instance', () => {
@@ -114,7 +106,7 @@ describe('CreateStepFormComponent', () => {
 
     component.populateFromStep(step);
 
-    expect(component.stepForm.value).toEqual(
+    expect(component.stepForm.getRawValue()).toEqual(
       jasmine.objectContaining({
         title: 'Titre existant',
         city: 'Paris',

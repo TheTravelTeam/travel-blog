@@ -1,8 +1,4 @@
-<div
-  class="create-diary-modal"
-  [class.create-diary-modal--mobile]="isMobile"
-  data-test="create-diary-modal"
->
+<div class="create-diary-modal" [class.create-diary-modal--mobile]="isMobile" data-test="create-diary-modal">
   <div class="create-diary-modal__panel">
     <div class="create-diary-modal__header">
       <div>
@@ -45,7 +41,7 @@
       >
         <section class="create-diary-modal__section">
           <h3>Informations du carnet</h3>
-          <div class="create-diary-modal__grid">
+          <div class="create-diary-modal__grid create-diary-modal__grid--diary">
             <app-text-input
               formControlName="title"
               label="Nom du voyage"
@@ -56,17 +52,28 @@
 
             <app-text-input
               formControlName="period"
-              label="Période de voyage"
-              placeholder="Sélectionnez une date et une heure"
+              label="Date de début de voyage"
+              placeholder="Choisissez la date de départ"
               type="datetime-local"
               data-test="create-diary-period"
             ></app-text-input>
+          </div>
+
+          <div class="create-diary-modal__card create-diary-modal__card--stack">
+            <div class="create-diary-modal__card-header">
+              <app-icon name="travel_explore"></app-icon>
+              <div>
+                <p class="create-diary-modal__card-title">Image de couverture</p>
+                <p class="create-diary-modal__card-subtitle">
+                  Ajoutez un visuel pour présenter votre carnet.
+                </p>
+              </div>
+            </div>
 
             <app-text-input
               formControlName="coverUrl"
-              label="Visuel de couverture (URL)"
-              placeholder="Ajouter votre image de couverture"
-              icon="add"
+              label="Adresse de l'image (URL)"
+              placeholder="https://"
               data-test="create-diary-cover"
             ></app-text-input>
 
@@ -99,31 +106,37 @@
                 <p class="create-diary-modal__upload-error">{{ coverUploadError }}</p>
               }
             </div>
+          </div>
 
-            <div class="create-diary-modal__toggles">
-              <label class="toggle" data-test="create-diary-private">
-                <input type="checkbox" formControlName="isPrivate" />
-                <span>Privé</span>
-              </label>
-              <label class="toggle" data-test="create-diary-published">
-                <input type="checkbox" formControlName="isPublished" />
-                <span>Publié</span>
-              </label>
-              <label class="toggle" data-test="create-diary-comments">
-                <input type="checkbox" formControlName="canComment" />
-                <span>Commentaires autorisés</span>
-              </label>
-            </div>
-
-            <div class="create-diary-modal__grid-row">
-              <label>
-                Statut
-                <select formControlName="status" data-test="create-diary-status">
-                  <option value="IN_PROGRESS">En cours</option>
-                  <option value="COMPLETED">Terminé</option>
-                </select>
-              </label>
-            </div>
+          <div class="create-diary-modal__options" role="group" aria-label="Paramètres du carnet">
+            <label class="create-diary-modal__option" data-test="create-diary-private">
+              <input type="checkbox" formControlName="isPrivate" />
+              <span class="create-diary-modal__option-icon">
+                <app-icon [name]="diaryForm.get('isPrivate')?.value ? 'lock' : 'public'"></app-icon>
+              </span>
+              <span class="create-diary-modal__option-content">
+                <span class="create-diary-modal__option-title">
+                  Carnet {{ diaryForm.get('isPrivate')?.value ? 'privé' : 'public' }}
+                </span>
+                <span class="create-diary-modal__option-hint">
+                  Appuyez pour {{ diaryForm.get('isPrivate')?.value ? 'le rendre public' : 'le rendre privé' }}.
+                </span>
+              </span>
+            </label>
+            <label class="create-diary-modal__option" data-test="create-diary-comments">
+              <input type="checkbox" formControlName="canComment" />
+              <span class="create-diary-modal__option-icon">
+                <app-icon [name]="diaryForm.get('canComment')?.value ? 'chat_bubble' : 'chat_bubble_outline'"></app-icon>
+              </span>
+              <span class="create-diary-modal__option-content">
+                <span class="create-diary-modal__option-title">
+                  Commentaires {{ diaryForm.get('canComment')?.value ? 'activés' : 'désactivés' }}
+                </span>
+                <span class="create-diary-modal__option-hint">
+                  Autorisez les lecteurs à réagir au carnet.
+                </span>
+              </span>
+            </label>
           </div>
 
           <div class="create-diary-modal__editor">
@@ -180,7 +193,7 @@
       >
         <section class="create-diary-modal__section">
           <h3>Première étape</h3>
-          <div class="create-diary-modal__grid create-diary-modal__grid--step">
+          <div class="create-diary-modal__grid create-diary-modal__grid--step-primary">
             <app-text-input
               formControlName="title"
               label="Nom de l'étape"
@@ -188,32 +201,6 @@
               [isRequired]="true"
               [errorMessage]="getStepControlError('title')"
               data-test="create-step-title"
-            ></app-text-input>
-
-            <app-text-input
-              formControlName="city"
-              label="ville"
-              placeholder="Ville"
-              [isRequired]="true"
-              [errorMessage]="getStepControlError('city')"
-              data-test="create-step-city"
-            ></app-text-input>
-            <app-text-input
-              formControlName="country"
-              label="pays"
-              placeholder="Pays"
-              [isRequired]="true"
-              [errorMessage]="getStepControlError('country')"
-              data-test="create-step-country"
-            ></app-text-input>
-
-            <app-text-input
-              formControlName="continent"
-              label="continent"
-              placeholder="Continent"
-              [isRequired]="true"
-              [errorMessage]="getStepControlError('continent')"
-              data-test="create-step-continent"
             ></app-text-input>
 
             <app-text-input
@@ -226,29 +213,53 @@
 
             <app-text-input
               formControlName="endDate"
-              label="Début de l'étape"
+              label="Fin de l'étape"
               placeholder="Date et heure"
               type="datetime-local"
               data-test="create-step-end"
             ></app-text-input>
+          </div>
 
-            <app-select
-              [itemsList]="availableThemes"
-              label="Thème"
-              placeholder="Choisissez un thème"
-              [withMutipleSelect]="true"
-              [selectedIds]="stepForm.get('themeIds')?.value ?? []"
-              [disabled]="availableThemes.length === 0"
-              (selectOnChange)="onThemeChange($event)"
-              data-test="create-step-themes"
-            ></app-select>
+          <div class="create-diary-modal__grid create-diary-modal__grid--step-location">
+            <app-text-input
+              formControlName="city"
+              label="Ville"
+              placeholder="Ville"
+              [isDisabled]="true"
+              data-test="create-step-city"
+            ></app-text-input>
+            <app-text-input
+              formControlName="country"
+              label="Pays"
+              placeholder="Pays"
+              [isDisabled]="true"
+              data-test="create-step-country"
+            ></app-text-input>
+            <app-text-input
+              formControlName="continent"
+              label="Continent"
+              placeholder="Continent"
+              [isDisabled]="true"
+              data-test="create-step-continent"
+            ></app-text-input>
+          </div>
 
-            <div class="create-diary-modal__location">
-              <p class="create-diary-modal__location-label">Localisation</p>
-              <div class="create-diary-modal__location-actions">
-                <app-button
-                  text="Choisir sur la carte"
-                  color="secondary"
+          <div class="create-diary-modal__grid create-diary-modal__grid--step-meta">
+            <div class="create-diary-modal__card create-diary-modal__card--inline create-diary-modal__card--location">
+              <div class="create-diary-modal__card-header">
+                <app-icon name="location_on"></app-icon>
+                <div>
+                  <p class="create-diary-modal__card-title">Localisation</p>
+                  <p class="create-diary-modal__card-subtitle">
+                    Sélectionnez le lieu de cette étape directement sur la carte.
+                  </p>
+                </div>
+              </div>
+
+            <div class="create-diary-modal__location-actions">
+              <app-button
+                text="Choisir sur la carte"
+                color="secondary"
                   size="auto"
                   radius="border_lg"
                   htmlType="button"
@@ -274,7 +285,42 @@
               <input type="hidden" formControlName="longitude" />
             </div>
 
+            <div class="create-diary-modal__card create-diary-modal__card--inline create-diary-modal__card--theme">
+              <div class="create-diary-modal__card-header">
+                <app-icon name="style"></app-icon>
+                <div>
+                  <p class="create-diary-modal__card-title">Thèmes</p>
+                  <p class="create-diary-modal__card-subtitle">
+                    Associez une ambiance à cette escale.
+                  </p>
+                </div>
+              </div>
+              <app-select
+                class="create-diary-modal__theme-select"
+                [itemsList]="availableThemes"
+                label=""
+                placeholder="Choisissez un thème"
+                [withMutipleSelect]="true"
+                [selectedIds]="stepForm.get('themeIds')?.value ?? []"
+                [disabled]="availableThemes.length === 0"
+                (selectOnChange)="onThemeChange($event)"
+                data-test="create-step-themes"
+              ></app-select>
+            </div>
+          </div>
+
+          <div class="create-diary-modal__card create-diary-modal__card--media">
+            <div class="create-diary-modal__card-header">
+              <app-icon name="photo_library"></app-icon>
+              <div>
+                <p class="create-diary-modal__card-title">Galerie de l'étape</p>
+                <p class="create-diary-modal__card-subtitle">
+                  Importez vos souvenirs pour les afficher côte à côte.
+                </p>
+              </div>
+            </div>
             <app-media-grid-uploader
+              class="create-diary-modal__media-uploader"
               [items]="stepMediaItems"
               [folder]="'travel-diaries/steps'"
               (itemsChange)="onStepMediaItemsChange($event)"
@@ -282,8 +328,8 @@
               (uploadingChange)="onStepMediaUploadChange($event)"
               data-test="create-step-media"
             ></app-media-grid-uploader>
-            <input type="hidden" formControlName="mediaUrl" />
           </div>
+          <input type="hidden" formControlName="mediaUrl" />
 
           <div class="create-diary-modal__editor">
             <app-editor

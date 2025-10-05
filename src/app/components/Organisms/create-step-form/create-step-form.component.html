@@ -6,7 +6,7 @@
 >
   <section class="create-step__section">
     <h3>Nouvelle étape</h3>
-    <div class="create-step__grid">
+    <div class="create-step__grid create-step__grid--primary">
       <app-text-input
         formControlName="title"
         label="Nom de l'étape"
@@ -14,31 +14,6 @@
         [isRequired]="true"
         [errorMessage]="getControlError('title')"
         data-test="step-form-title"
-      ></app-text-input>
-
-      <app-text-input
-        formControlName="city"
-        label="Ville"
-        placeholder="Ville"
-        [isRequired]="true"
-        [errorMessage]="getControlError('city')"
-        data-test="step-form-city"
-      ></app-text-input>
-      <app-text-input
-        formControlName="country"
-        label="Pays"
-        placeholder="Pays"
-        [isRequired]="true"
-        [errorMessage]="getControlError('country')"
-        data-test="step-form-country"
-      ></app-text-input>
-      <app-text-input
-        formControlName="continent"
-        label="Continent"
-        placeholder="Continent"
-        [isRequired]="true"
-        [errorMessage]="getControlError('continent')"
-        data-test="step-form-continent"
       ></app-text-input>
 
       <app-text-input
@@ -56,20 +31,43 @@
         type="datetime-local"
         data-test="step-form-end"
       ></app-text-input>
+    </div>
+    <div class="create-step__grid create-step__grid--location">
+      <app-text-input
+        formControlName="city"
+        label="Ville"
+        placeholder="Ville"
+        [isDisabled]="true"
+        data-test="step-form-city"
+      ></app-text-input>
+      <app-text-input
+        formControlName="country"
+        label="Pays"
+        placeholder="Pays"
+        [isDisabled]="true"
+        data-test="step-form-country"
+      ></app-text-input>
+      <app-text-input
+        formControlName="continent"
+        label="Continent"
+        placeholder="Continent"
+        [isDisabled]="true"
+        data-test="step-form-continent"
+      ></app-text-input>
+    </div>
 
-      <app-select
-        [itemsList]="availableThemes"
-        label="Thème"
-        placeholder="Choisissez un thème"
-        [withMutipleSelect]="true"
-        [selectedIds]="stepForm.get('themeIds')?.value ?? []"
-        [disabled]="availableThemes.length === 0"
-        (selectOnChange)="onThemeChange($event)"
-        data-test="step-form-themes"
-      ></app-select>
+    <div class="create-step__grid create-step__grid--meta">
+      <div class="create-step__card create-step__card--location">
+        <div class="create-step__card-header">
+          <app-icon name="location_on"></app-icon>
+          <div>
+            <p class="create-step__card-title">Localisation</p>
+            <p class="create-step__card-subtitle">
+              Choisissez le lieu de l'étape sur la carte, les champs se remplissent automatiquement.
+            </p>
+          </div>
+        </div>
 
-      <div class="create-step__location">
-        <p class="create-step__location-label">Localisation</p>
         <div class="create-step__location-actions">
           <app-button
             text="Choisir sur la carte"
@@ -99,15 +97,49 @@
         <input type="hidden" formControlName="longitude" />
       </div>
 
+      <div class="create-step__card create-step__card--theme">
+        <div class="create-step__card-header">
+          <app-icon name="style"></app-icon>
+          <div>
+            <p class="create-step__card-title">Thèmes</p>
+            <p class="create-step__card-subtitle">
+              Sélectionnez une ou plusieurs ambiances pour cette étape.
+            </p>
+          </div>
+        </div>
+        <app-select
+          class="create-step__theme-select"
+          [itemsList]="availableThemes"
+          label=""
+          placeholder="Choisissez un thème"
+          [withMutipleSelect]="true"
+          [selectedIds]="stepForm.get('themeIds')?.value ?? []"
+          [disabled]="availableThemes.length === 0"
+          (selectOnChange)="onThemeChange($event)"
+          data-test="step-form-themes"
+        ></app-select>
+      </div>
+    </div>
+
+    <div class="create-step__card create-step__card--media">
+      <div class="create-step__card-header">
+        <app-icon name="photo_library"></app-icon>
+        <div>
+          <p class="create-step__card-title">Galerie de l'étape</p>
+          <p class="create-step__card-subtitle">
+            Téléchargez vos images, elles s'affichent côte à côte.
+          </p>
+        </div>
+      </div>
       <app-media-grid-uploader
+        class="create-step__media-uploader"
         [items]="mediaItems"
         [folder]="'travel-diaries/steps'"
         (itemsChange)="onMediaItemsChange($event)"
         (primaryChange)="onPrimaryMediaChange($event)"
         (uploadingChange)="onMediaUploadStateChange($event)"
         data-test="step-form-media"
-      >
-      </app-media-grid-uploader>
+      ></app-media-grid-uploader>
     </div>
 
     <div class="create-step__editor">

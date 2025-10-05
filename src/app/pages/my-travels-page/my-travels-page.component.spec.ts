@@ -248,12 +248,10 @@ describe('MyTravelsPageComponent', () => {
     const payload: DiaryCreationPayload = {
       diary: {
         title: 'Updated title',
-        travelPeriod: null,
+        startDate: null,
         coverUrl: updatedCoverUrl,
         description: 'Updated description',
         isPrivate: true,
-        isPublished: true,
-        status: 'COMPLETED',
         canComment: true,
       },
       step: {
@@ -304,9 +302,8 @@ describe('MyTravelsPageComponent', () => {
         title: payload.diary.title,
         description: payload.diary.description,
         isPrivate: payload.diary.isPrivate,
-        isPublished: payload.diary.isPublished,
-        status: payload.diary.status,
         canComment: payload.diary.canComment,
+        startDate: payload.diary.startDate,
       })
     );
   });

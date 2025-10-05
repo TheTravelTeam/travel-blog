@@ -30,8 +30,8 @@ app-accordion {
     flex: 8;
     display: flex;
     flex-direction: column;
-    height: calc(100vh - var(--top-bar-height, 70.55px));
-    height: calc(100dvh - var(--top-bar-height, 70.55px));
+    height: calc(100vh - var(--top-bar-height, 68px));
+    height: calc(100dvh - var(--top-bar-height, 68px));
     padding-bottom: 1rem;
     overflow-y: auto;
     scrollbar-gutter: stable;
@@ -146,17 +146,21 @@ app-accordion {
   z-index: 50;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  padding: 2rem 1rem;
-  background: rgba(0, 0, 0, 0.5);
+  align-items: stretch;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.45);
+  height: 100dvh;
 
   &__panel {
-    width: min(960px, 100%);
-    max-height: 100%;
+    margin-top: var(--top-bar-height, 68px);
+    width: 100%;
+    max-width: none;
+    height: calc(100dvh - var(--top-bar-height, 68px));
+    max-height: none;
     overflow-y: auto;
     background: #fff;
-    border-radius: 24px;
-    padding: 2rem;
+    border-radius: 0;
+    padding: clamp(1.5rem, 3vw, 2.5rem);
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -197,11 +201,10 @@ app-accordion {
 
 @media screen and (max-width: 768px) {
   .create-step-modal {
-    padding: 1rem 0.5rem;
+    padding: 0;
 
     &__panel {
       padding: 1.5rem;
-      border-radius: 16px;
     }
 
     &__header {
@@ -570,8 +573,8 @@ app-accordion {
 @media screen and (min-width: 1024px) {
   .worldMap {
     flex-direction: row;
-    height: calc(100vh - var(--top-bar-height, 70.55px));
-    height: calc(100dvh - var(--top-bar-height, 70.55px));
+    height: calc(100vh - var(--top-bar-height, 68px));
+    height: calc(100dvh - var(--top-bar-height, 68px));
 
   }
 
@@ -586,8 +589,8 @@ app-accordion {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
     box-shadow: none;
-    height: calc(100vh - var(--top-bar-height, 70.55px));
-    height: calc(100dvh - var(--top-bar-height, 70.55px));
+    height: calc(100vh - var(--top-bar-height, 68px));
+    height: calc(100dvh - var(--top-bar-height, 68px));
 
     padding: 0 1rem 1rem 1rem;
     overflow-y: auto;

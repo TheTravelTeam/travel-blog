@@ -3,7 +3,19 @@
 @use 'leaflet/dist/leaflet.css';
 
 :root {
-  --top-bar-height: 70.55px;
+  --top-bar-height: 68px;
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --top-bar-height: 64px;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --top-bar-height: 56px;
+  }
 }
 /* You can add global styles to this file, and also import other style files */
 * {
