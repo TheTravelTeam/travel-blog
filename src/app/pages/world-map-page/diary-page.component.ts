@@ -105,6 +105,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
   readonly commentUpdating = signal<Record<number, boolean>>({});
   readonly editingCommentId = signal<number | null>(null);
   readonly stepLikePending = signal<Record<number, boolean>>({});
+  readonly stepLikeErrors = signal<Record<number, string | null>>({});
 
   readonly currentViewerId = computed(() => this.userService.currentUserId());
 
@@ -143,6 +144,10 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
       if (editingStep && isVisible) {
         queueMicrotask(() => this.createStepForm?.populateFromStep(editingStep));
       }
+    });
+
+    effect(() => {
+      this.state.setViewerLikeOwner(this.currentViewerId());
     });
   }
 
@@ -1103,7 +1108,9 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Performs an optimistic like increment and syncs it with the backend.
+   * Performs the like toggle flow: permission checks, optimistic update,
+   * backend sync and rollback in case of failure. Uses both component-level
+   * and service-level signals so the UI and other consumers stay aligned.
    * @param step Target step selected by the user.
    */
   private onStepLike(step: Step): void {
@@ -1112,12 +1119,30 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (!this.isAuthenticated()) {
+      this.setStepLikeError(stepId, 'Connectez-vous pour aimer une étape.');
+      return;
+    }
+
+    if (this.isViewerDisabled()) {
+      this.setStepLikeError(
+        stepId,
+        'Votre compte est désactivé. Vous ne pouvez plus aimer cette étape.'
+      );
+      return;
+    }
+
     if (this.isStepLikePending(stepId)) {
       return;
     }
 
+    this.setStepLikeError(stepId, null);
+
     const currentLikes = Number.isFinite(step?.likes) ? step.likes : 0;
-    const hasLiked = this.state.hasViewerLikedStep(stepId);
+    const hasLiked =
+      typeof step?.viewerHasLiked === 'boolean'
+        ? step.viewerHasLiked
+        : this.state.hasViewerLikedStep(stepId);
     const increment = !hasLiked;
     const delta = increment ? 1 : -1;
     const optimisticLikes = Math.max(0, currentLikes + delta);
@@ -1142,9 +1167,23 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
       });
   }
 
+  /**
+   * Retrieves the validation/permission error currently attached to a step like action.
+   * @param stepId Identifier of the targeted step.
+   * @returns Error message or null when nothing is blocking the action.
+   */
+  getStepLikeError(stepId: number): string | null {
+    return this.stepLikeErrors()[stepId] ?? null;
+  }
+
   /** Tracks the pending status of a like update for the provided step. */
   private setStepLikePending(stepId: number, isPending: boolean): void {
     this.stepLikePending.update((state) => ({ ...state, [stepId]: isPending }));
+  }
+
+  /** Stores a like-related validation or permission error for the provided step. */
+  private setStepLikeError(stepId: number, message: string | null): void {
+    this.stepLikeErrors.update((errors) => ({ ...errors, [stepId]: message }));
   }
 
   /**

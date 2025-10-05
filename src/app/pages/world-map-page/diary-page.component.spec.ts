@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
@@ -22,23 +24,23 @@ class CommentServiceStub {
 }
 
 class UserServiceStub {
-  private currentId: number | null = 1;
-  private disabled = false;
+  private currentId = signal<number | null>(1);
+  private disabled = signal(false);
 
   currentUserId(): number | null {
-    return this.currentId;
+    return this.currentId();
   }
 
   setCurrentUserId(value: number | null): void {
-    this.currentId = value;
+    this.currentId.set(value);
   }
 
   setDisabled(value: boolean): void {
-    this.disabled = value;
+    this.disabled.set(value);
   }
 
   isCurrentUserDisabled(): boolean {
-    return this.disabled;
+    return this.disabled();
   }
 
   getUserProfile(): ReturnType<UserService['getUserProfile']> {
@@ -57,6 +59,9 @@ describe('DiaryPageComponent', () => {
   let commentService: CommentServiceStub;
   let userService: UserServiceStub;
   let httpMock: HttpTestingController;
+  const syncViewerLikes = () => {
+    component.state.setViewerLikeOwner(userService.currentUserId());
+  };
 
   const mockUser: User = {
     id: 99,
@@ -118,6 +123,7 @@ describe('DiaryPageComponent', () => {
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideNoopAnimations(),
         { provide: CommentService, useClass: CommentServiceStub },
         { provide: UserService, useClass: UserServiceStub },
       ],
@@ -135,6 +141,7 @@ describe('DiaryPageComponent', () => {
     commentService.update.calls.reset();
     userService.setCurrentUserId(1);
     userService.setDisabled(false);
+    syncViewerLikes();
   });
 
   it('should create', () => {
@@ -143,6 +150,7 @@ describe('DiaryPageComponent', () => {
 
   it('should reject comment submission when user is not authenticated', () => {
     userService.setCurrentUserId(null);
+    syncViewerLikes();
     component.state.setCurrentDiary(baseDiary);
     component.state.setSteps(baseDiary.steps);
     component.onCommentDraftChange(baseStep.id, 'Test');
@@ -156,6 +164,7 @@ describe('DiaryPageComponent', () => {
   it('should reject comment submission when the account is disabled', () => {
     userService.setCurrentUserId(1);
     userService.setDisabled(true);
+    syncViewerLikes();
     component.state.setCurrentDiary(baseDiary);
     component.state.setSteps(baseDiary.steps);
     component.onCommentDraftChange(baseStep.id, 'Test');
@@ -208,6 +217,7 @@ describe('DiaryPageComponent', () => {
 
   it('should skip deletion when the viewer is not the diary owner', () => {
     userService.setCurrentUserId(1);
+    syncViewerLikes();
     const diary = { ...baseDiary } satisfies TravelDiary;
     const comment: Comment = {
       id: 200,
@@ -221,6 +231,7 @@ describe('DiaryPageComponent', () => {
 
     component.state.setCurrentDiary({ ...diary, steps: [step] });
     component.state.setSteps([step]);
+    fixture.detectChanges();
 
     component.onDeleteComment(step, comment);
 
@@ -231,6 +242,7 @@ describe('DiaryPageComponent', () => {
 
   it('should delete a comment when the viewer owns the diary', () => {
     userService.setCurrentUserId(99);
+    syncViewerLikes();
     const diary = { ...baseDiary } satisfies TravelDiary;
     const comment: Comment = {
       id: 201,
@@ -257,6 +269,7 @@ describe('DiaryPageComponent', () => {
 
   it('should allow comment authors to edit their own comment', () => {
     userService.setCurrentUserId(200);
+    syncViewerLikes();
 
     const diary: TravelDiary = {
       ...baseDiary,
@@ -277,6 +290,7 @@ describe('DiaryPageComponent', () => {
 
     component.state.setCurrentDiary({ ...diary, steps: [step] });
     component.state.setSteps([step]);
+    fixture.detectChanges();
 
     component.onEditComment(step, comment);
 
@@ -286,6 +300,7 @@ describe('DiaryPageComponent', () => {
 
   it('should persist comment edition and update the timeline', () => {
     userService.setCurrentUserId(99);
+    syncViewerLikes();
 
     const comment: Comment = {
       id: 400,
@@ -300,6 +315,7 @@ describe('DiaryPageComponent', () => {
 
     component.state.setCurrentDiary({ ...baseDiary, steps: [step] });
     component.state.setSteps([step]);
+    fixture.detectChanges();
 
     const updatedComment: Comment = {
       ...comment,
@@ -319,6 +335,45 @@ describe('DiaryPageComponent', () => {
     expect(component.isCommentEditing(comment.id)).toBeFalse();
     expect(component.isCommentUpdating(comment.id)).toBeFalse();
     expect(component.getCommentEditError(comment.id)).toBeNull();
+  });
+
+  it('should block likes for unauthenticated viewers and surface an error', () => {
+    userService.setCurrentUserId(null);
+    syncViewerLikes();
+
+    const step: Step = { ...baseStep, id: 12 };
+    const diary: TravelDiary = { ...baseDiary, steps: [step] };
+
+    component.state.setCurrentDiary(diary);
+    component.state.setSteps(diary.steps);
+
+    component.handleButtonClick('like', component.state.steps()[0]);
+
+    expect(component.getStepLikeError(step.id)).toBe('Connectez-vous pour aimer une étape.');
+    expect(component.isStepLikePending(step.id)).toBeFalse();
+
+    httpMock.expectNone(`${environment.apiUrl}/steps/${step.id}/likes`);
+  });
+
+  it('should block likes for disabled accounts and surface an error', () => {
+    userService.setCurrentUserId(1);
+    userService.setDisabled(true);
+    syncViewerLikes();
+
+    const step: Step = { ...baseStep, id: 13 };
+    const diary: TravelDiary = { ...baseDiary, steps: [step] };
+
+    component.state.setCurrentDiary(diary);
+    component.state.setSteps(diary.steps);
+
+    component.handleButtonClick('like', component.state.steps()[0]);
+
+    expect(component.getStepLikeError(step.id)).toBe(
+      'Votre compte est désactivé. Vous ne pouvez plus aimer cette étape.'
+    );
+    expect(component.isStepLikePending(step.id)).toBeFalse();
+
+    httpMock.expectNone(`${environment.apiUrl}/steps/${step.id}/likes`);
   });
 
   it('should optimistically increment likes and sync with the backend response', () => {
@@ -462,7 +517,13 @@ describe('DiaryPageComponent', () => {
     const step: Step = { ...baseStep, likes: '3' as unknown as number };
 
     expect(component.formatLikeLabel(step)).toBe('3');
-    expect(component.formatLikeLabel({ ...step, likes: undefined, likesCount: '2' as unknown as number })).toBe('2');
+    expect(
+      component.formatLikeLabel({
+        ...step,
+        likes: undefined as unknown as number,
+        likesCount: '2' as unknown as number,
+      })
+    ).toBe('2');
   });
 
   it('should avoid refetching the owner profile when likes update locally', () => {
@@ -482,6 +543,7 @@ describe('DiaryPageComponent', () => {
 
     component.state.setCurrentDiary(diary);
     component.state.setSteps(diary.steps);
+    fixture.detectChanges();
 
     expect(getProfileSpy).toHaveBeenCalledTimes(1);
 

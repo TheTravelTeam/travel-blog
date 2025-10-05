@@ -24,7 +24,8 @@ export class TravelMapStateService {
   openedStepId = signal<number | null>(null);
   openedCommentStepId = signal<number | null>(null);
   mapCenterCoords = signal<{ lat: number; lng: number } | null>(null);
-  private likedStepIds = signal<Set<number>>(this.loadLikedStepsFromStorage());
+  private likedStepIds = signal<Set<number>>(new Set());
+  private viewerLikeOwner: number | null = null;
   completedSteps = computed(() => {
     const currentStepId = this.openedStepId();
     const steps = this.steps();
@@ -209,6 +210,12 @@ export class TravelMapStateService {
    * @param likes Likes value to persist.
    * @param liked Whether the viewer currently likes the step.
    */
+  /**
+   * Injects a like update inside the shared collections and syncs the preference cache.
+   * @param stepId Identifier of the targeted step.
+   * @param likes Counter to persist (already normalised / optimistic / final).
+   * @param liked Whether the viewer currently likes the step.
+   */
   updateStepLikeState(stepId: number, likes: number, liked: boolean): void {
     if (!Number.isFinite(stepId)) {
       return;
@@ -245,7 +252,35 @@ export class TravelMapStateService {
       this.currentDiary.set({ ...diary, steps: updatedDiarySteps });
     }
 
-    this.persistViewerLike(stepId, liked);
+    this.applyViewerLikePreference(stepId, liked);
+  }
+
+  /**
+   * Declares the user owning the current like preferences.
+   * When the viewer changes, previously cached likes are cleared to avoid
+   * reusing another account's state.
+   */
+  /**
+   * Declares the user owning the current like state. When the identifier changes the
+   * in-memory cache and the `viewerHasLiked` flags are reset to avoid leaking data
+   * between accounts. Pass `null` to clear the context (logout).
+   * @param viewerId Identifier of the signed-in user or null when anonymous.
+   */
+  setViewerLikeOwner(viewerId: number | null): void {
+    const nextOwner = Number.isFinite(viewerId) ? (viewerId as number) : null;
+    if (this.viewerLikeOwner === nextOwner) {
+      return;
+    }
+
+    this.viewerLikeOwner = nextOwner;
+    this.likedStepIds.set(new Set());
+
+    if (this.viewerLikeOwner === null) {
+      this.resetViewerLikeFlags();
+      return;
+    }
+
+    this.resetViewerLikeFlags();
   }
 
   /**
@@ -334,6 +369,14 @@ export class TravelMapStateService {
 
     return steps.map((step) => {
       const likesCount = this.coerceLikes(step?.likesCount ?? step?.likes ?? 0);
+      const backendViewerLiked =
+        typeof step?.viewerHasLiked === 'boolean' ? step.viewerHasLiked : null;
+      const viewerHasLiked =
+        backendViewerLiked ?? this.hasViewerLikedStep(step?.id);
+
+      if (backendViewerLiked !== null) {
+        this.applyViewerLikePreference(step?.id, backendViewerLiked);
+      }
 
       return {
         ...step,
@@ -343,7 +386,7 @@ export class TravelMapStateService {
         themes: Array.isArray(step?.themes) ? (step.themes as Theme[]) : [],
         likes: likesCount,
         likesCount,
-        viewerHasLiked: this.hasViewerLikedStep(step?.id),
+        viewerHasLiked,
       } as Step;
     });
   }
@@ -421,61 +464,6 @@ export class TravelMapStateService {
     return value.trim().toUpperCase().replace(/[\s_-]+/g, '');
   }
 
-  private loadLikedStepsFromStorage(): Set<number> {
-    if (typeof window === 'undefined') {
-      return new Set();
-    }
-
-    try {
-      const stored = window.localStorage.getItem('travel-blog.viewer-liked-steps');
-      if (!stored) {
-        return new Set();
-      }
-
-      const parsed = JSON.parse(stored);
-      if (!Array.isArray(parsed)) {
-        return new Set();
-      }
-
-      const numbers = parsed
-        .map((value) => (Number.isFinite(value) ? Number(value) : null))
-        .filter((value): value is number => value !== null);
-
-      return new Set(numbers);
-    } catch {
-      return new Set();
-    }
-  }
-
-  private persistViewerLike(stepId: number, liked: boolean): void {
-    this.updateLikedSteps((set) => {
-      if (liked) {
-        set.add(stepId);
-      } else {
-        set.delete(stepId);
-      }
-    });
-  }
-
-  private updateLikedSteps(mutator: (set: Set<number>) => void): void {
-    const next = new Set(this.likedStepIds());
-    mutator(next);
-    this.likedStepIds.set(next);
-
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    try {
-      window.localStorage.setItem(
-        'travel-blog.viewer-liked-steps',
-        JSON.stringify(Array.from(next.values()))
-      );
-    } catch {
-      /* Storage failures can be ignored without impacting UX */
-    }
-  }
-
   private coerceLikes(value: unknown): number {
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) {
@@ -483,5 +471,40 @@ export class TravelMapStateService {
     }
 
     return Math.max(0, Math.round(parsed));
+  }
+
+  /**
+   * Caches the viewer preference for a given step in memory so that the component can
+   * compute the next optimistic action without querying the backend again.
+   * @param stepId Targeted step identifier.
+   * @param liked Viewer preference to persist (`true` if liked).
+   */
+  private applyViewerLikePreference(stepId: number | null | undefined, liked: boolean): void {
+    if (!Number.isFinite(stepId)) {
+      return;
+    }
+
+    const next = new Set(this.likedStepIds());
+    if (liked) {
+      next.add(stepId as number);
+    } else {
+      next.delete(stepId as number);
+    }
+    this.likedStepIds.set(next);
+  }
+
+  /**
+   * Resets every `viewerHasLiked` flag to `false` inside the shared collections. Used when
+   * the viewer changes or signs out so the next account starts from a neutral state.
+   */
+  private resetViewerLikeFlags(): void {
+    const resetSteps = this.steps().map((step) => ({ ...step, viewerHasLiked: false }));
+    this.steps.set(resetSteps);
+
+    const diary = this.currentDiary();
+    if (diary) {
+      const resetDiarySteps = diary.steps.map((step) => ({ ...step, viewerHasLiked: false }));
+      this.currentDiary.set({ ...diary, steps: resetDiarySteps });
+    }
   }
 }
