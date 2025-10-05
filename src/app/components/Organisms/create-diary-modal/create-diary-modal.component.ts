@@ -25,12 +25,10 @@ export type CreationModalStage = 'diary' | 'step';
 
 export interface DiaryFormPayload {
   title: string;
-  travelPeriod: string | null;
+  startDate: string | null;
   coverUrl: string | null;
   description: string;
   isPrivate?: boolean | null;
-  isPublished?: boolean | null;
-  status?: 'IN_PROGRESS' | 'COMPLETED' | null;
   canComment?: boolean | null;
 }
 
@@ -159,8 +157,6 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
       coverUrl: this.fb.control(''),
       description: this.fb.control('', [Validators.required, Validators.minLength(10)]),
       isPrivate: this.fb.control(false),
-      isPublished: this.fb.control(true),
-      status: this.fb.control<'IN_PROGRESS' | 'COMPLETED'>('IN_PROGRESS'),
       canComment: this.fb.control(true),
     });
   }
@@ -180,7 +176,7 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
         title: data.title ?? '',
         description: data.description ?? '',
         coverUrl: data.coverUrl ?? '',
-        // Conserver les valeurs par défaut pour visibilité/statut si non fournis
+        // Conserver les valeurs par défaut pour visibilité/commentaires si non fournis
       },
       { emitEvent: false }
     );
@@ -191,7 +187,7 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
    */
   /** Build the FormGroup that stores the first-step section. */
   private buildStepForm(): FormGroup {
-    return this.fb.group({
+    const form = this.fb.group({
       title: this.fb.control('', [Validators.required, Validators.maxLength(150)]),
       city: this.fb.control('', [
         Validators.required,
@@ -217,6 +213,12 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
       themeId: this.fb.control<number | null>(null),
       themeIds: this.fb.control<number[]>([]),
     });
+
+    form.get('city')?.disable({ emitEvent: false });
+    form.get('country')?.disable({ emitEvent: false });
+    form.get('continent')?.disable({ emitEvent: false });
+
+    return form;
   }
 
   /** Keep the diary rich-text editor synchronous with the form control. */
@@ -259,12 +261,10 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
       const diaryRaw = this.diaryForm.getRawValue();
       const diaryPayload: DiaryFormPayload = {
         title: (diaryRaw.title ?? '').trim(),
-        travelPeriod: diaryRaw.period?.toString().trim() || null,
+        startDate: this.normalizeDateInput(diaryRaw.period),
         coverUrl: diaryRaw.coverUrl?.toString().trim() || null,
         description: diaryRaw.description ?? '',
         isPrivate: !!diaryRaw.isPrivate,
-        isPublished: !!diaryRaw.isPublished,
-        status: diaryRaw.status ?? 'IN_PROGRESS',
         canComment: !!diaryRaw.canComment,
       };
 
@@ -323,12 +323,10 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
 
     const diaryPayload: DiaryFormPayload = {
       title: (diaryRaw.title ?? '').trim(),
-      travelPeriod: diaryRaw.period?.toString().trim() || null,
+      startDate: this.normalizeDateInput(diaryRaw.period),
       coverUrl: diaryRaw.coverUrl?.toString().trim() || null,
       description: diaryRaw.description ?? '',
       isPrivate: !!diaryRaw.isPrivate,
-      isPublished: !!diaryRaw.isPublished,
-      status: diaryRaw.status ?? 'IN_PROGRESS',
       canComment: !!diaryRaw.canComment,
     };
 
@@ -571,6 +569,9 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
 
     if (Object.keys(payload).length > 0) {
       this.stepForm.patchValue(payload);
+      this.stepForm.get('city')?.disable({ emitEvent: false });
+      this.stepForm.get('country')?.disable({ emitEvent: false });
+      this.stepForm.get('continent')?.disable({ emitEvent: false });
     }
   }
 
@@ -633,6 +634,9 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
       themeId: null,
       themeIds: [],
     });
+    this.stepForm.get('city')?.disable({ emitEvent: false });
+    this.stepForm.get('country')?.disable({ emitEvent: false });
+    this.stepForm.get('continent')?.disable({ emitEvent: false });
     this.stepMediaItems = [];
     this.isStepMediaUploading = false;
     this.stepGeocodingError = null;

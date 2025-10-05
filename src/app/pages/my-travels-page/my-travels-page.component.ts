@@ -350,10 +350,11 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
         mediaType: 'PHOTO',
       },
       user: currentUserId ?? null,
-      isPrivate: false,
+      isPrivate: payload.diary.isPrivate ?? false,
       isPublished: true,
       status: 'IN_PROGRESS',
-      canComment: true,
+      canComment: payload.diary.canComment ?? true,
+      startDate: payload.diary.startDate ?? null,
       steps: [],
     };
 
@@ -450,9 +451,8 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
       title: payload.diary.title,
       description: payload.diary.description,
       isPrivate: payload.diary.isPrivate ?? undefined,
-      isPublished: payload.diary.isPublished ?? undefined,
-      status: payload.diary.status ?? undefined,
       canComment: payload.diary.canComment ?? undefined,
+      startDate: payload.diary.startDate ?? null,
       // latitude/longitude, steps, user, media non modifiés ici
     };
 

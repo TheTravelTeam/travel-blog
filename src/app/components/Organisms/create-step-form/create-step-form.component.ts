@@ -3,6 +3,7 @@ import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonComponent } from 'components/Atoms/Button/button.component';
 import { TextInputComponent } from 'components/Atoms/text-input/text-input.component';
+import { IconComponent } from 'components/Atoms/Icon/icon.component';
 import { EditorComponent } from 'shared/editor/editor.component';
 import { SelectComponent } from 'components/Atoms/select/select.component';
 import { ItemProps } from '@model/select.model';
@@ -28,6 +29,7 @@ import {
     ReactiveFormsModule,
     ButtonComponent,
     TextInputComponent,
+    IconComponent,
     EditorComponent,
     SelectComponent,
     LocationPickerModalComponent,
@@ -62,6 +64,7 @@ export class CreateStepFormComponent implements OnDestroy {
     private readonly geocodingService: GeocodingService
   ) {
     this.stepForm = this.buildStepForm();
+    this.disableManualLocationControls();
   }
   mediaItems: MediaItem[] = [];
   isMediaUploading = false;
@@ -118,6 +121,7 @@ export class CreateStepFormComponent implements OnDestroy {
       themeId: null,
       themeIds: [],
     });
+    this.disableManualLocationControls();
     this.geocodingError = null;
     this.submitAttempted = false;
     this.clearGeocodingSubscription();
@@ -163,6 +167,7 @@ export class CreateStepFormComponent implements OnDestroy {
       themeId: primaryThemeId,
       themeIds,
     });
+    this.disableManualLocationControls();
 
     this.stepEditorContent = step.description ?? '';
   }
@@ -357,7 +362,14 @@ export class CreateStepFormComponent implements OnDestroy {
 
     if (Object.keys(payload).length > 0) {
       this.stepForm.patchValue(payload);
+      this.disableManualLocationControls();
     }
+  }
+
+  private disableManualLocationControls(): void {
+    this.stepForm.get('city')?.disable({ emitEvent: false });
+    this.stepForm.get('country')?.disable({ emitEvent: false });
+    this.stepForm.get('continent')?.disable({ emitEvent: false });
   }
 
   /** Ensure the geocoding subscription is cleaned up to avoid leaks. */
@@ -416,7 +428,7 @@ export class CreateStepFormComponent implements OnDestroy {
 
   /** Creates the reactive form used by the component. */
   private buildStepForm(): FormGroup {
-    return this.fb.group({
+    const form = this.fb.group({
       title: this.fb.control('', [Validators.required, Validators.maxLength(150)]),
       city: this.fb.control('', [
         Validators.required,
@@ -442,6 +454,12 @@ export class CreateStepFormComponent implements OnDestroy {
       themeId: this.fb.control<number | null>(null),
       themeIds: this.fb.control<number[]>([]),
     });
+
+    form.get('city')?.disable({ emitEvent: false });
+    form.get('country')?.disable({ emitEvent: false });
+    form.get('continent')?.disable({ emitEvent: false });
+
+    return form;
   }
 
   /**

@@ -3,29 +3,29 @@
 .select {
   display: flex;
   flex-direction: column;
-  width: fit-content;
+  width: 100%;
   padding: 1rem;
-  width: fit-content;
   height: auto;
   label {
     padding: 0.2rem;
     width: fit-content;
   }
-  &__top-section {
+  &__bottom-section {
     display: flex;
     flex-wrap: wrap;
     padding-block: 0.5rem;
-    height: 40px;
     color: white;
     gap: 0.2rem;
     width: 100%;
-    max-width: 320px;
+    max-width: 100%;
+    margin-top: 0.25rem;
   }
   &__container {
     border: 2px solid $primaryColor;
     border-radius: 4px;
     padding: 5px;
-    width: 320px;
+    width: 100%;
+    max-width: 100%;
     position: relative;
     cursor: pointer;
     user-select: none;

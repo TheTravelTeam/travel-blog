@@ -15,5 +15,6 @@ export interface CreateDiaryDto {
   isPublished?: boolean;
   status?: string;
   canComment?: boolean;
+  startDate?: string | null;
   steps?: number[];
 }
