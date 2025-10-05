@@ -147,6 +147,106 @@ describe('TravelMapStateService', () => {
     expect(service.visibleDiaries()[0].id).toBe(diary.id);
   });
 
+  it('should prefer backend viewerHasLiked flag when normalising steps', () => {
+    const stepId = 501;
+
+    const hydratedStep: Step = {
+      id: stepId,
+      title: 'Existing',
+      description: '',
+      latitude: 0,
+      longitude: 0,
+      media: [],
+      country: 'France',
+      city: 'Annecy',
+      continent: 'Europe',
+      startDate: null,
+      endDate: null,
+      status: 'COMPLETED',
+      themeIds: [],
+      themes: [],
+      isEditing: false,
+      likes: 10,
+      likesCount: 10,
+      viewerHasLiked: true,
+    };
+
+    service.setSteps([hydratedStep]);
+    expect(service.hasViewerLikedStep(stepId)).toBeTrue();
+
+    service.setSteps([{ ...hydratedStep, viewerHasLiked: false }]);
+
+    const normalised = service.steps()[0];
+    expect(normalised.viewerHasLiked).toBeFalse();
+    expect(service.hasViewerLikedStep(stepId)).toBeFalse();
+  });
+
+  it('should store backend like preference when provided', () => {
+    const stepId = 777;
+
+    const backendStep = {
+      id: stepId,
+      title: 'Desert',
+      description: 'Sunset ride',
+      latitude: 0,
+      longitude: 0,
+      media: [],
+      country: 'Morocco',
+      city: 'Merzouga',
+      continent: 'Africa',
+      startDate: null,
+      endDate: null,
+      status: 'COMPLETED',
+      themeIds: [],
+      themes: [],
+      isEditing: false,
+      likes: 2,
+      likesCount: 2,
+      viewerHasLiked: true,
+    } satisfies Step;
+
+    service.setSteps([backendStep]);
+
+    const normalised = service.steps()[0];
+    expect(normalised.viewerHasLiked).toBeTrue();
+    expect(service.hasViewerLikedStep(stepId)).toBeTrue();
+  });
+
+  it('should clear cached likes and reset flags when the viewer changes', () => {
+    const stepId = 888;
+
+    const step: Step = {
+      id: stepId,
+      title: 'Forest',
+      description: 'Green walk',
+      latitude: 0,
+      longitude: 0,
+      media: [],
+      country: 'France',
+      city: 'Lyon',
+      continent: 'Europe',
+      startDate: null,
+      endDate: null,
+      status: 'IN_PROGRESS',
+      themeIds: [],
+      themes: [],
+      isEditing: false,
+      likes: 5,
+      likesCount: 5,
+      viewerHasLiked: true,
+    };
+
+    service.setViewerLikeOwner(1);
+    service.setSteps([step]);
+    expect(service.steps()[0].viewerHasLiked).toBeTrue();
+    expect(service.hasViewerLikedStep(stepId)).toBeTrue();
+
+    service.setViewerLikeOwner(2);
+
+    expect(service.hasViewerLikedStep(stepId)).toBeFalse();
+    expect(service.steps()[0].viewerHasLiked).toBeFalse();
+  });
+
   describe('isDiaryAccessible', () => {
     const buildDiary = (overrides: Partial<TravelDiary> = {}): TravelDiary => ({
       id: 99,

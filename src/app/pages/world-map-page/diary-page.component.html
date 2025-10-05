@@ -171,6 +171,9 @@
                   (btnClick)="handleButtonClick($event, step)"
                 ></app-button>
               </div>
+              @if (getStepLikeError(step.id)) {
+                <p class="step__like-error">{{ getStepLikeError(step.id) }}</p>
+              }
               <!-- ✅ Ici on affiche si le step correspond -->
               @if (state.openedCommentStepId() === step.id) {
                 <div class="step_comments">
