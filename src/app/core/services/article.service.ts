@@ -21,6 +21,15 @@ export class ArticleService {
   }
 
   /**
+   * Retrieves a single article by its identifier.
+   */
+  getArticleById(articleId: number): Observable<Article> {
+    return this.http
+      .get<ArticleDto>(`${this.apiUrl}/articles/${articleId}`)
+      .pipe(map((dto) => this.mapArticle(dto)));
+  }
+
+  /**
    * Persists a new article then converts the DTO response into the domain model.
    */
   createArticle(payload: UpsertArticleDto): Observable<Article> {
@@ -56,17 +65,23 @@ export class ArticleService {
     const themeName = dto.theme?.name ?? dto.themeName ?? fromThemesArray?.name ?? undefined;
     const themes = this.mapThemes(rawThemes);
 
+    const coverUrl = dto.coverUrl?.trim() || null;
+    const thumbnailUrl = dto.thumbnailUrl?.trim() || null;
+    const author = dto.pseudo?.trim() || '';
+
     return {
       id: dto.id,
       title: dto.title,
       content: dto.content,
       slug: dto.slug,
       updatedAt: dto.updatedAt,
-      author: dto.pseudo ?? '',
+      author,
       category: themeName ?? dto.category ?? undefined,
       themes,
       themeId: safeThemeId ?? undefined,
       userId: dto.userId ?? undefined,
+      coverUrl,
+      thumbnailUrl,
     };
   }
 

@@ -11,6 +11,8 @@ import { MePageComponent } from './pages/me-page/me-page.component';
 import { ForgotPasswordFormComponent } from './components/Organisms/forgot-password-form/forgot-password-form.component';
 import { ResetPasswordPageComponent } from './pages/reset-password-page/reset-password-page.component';
 
+import { ArticlesPageComponent } from './pages/articles-page/articles-page.component';
+import { ArticleDetailPageComponent } from './pages/article-detail-page/article-detail-page.component';
 export const routes: Routes = [
   {
     path: '',
@@ -21,6 +23,8 @@ export const routes: Routes = [
   { path: 'register', component: RegisterFormComponent },
   { path: 'forgot-password', component: ForgotPasswordFormComponent },
   { path: 'reset-password', component: ResetPasswordPageComponent },
+  { path: 'articles', component: ArticlesPageComponent },
+  { path: 'article/:articleId', component: ArticleDetailPageComponent },
   { path: 'me', component: MePageComponent },
   {
     path: 'travels',
