@@ -2,6 +2,20 @@
   <div class="article-detail__hero">
     <img [src]="heroImage()" alt="Illustration de l'article" class="article-detail__hero-image" />
     <div class="article-detail__hero-overlay"></div>
+    @if (article()) {
+      <div class="article-detail__hero-content">
+        @if (heroDestination()) {
+          <span class="article-detail__hero-tag">{{ heroDestination() }}</span>
+        }
+        <h1 class="article-detail__hero-title">{{ article()!.title }}</h1>
+        <p class="article-detail__hero-info">
+          {{ getArticleAuthor(article()) }}
+          @if (formattedUpdatedAt()) {
+            <span>· Mis à jour le {{ formattedUpdatedAt() }}</span>
+          }
+        </p>
+      </div>
+    }
   </div>
 
   <div class="article-detail__body">
@@ -15,10 +29,6 @@
       } @else {
         @if (article()) {
           <article class="article-detail__content">
-            <header class="article-detail__header">
-              <h1>{{ article()!.title }}</h1>
-            </header>
-
             <div class="article-detail__meta">
               <span class="article-detail__meta-item">
                 <app-icon name="location_on" size="sm"></app-icon>
@@ -37,6 +47,24 @@
             </div>
 
             <div class="article-detail__rich-text" [innerHTML]="article()!.content"></div>
+
+            @if (galleryImages().length) {
+              <section class="article-detail__gallery" aria-label="Galerie de l'article">
+                <h2>En images</h2>
+                <div class="article-detail__gallery-grid">
+                  @for (media of galleryImages(); track trackMedia($index, media)) {
+                    <figure class="article-detail__gallery-item">
+                      <img
+                        [src]="media.fileUrl"
+                        [alt]="getGalleryImageAlt(media)"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </figure>
+                  }
+                </div>
+              </section>
+            }
           </article>
         } @else {
           <p class="article-detail__status">Aucun article à afficher.</p>

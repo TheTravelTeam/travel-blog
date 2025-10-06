@@ -24,7 +24,7 @@ export const routes: Routes = [
   { path: 'forgot-password', component: ForgotPasswordFormComponent },
   { path: 'reset-password', component: ResetPasswordPageComponent },
   { path: 'articles', component: ArticlesPageComponent },
-  { path: 'article/:articleId', component: ArticleDetailPageComponent },
+  { path: 'articles/:articleId', component: ArticleDetailPageComponent },
   { path: 'me', component: MePageComponent },
   {
     path: 'travels',

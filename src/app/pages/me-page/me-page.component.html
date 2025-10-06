@@ -434,19 +434,44 @@
                           (contentChange)="updateDraft('content', $event)"
                         ></app-editor>
                         <div class="me-page__media">
-                          <span>Ajout de média</span>
-                          <div class="me-page__media-grid">
-                            @for (slot of mediaSlotIndexes(); track slot) {
-                              <button type="button" class="me-page__media-btn" aria-label="Ajouter un média">+</button>
-                            }
-                            <button
-                              type="button"
-                              class="me-page__add-media"
-                              (click)="addMediaSlot()"
-                              aria-label="Ajouter un champ média"
-                            >
-                              <app-icon name="add" size="sm"></app-icon>
-                            </button>
+                          <div class="me-page__media-card">
+                            <div class="me-page__media-header">
+                              <app-icon name="photo_library" size="sm"></app-icon>
+                              <div>
+                                <p class="me-page__media-title">Image de couverture</p>
+                                <p class="me-page__media-subtitle">
+                                  Importez la photo mise en avant de l'article.
+                                </p>
+                              </div>
+                            </div>
+                            <app-media-grid-uploader
+                              class="me-page__media-uploader"
+                              [items]="articleCoverItems()"
+                              [maxItems]="1"
+                              [folder]="'travel-blog/articles/covers'"
+                              (itemsChange)="onArticleCoverItemsChange($event)"
+                              (primaryChange)="onArticleCoverPrimaryChange($event)"
+                              (uploadingChange)="onArticleCoverUploadChange($event)"
+                            ></app-media-grid-uploader>
+                          </div>
+                          <div class="me-page__media-card">
+                            <div class="me-page__media-header">
+                              <app-icon name="photo_library" size="sm"></app-icon>
+                              <div>
+                                <p class="me-page__media-title">Galerie</p>
+                                <p class="me-page__media-subtitle">
+                                  Ajoutez d'autres médias pour illustrer l'article.
+                                </p>
+                              </div>
+                            </div>
+                            <app-media-grid-uploader
+                              class="me-page__media-uploader"
+                              [items]="articleGalleryItems()"
+                              [folder]="'travel-blog/articles/gallery'"
+                              (itemsChange)="onArticleGalleryItemsChange($event)"
+                              (primaryChange)="onArticleGalleryPrimaryChange($event)"
+                              (uploadingChange)="onArticleGalleryUploadChange($event)"
+                            ></app-media-grid-uploader>
                           </div>
                         </div>
                         <div class="me-page__article-actions">
@@ -455,7 +480,7 @@
                             color="secondary"
                             size="auto"
                             radius="border_lg"
-                            [isDisabled]="articleFormSubmitting()"
+                            [isDisabled]="articleFormSubmitting() || isArticleMediaBusy()"
                             (btnClick)="submitArticle()"
                           ></app-button>
                           <app-button

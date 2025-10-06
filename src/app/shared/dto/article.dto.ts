@@ -17,6 +17,16 @@ export interface ArticleDto {
     updatedAt?: string;
   } | null;
   themes?: { id: number; name: string; updatedAt?: string }[] | null;
+  medias?: {
+    id: number;
+    fileUrl: string;
+    mediaType: string;
+    publicId?: string | null;
+    articleId?: number | null;
+    status?: string | null;
+    updatedAt?: string;
+    createdAt?: string;
+  }[] | null;
 }
 
 export interface UpsertArticleDto {
@@ -24,4 +34,6 @@ export interface UpsertArticleDto {
   content: string;
   userId: number;
   themeIds: number[];
+  coverUrl?: string;
+  mediaIds?: number[];
 }

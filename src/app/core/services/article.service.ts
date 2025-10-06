@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { Article } from '@model/article.model';
 import { ArticleDto, UpsertArticleDto } from '@dto/article.dto';
 import { Theme } from '@model/theme.model';
+import { Media } from '@model/media.model';
 
 @Injectable({ providedIn: 'root' })
 export class ArticleService {
@@ -64,6 +65,7 @@ export class ArticleService {
     const safeThemeId = Number.isNaN(themeId) ? null : themeId;
     const themeName = dto.theme?.name ?? dto.themeName ?? fromThemesArray?.name ?? undefined;
     const themes = this.mapThemes(rawThemes);
+    const medias = this.mapMedias(dto.medias);
 
     const coverUrl = dto.coverUrl?.trim() || null;
     const thumbnailUrl = dto.thumbnailUrl?.trim() || null;
@@ -82,6 +84,7 @@ export class ArticleService {
       userId: dto.userId ?? undefined,
       coverUrl,
       thumbnailUrl,
+      medias,
     };
   }
 
@@ -124,5 +127,44 @@ export class ArticleService {
     }
 
     return [];
+  }
+
+  private mapMedias(medias?: ArticleDto['medias']): Media[] | undefined {
+    if (!Array.isArray(medias) || !medias.length) {
+      return undefined;
+    }
+
+    const normalized: Media[] = [];
+
+    for (const media of medias) {
+      if (!media) {
+        continue;
+      }
+
+      const id = Number(media.id);
+      if (Number.isNaN(id)) {
+        continue;
+      }
+
+      const fileUrl = media.fileUrl?.trim();
+      if (!fileUrl) {
+        continue;
+      }
+
+      normalized.push({
+        id,
+        fileUrl,
+        mediaType: media.mediaType ?? 'PHOTO',
+        status: media.status ?? 'PUBLISHED',
+        createdAt: media.createdAt ?? '',
+        updatedAt: media.updatedAt ?? '',
+        publicId: media.publicId ?? null,
+        articleId: media.articleId ?? null,
+        travelDiaryId: null,
+        stepId: null,
+      });
+    }
+
+    return normalized.length ? normalized : undefined;
   }
 }
