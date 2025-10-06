@@ -10,33 +10,28 @@ import { RegisterFormComponent } from './components/Organisms/register-form/regi
 import { MePageComponent } from './pages/me-page/me-page.component';
 import { ForgotPasswordFormComponent } from './components/Organisms/forgot-password-form/forgot-password-form.component';
 import { ResetPasswordPageComponent } from './pages/reset-password-page/reset-password-page.component';
-
 import { ArticlesPageComponent } from './pages/articles-page/articles-page.component';
 import { ArticleDetailPageComponent } from './pages/article-detail-page/article-detail-page.component';
+import { authGuard } from './core/guards/auth.guard';
+import { visitorOnlyGuard } from './core/guards/visitor-only.guard';
+
 export const routes: Routes = [
-  {
-    path: '',
-    component: HomePageComponent,
-    pathMatch: 'full',
-  },
-  { path: 'login', component: LoginFormComponent },
-  { path: 'register', component: RegisterFormComponent },
-  { path: 'forgot-password', component: ForgotPasswordFormComponent },
-  { path: 'reset-password', component: ResetPasswordPageComponent },
+  { path: 'login', component: LoginFormComponent, canActivate: [visitorOnlyGuard] },
+  { path: 'register', component: RegisterFormComponent, canActivate: [visitorOnlyGuard] },
+  { path: 'forgot-password', component: ForgotPasswordFormComponent, canActivate: [visitorOnlyGuard] },
+  { path: 'reset-password', component: ResetPasswordPageComponent, canActivate: [visitorOnlyGuard] },
+  { path: '', component: HomePageComponent, pathMatch: 'full' },
   { path: 'articles', component: ArticlesPageComponent },
   { path: 'articles/:articleId', component: ArticleDetailPageComponent },
-  { path: 'me', component: MePageComponent },
   {
     path: 'travels',
     component: TravelMapLayoutPageComponent,
     children: [
       { path: '', component: FilterPageComponent },
-      {
-        path: ':id',
-        component: DiaryPageComponent,
-      },
+      { path: ':id', component: DiaryPageComponent },
       { path: 'users/:id', component: MyTravelsPageComponent },
     ],
   },
   { path: 'test', component: TestPageComponent },
+  { path: 'me', component: MePageComponent, canActivate: [authGuard] },
 ];
