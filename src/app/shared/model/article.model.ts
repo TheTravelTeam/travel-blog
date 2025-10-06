@@ -1,4 +1,5 @@
 import { Theme } from '@model/theme.model';
+import { Media } from '@model/media.model';
 
 export interface Article {
   id: number;
@@ -13,4 +14,5 @@ export interface Article {
   themes?: Theme[];
   coverUrl?: string | null;
   thumbnailUrl?: string | null;
+  medias?: Media[];
 }

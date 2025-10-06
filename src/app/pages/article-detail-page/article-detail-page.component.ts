@@ -13,6 +13,7 @@ import { EMPTY } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
 import { Article } from '@model/article.model';
+import { Media } from '@model/media.model';
 import { ArticleService } from '@service/article.service';
 import { BreadcrumbItem } from '@model/breadcrumb.model';
 import { BreadcrumbComponent } from 'components/Atoms/breadcrumb/breadcrumb.component';
@@ -69,6 +70,36 @@ export class ArticleDetailPageComponent implements OnInit {
       month: 'long',
       year: 'numeric',
     });
+  });
+
+  readonly galleryImages = computed(() => {
+    const current = this.article();
+    if (!current?.medias?.length) {
+      return [] as Media[];
+    }
+
+    const heroUrl = this.normalizeUrl(this.heroImage());
+    const uniqueByUrl = new Map<string, Media>();
+
+    for (const media of current.medias) {
+      const url = this.normalizeUrl(media?.fileUrl);
+      if (!url) {
+        continue;
+      }
+
+      if (heroUrl && url === heroUrl) {
+        continue;
+      }
+
+      if (!uniqueByUrl.has(url)) {
+        uniqueByUrl.set(url, {
+          ...media,
+          fileUrl: url,
+        });
+      }
+    }
+
+    return Array.from(uniqueByUrl.values());
   });
 
   ngOnInit(): void {
@@ -131,7 +162,13 @@ export class ArticleDetailPageComponent implements OnInit {
   }
 
   getArticleCover(article: Article): string {
-    return article.coverUrl?.trim() || article.thumbnailUrl?.trim() || 'image 3.svg';
+    const cover = this.normalizeUrl(article.coverUrl) ?? this.normalizeUrl(article.thumbnailUrl);
+    if (cover) {
+      return cover;
+    }
+
+    const firstMedia = article.medias?.find((media) => this.normalizeUrl(media.fileUrl));
+    return this.normalizeUrl(firstMedia?.fileUrl) ?? 'image 3.svg';
   }
 
   updateBreadcrumb(article: Article): void {
@@ -140,5 +177,25 @@ export class ArticleDetailPageComponent implements OnInit {
       { label: 'Articles', href: '/articles' },
       { label, href: '', isDisabled: true },
     ]);
+  }
+
+  trackMedia(_: number, media: Media): string | number {
+    return media.id ?? media.fileUrl;
+  }
+
+  getGalleryImageAlt(media: Media): string {
+    const title = this.article()?.title?.trim();
+    if (title) {
+      return `${title} – illustration`;
+    }
+    return media.publicId?.trim() || 'Illustration de l’article';
+  }
+
+  private normalizeUrl(value?: string | null): string | null {
+    const trimmed = value?.trim();
+    if (!trimmed) {
+      return null;
+    }
+    return trimmed;
   }
 }

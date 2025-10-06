@@ -68,7 +68,7 @@ export class TopBarComponent implements OnInit, OnDestroy {
 
   get isHomeOrArticlePage(): boolean {
     const url = this.router.url;
-    return url === '/' || url.startsWith('/articles') || url.startsWith('/article/');
+    return url === '/' || url.startsWith('/articles');
   }
 
   get isMapPage(): boolean {

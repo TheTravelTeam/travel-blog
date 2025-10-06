@@ -10,5 +10,6 @@ export interface CreateMediaDto {
   height?: number;
   stepId?: number | null;
   travelDiaryId?: number | null;
+  articleId?: number | null;
   isVisible?: boolean;
 }

@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { finalize, takeUntil } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { AvatarComponent } from 'components/Atoms/avatar/avatar.component';
 import { IconComponent } from 'components/Atoms/Icon/icon.component';
@@ -11,6 +11,10 @@ import { TextInputComponent } from 'components/Atoms/text-input/text-input.compo
 import { EditorComponent } from '../../shared/editor/editor.component';
 import { TravelDiaryCardComponent } from 'components/Molecules/Card-ready-to-use/travel-diary-card/travel-diary-card.component';
 import { SelectComponent } from 'components/Atoms/select/select.component';
+import {
+  MediaGridUploaderComponent,
+  MediaItem,
+} from 'components/Molecules/media-grid-uploader/media-grid-uploader.component';
 import { AdminUsersSectionComponent } from './components/admin-users-section/admin-users-section.component';
 import { Router } from '@angular/router';
 import { BreakpointService } from '@service/breakpoint.service';
@@ -20,11 +24,13 @@ import { ArticleService } from '@service/article.service';
 import { ThemeService } from '@service/theme.service';
 import { StepService } from '@service/step.service';
 import { TravelMapStateService } from '@service/travel-map-state.service';
+import { MediaService } from '@service/media.service';
 import { TravelDiary } from '@model/travel-diary.model';
 // import { UserProfile } from '@model/user-profile.model';
 import { Article } from '@model/article.model';
 import { Theme } from '@model/theme.model';
 import { ItemProps } from '@model/select.model';
+import { CreateMediaDto } from '@dto/create-media.dto';
 import { UpsertArticleDto } from '@dto/article.dto';
 import { UserProfileDto } from '@dto/user-profile.dto';
 import {
@@ -56,6 +62,7 @@ import {
     EditorComponent,
     TravelDiaryCardComponent,
     SelectComponent,
+    MediaGridUploaderComponent,
     AdminUsersSectionComponent,
   ],
   templateUrl: './me-page.component.html',
@@ -70,6 +77,7 @@ export class MePageComponent implements OnInit, OnDestroy {
   private readonly stepService = inject(StepService);
   private readonly travelMapState = inject(TravelMapStateService);
   private readonly router = inject(Router);
+  private readonly mediaService = inject(MediaService);
 
   private readonly destroy$ = new Subject<void>();
 
@@ -86,7 +94,11 @@ export class MePageComponent implements OnInit, OnDestroy {
 
   readonly openSection = signal<SectionId | null>('info');
   readonly articleDraft = signal<ArticleDraft>({ ...INITIAL_ARTICLE_DRAFT });
-  readonly articleMediaSlots = signal(3);
+  readonly articleCoverItems = signal<MediaItem[]>([]);
+  readonly articleGalleryItems = signal<MediaItem[]>([]);
+  readonly isArticleCoverUploading = signal(false);
+  readonly isArticleGalleryUploading = signal(false);
+  readonly articleMediaRequests = signal(0);
   readonly profileForm = signal<ProfileFormState>({ ...INITIAL_PROFILE_FORM });
   readonly articleSearchTerm = signal('');
   readonly articleEditorView = signal<'list' | 'form'>('list');
@@ -150,9 +162,11 @@ export class MePageComponent implements OnInit, OnDestroy {
     return this.articleFormMode() === 'edit' ? "Enregistrer l'article" : "Créer l'article";
   });
 
-  // Génère les index nécessaires pour itérer sur les boutons d'upload.
-  readonly mediaSlotIndexes = computed(() =>
-    Array.from({ length: this.articleMediaSlots() }, (_, idx) => idx)
+  readonly isArticleMediaBusy = computed(
+    () =>
+      this.isArticleCoverUploading() ||
+      this.isArticleGalleryUploading() ||
+      this.articleMediaRequests() > 0
   );
 
   /** Initialise la page et attache les effets réactifs liés aux signaux. */
@@ -265,9 +279,27 @@ export class MePageComponent implements OnInit, OnDestroy {
       category: categoryLabel,
       content: article.content,
       themeId: article.themeId ?? null,
+      coverUrl: article.coverUrl ?? null,
     });
-    this.articleMediaSlots.set(3);
     this.articleFormError.set(null);
+
+    const coverItems: MediaItem[] = article.coverUrl
+      ? [{ publicId: '', secureUrl: article.coverUrl }]
+      : [];
+    this.articleCoverItems.set(coverItems);
+    const galleryItems = Array.isArray(article.medias)
+      ? article.medias
+          .map((media) => ({
+            id: media.id,
+            publicId: media.publicId ?? '',
+            secureUrl: media.fileUrl,
+          }))
+          .filter((media) => !!media.secureUrl)
+      : [];
+    this.articleGalleryItems.set(galleryItems);
+    this.isArticleCoverUploading.set(false);
+    this.isArticleGalleryUploading.set(false);
+    this.articleMediaRequests.set(0);
   }
 
   /** Supprime un article via l'API et synchronise la liste locale. */
@@ -300,15 +332,131 @@ export class MePageComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Synchronise les médias de couverture sélectionnés via le composant Cloudinary.
+   * Ne conserve que le premier élément pour refléter l'unicité de la cover côté API.
+   */
+  onArticleCoverItemsChange(items: MediaItem[]): void {
+    const [first] = items;
+    const normalized = first ? [{ ...first }] : [];
+    this.articleCoverItems.set(normalized);
+    this.updateDraft('coverUrl', first?.secureUrl ?? null);
+  }
+
+  /**
+   * Aligne la cover lorsque l'utilisateur modifie l'élément principal.
+   */
+  onArticleCoverPrimaryChange(item: MediaItem | null): void {
+    this.updateDraft('coverUrl', item?.secureUrl ?? null);
+  }
+
+  /** Informe le formulaire d'un upload de couverture en cours. */
+  onArticleCoverUploadChange(isUploading: boolean): void {
+    this.isArticleCoverUploading.set(isUploading);
+  }
+
+  /**
+   * Synchronise la collection de médias de l'article et crée les entrées API manquantes.
+   */
+  onArticleGalleryItemsChange(items: MediaItem[]): void {
+    const previousItems = this.articleGalleryItems();
+    const previousByUrl = new Map(previousItems.map((item) => [item.secureUrl, item]));
+    const nextNormalized = items.map((item) => {
+      const existing = previousByUrl.get(item.secureUrl);
+      return existing && existing.id != null ? { ...item, id: existing.id } : item;
+    });
+
+    this.articleGalleryItems.set(nextNormalized);
+
+    const nextByUrl = new Set(nextNormalized.map((item) => item.secureUrl));
+
+    // Crée les entrées manquantes côté API.
+    nextNormalized
+      .filter((item) => !previousByUrl.has(item.secureUrl))
+      .forEach((item) => this.persistArticleMedia(item));
+
+    // Conserve l'identifiant si un élément revient après un reorder.
+    previousItems
+      .filter((item) => nextByUrl.has(item.secureUrl) && item.id != null)
+      .forEach((item) => this.updateArticleMediaItemId(item.secureUrl, item.id!));
+  }
+
+  /** Capture l'élément mis en avant dans la galerie (réutilisable ultérieurement). */
+  onArticleGalleryPrimaryChange(item: MediaItem | null): void {
+    if (!item) {
+      return;
+    }
+    const current = this.articleGalleryItems();
+    const existing = current.find((media) => media.secureUrl === item.secureUrl);
+    const promoted = existing ?? item;
+    const reordered = [promoted, ...current.filter((media) => media.secureUrl !== item.secureUrl)];
+    this.articleGalleryItems.set(reordered);
+  }
+
+  /** Tient compte de l'état de téléversement de la galerie pour désactiver le submit. */
+  onArticleGalleryUploadChange(isUploading: boolean): void {
+    this.isArticleGalleryUploading.set(isUploading);
+  }
+
+  private persistArticleMedia(item: MediaItem): void {
+    const fileUrl = item.secureUrl?.trim();
+    if (!fileUrl) {
+      return;
+    }
+
+    const payload: CreateMediaDto = {
+      fileUrl,
+      publicId: item.publicId || undefined,
+      mediaType: 'PHOTO',
+      articleId: this.articleFormMode() === 'edit' ? this.editingArticleId() : null,
+      isVisible: true,
+    };
+
+    this.incrementArticleMediaRequests();
+    this.mediaService
+      .createMedia(payload)
+      .pipe(takeUntil(this.destroy$), finalize(() => this.decrementArticleMediaRequests()))
+      .subscribe({
+        next: (media) => {
+          if (media?.id == null) {
+            return;
+          }
+          this.updateArticleMediaItemId(fileUrl, media.id);
+        },
+        error: (err) => {
+          console.error('article media creation failed', err);
+          this.articleFormError.set("Impossible de préparer certains médias. Veuillez réessayer.");
+          this.articleGalleryItems.update((items) =>
+            items.filter((mediaItem) => mediaItem.secureUrl !== fileUrl)
+          );
+        },
+      });
+  }
+
+  private updateArticleMediaItemId(secureUrl: string, id: number): void {
+    this.articleGalleryItems.update((items) =>
+      items.map((media) => (media.secureUrl === secureUrl ? { ...media, id } : media))
+    );
+  }
+
+  private incrementArticleMediaRequests(): void {
+    this.articleMediaRequests.update((count) => count + 1);
+  }
+
+  private decrementArticleMediaRequests(): void {
+    this.articleMediaRequests.update((count) => Math.max(0, count - 1));
+  }
+
+  private getArticleMediaIds(): number[] {
+    return this.articleGalleryItems()
+      .map((item) => item.id)
+      .filter((id): id is number => typeof id === 'number' && Number.isFinite(id));
+  }
+
+  /**
    * Met à jour un champ du formulaire profil (nom, prénom, pseudo, email).
    */
   onProfileFieldChange(field: keyof ProfileFormState, value: string): void {
     this.profileForm.update((state) => ({ ...state, [field]: value }));
-  }
-
-  /** Ajoute un slot média supplémentaire dans la limite autorisée. */
-  addMediaSlot(): void {
-    this.articleMediaSlots.update((count) => Math.min(count + 1, 5));
   }
 
   onThemeSelect(selection: ItemProps | ItemProps[]): void {
@@ -467,11 +615,15 @@ export class MePageComponent implements OnInit, OnDestroy {
       });
   }
 
-  /** Réinitialise le formulaire d'article et ses slots média. */
+  /** Réinitialise le formulaire d'article et nettoie les médias en cours d'upload. */
   resetArticleForm(): void {
     const pseudo = this.profile()?.pseudo ?? '';
     this.articleDraft.set({ ...INITIAL_ARTICLE_DRAFT, author: pseudo });
-    this.articleMediaSlots.set(3);
+    this.articleCoverItems.set([]);
+    this.articleGalleryItems.set([]);
+    this.isArticleCoverUploading.set(false);
+    this.isArticleGalleryUploading.set(false);
+    this.articleMediaRequests.set(0);
   }
 
   /** Nettoie les informations d'authentification avant redirection éventuelle. */
@@ -604,6 +756,8 @@ export class MePageComponent implements OnInit, OnDestroy {
       slug: article.slug,
       themes: article.themes,
       userId: article.userId ?? null,
+      coverUrl: article.coverUrl ?? null,
+      medias: article.medias,
     };
   }
 
@@ -612,12 +766,16 @@ export class MePageComponent implements OnInit, OnDestroy {
     const themeId = rawThemeId != null ? Number(rawThemeId) : undefined;
     const normalizedThemeId = themeId !== undefined && Number.isNaN(themeId) ? undefined : themeId;
     const themeIds = normalizedThemeId != null ? [normalizedThemeId] : [];
+    const coverUrl = draft.coverUrl?.trim();
+    const mediaIds = this.getArticleMediaIds();
 
     return {
       title: draft.title.trim(),
       content: draft.content,
       userId,
       themeIds,
+      coverUrl: coverUrl?.length ? coverUrl : undefined,
+      mediaIds,
     };
   }
 

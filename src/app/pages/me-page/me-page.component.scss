@@ -312,40 +312,46 @@
 }
 
 .me-page__media {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  display: grid;
+  gap: 1.5rem;
+}
 
-  span {
-    color: $commentTextColor;
-    font-size: 0.85rem;
+@media (min-width: 768px) {
+  .me-page__media {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }
 }
 
-.me-page__media-grid {
+.me-page__media-card {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba($primaryColor, 0.15);
+  background: rgba($primaryColor, 0.04);
+}
+
+.me-page__media-header {
+  display: flex;
+  align-items: flex-start;
   gap: 0.75rem;
 }
 
-.me-page__media-btn,
-.me-page__add-media {
-  width: 2.6rem;
-  height: 2.6rem;
-  border-radius: 50%;
-  border: 1.5px dashed rgba($primaryColor, 0.7);
-  background: transparent;
-  color: $primaryColor;
-  font-size: 1.2rem;
+.me-page__media-title {
+  margin: 0;
   font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+  font-size: 1rem;
 }
 
-.me-page__add-media {
-  border-style: solid;
+.me-page__media-subtitle {
+  margin: 0.25rem 0 0;
+  color: $commentTextColor;
+  font-size: 0.85rem;
+}
+
+.me-page__media-uploader {
+  margin-top: 0.25rem;
 }
 
 .me-page__diary-grid {
