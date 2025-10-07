@@ -7,7 +7,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import {
@@ -53,17 +53,20 @@ export class TopBarComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly searchService = inject(SearchService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly location = inject(Location);
 
   // 💡 IconSize adapté automatiquement au device
   readonly iconSize = computed<IconSize>(() => {
-    if (this.bp.isMobile()) return 'lg';
-    if (this.bp.isTablet()) return 'md';
     return 'lg';
   });
 
   readonly btnSize = computed<Size>(() => {
     if (this.bp.isMobileOrTablet()) return 'sm';
     return 'lg';
+  });
+
+  readonly logoutIconSize = computed<IconSize>(() => {
+    return 'md';
   });
 
   get isHomeOrArticlePage(): boolean {
@@ -210,6 +213,16 @@ export class TopBarComponent implements OnInit, OnDestroy {
     void this.router.navigate(['/travels', result.diaryId ?? result.id]);
   }
 
+  onMobileBack(): void {
+    if (this.hasBrowserHistory()) {
+      this.location.back();
+      return;
+    }
+
+    const fallback = this.resolveMobileBackFallback();
+    void this.router.navigateByUrl(fallback);
+  }
+
   onClearSearch(): void {
     this.searchControl.setValue('');
     this.searchResults.set([]);
@@ -246,5 +259,21 @@ export class TopBarComponent implements OnInit, OnDestroy {
     }
 
     return 'Voyageur';
+  }
+
+  private hasBrowserHistory(): boolean {
+    return typeof window !== 'undefined' && window.history.length > 1;
+  }
+
+  private resolveMobileBackFallback(): string {
+    if (this.isMapPage || this.isMyDiariesPage) {
+      return '/travels';
+    }
+
+    if (this.isFilterPage) {
+      return '/';
+    }
+
+    return '/';
   }
 }

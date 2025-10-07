@@ -11,9 +11,14 @@
     @if ((bp.isMobile() && isHomeOrArticlePage) || !bp.isMobile()) {
       <img src="/icon/logo_desktop.svg" alt="logo" class="topbar__logo" routerLink="/" />
     } @else {
-      <a routerLink="/back" class="topbar__link">
+      <button
+        type="button"
+        class="topbar__link topbar__link--back"
+        (click)="onMobileBack()"
+        aria-label="Retour"
+      >
         <app-icon name="arrow_back" [size]="iconSize()" />
-      </a>
+      </button>
     }
     @if (!bp.isMobileOrTablet() && !isHomeOrArticlePage) {
       <div class="topbar__center">
@@ -105,7 +110,7 @@
   </div>
 
   <div class="topbar__right">
-    @if (bp.isDesktop() || bp.isTablet()) {
+    @if (bp.isDesktop() ) {
       <nav class="topbar__menu">
         <a routerLink="/travels" class="topbar__link">
           <app-icon name="language" [size]="iconSize()" />
@@ -180,14 +185,16 @@
               size="compact"
             />
           </a>
-          <app-button
-            [type]="'standard'"
-            size="sm"
-            color="secondary"
-            text="Déconnexion"
-            (btnClick)="onLogout()"
-            data-test="topbar-logout"
-          />
+          <div class="topbar__logout" data-test="topbar-logout">
+            <button
+              type="button"
+              class="topbar__logout-btn"
+              (click)="onLogout()"
+              aria-label="Se déconnecter"
+            >
+              <app-icon name="power_settings_new" [size]="logoutIconSize()" />
+            </button>
+          </div>
         } @else {
           <app-button
             [type]="'standard'"

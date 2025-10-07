@@ -9,9 +9,8 @@
         }
         <h1 class="article-detail__hero-title">{{ article()!.title }}</h1>
         <p class="article-detail__hero-info">
-          {{ getArticleAuthor(article()) }}
           @if (formattedUpdatedAt()) {
-            <span>· Mis à jour le {{ formattedUpdatedAt() }}</span>
+            <span> Mis à jour le {{ formattedUpdatedAt() }}</span>
           }
         </p>
       </div>
@@ -30,10 +29,6 @@
         @if (article()) {
           <article class="article-detail__content">
             <div class="article-detail__meta">
-              <span class="article-detail__meta-item">
-                <app-icon name="location_on" size="sm"></app-icon>
-                {{ heroDestination() }}
-              </span>
               <span class="article-detail__meta-item">
                 <app-icon name="account_circle" size="sm"></app-icon>
                 {{ getArticleAuthor(article()) }}
