@@ -135,9 +135,17 @@ app-accordion {
 
 .diary__actions {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
   margin-bottom: 1.5rem;
+}
+
+.diary__finish-error {
+  margin: 0;
+  color: $dangerColor;
+  font-size: 0.9rem;
 }
 
 .create-step-modal {

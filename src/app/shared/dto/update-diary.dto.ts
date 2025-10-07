@@ -4,4 +4,5 @@ export interface UpdateDiaryDTO {
   isPrivate: boolean | undefined;
   canComment: boolean | undefined;
   startDate: string | null;
+  endDate?: string | null;
 }
