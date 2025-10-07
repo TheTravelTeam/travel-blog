@@ -559,6 +559,7 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
     }
   }
 
+
   private ensureThemesLoaded(): void {
     if (this.themesLoaded) {
       return;

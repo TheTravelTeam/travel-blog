@@ -87,6 +87,15 @@
         @if (viewerIsOwner) {
           <div class="diary__actions">
             <app-button
+              text="Terminer le carnet"
+              color="secondary"
+              size="auto"
+              radius="border_lg"
+              [isDisabled]="isFinishDiaryDisabled()"
+              (btnClick)="onFinishDiary()"
+              data-test="diary-finish"
+            ></app-button>
+            <app-button
               text="Créer une étape"
               color="primary"
               size="auto"
@@ -95,6 +104,9 @@
               [isDisabled]="isStepFormVisible()"
               data-test="diary-add-step"
             ></app-button>
+            @if (finishDiaryError()) {
+              <p class="diary__finish-error">{{ finishDiaryError() }}</p>
+            }
           </div>
         }
         @for (step of state.steps(); track $index) {

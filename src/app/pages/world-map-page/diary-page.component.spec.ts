@@ -9,6 +9,7 @@ import { of } from 'rxjs';
 import { DiaryPageComponent } from './diary-page.component';
 import { CommentService } from '@service/comment.service';
 import { UserService } from '@service/user.service';
+import { StepService } from '@service/step.service';
 import { Comment } from '@model/comment';
 import { TravelDiary } from '@model/travel-diary.model';
 import { Step } from '@model/step.model';
@@ -22,6 +23,7 @@ class CommentServiceStub {
   delete = jasmine.createSpy('delete');
   update = jasmine.createSpy('update');
 }
+
 
 class UserServiceStub {
   private currentId = signal<number | null>(1);
@@ -57,6 +59,7 @@ describe('DiaryPageComponent', () => {
   let component: DiaryPageComponent;
   let fixture: ComponentFixture<DiaryPageComponent>;
   let commentService: CommentServiceStub;
+  let stepService: StepService;
   let userService: UserServiceStub;
   let httpMock: HttpTestingController;
   const syncViewerLikes = () => {
@@ -132,6 +135,7 @@ describe('DiaryPageComponent', () => {
     fixture = TestBed.createComponent(DiaryPageComponent);
     component = fixture.componentInstance;
     commentService = TestBed.inject(CommentService) as unknown as CommentServiceStub;
+    stepService = TestBed.inject(StepService);
     userService = TestBed.inject(UserService) as unknown as UserServiceStub;
     httpMock = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
@@ -213,6 +217,95 @@ describe('DiaryPageComponent', () => {
     expect(comments[0].content).toBe('Super voyage !');
     expect(component.getCommentDraft(baseStep.id)).toBe('');
     expect(component.getCommentError(baseStep.id)).toBeNull();
+  });
+
+  it('should finish the current diary using the latest step end date', () => {
+    const stepWithEnd: Step = {
+      ...baseStep,
+      endDate: '2024-07-20T16:30:00Z',
+    };
+    const diary: TravelDiary = {
+      ...baseDiary,
+      status: 'IN_PROGRESS',
+      steps: [stepWithEnd],
+    };
+    const updatedDiary: TravelDiary = {
+      ...diary,
+      endDate: '2024-07-20',
+      status: 'COMPLETED',
+    };
+
+    const getDiarySpy = spyOn(stepService, 'getDiaryWithSteps').and.returnValue(of(diary));
+    const updateDiarySpy = spyOn(stepService, 'updateDiary').and.returnValue(of(updatedDiary));
+    userService.setCurrentUserId(diary.user.id);
+    userService.setDisabled(false);
+    syncViewerLikes();
+    component.state.setCurrentDiary(diary);
+    component.state.setAllDiaries([diary]);
+    component.state.setSteps(diary.steps);
+    component.state.setCurrentDiaryId(diary.id);
+    fixture.detectChanges();
+
+    component.onFinishDiary();
+
+    expect(getDiarySpy).toHaveBeenCalledWith(diary.id);
+    expect(updateDiarySpy).toHaveBeenCalledWith(
+      diary.id,
+      jasmine.objectContaining({
+        endDate: '2024-07-20',
+        status: 'COMPLETED',
+      })
+    );
+    expect(component.finishDiaryError()).toBeNull();
+    expect(component.isFinishingDiary()).toBeFalse();
+    const currentDiary = component.state.currentDiary();
+    expect(currentDiary?.endDate).toBe('2024-07-20');
+    expect(currentDiary?.status).toBe('COMPLETED');
+
+    getDiarySpy.and.callThrough();
+    updateDiarySpy.and.callThrough();
+  });
+
+  it('should expose an error when no step end date is available', () => {
+    const diary: TravelDiary = {
+      ...baseDiary,
+      steps: [{ ...baseStep, endDate: null }],
+    };
+
+    const getDiarySpy = spyOn(stepService, 'getDiaryWithSteps').and.returnValue(of(diary));
+    const updateDiarySpy = spyOn(stepService, 'updateDiary');
+    userService.setCurrentUserId(diary.user.id);
+    userService.setDisabled(false);
+    syncViewerLikes();
+    component.state.setCurrentDiary(diary);
+    component.state.setAllDiaries([diary]);
+    component.state.setSteps(diary.steps);
+    component.state.setCurrentDiaryId(diary.id);
+    fixture.detectChanges();
+
+    component.onFinishDiary();
+
+    expect(getDiarySpy).toHaveBeenCalledWith(diary.id);
+    expect(updateDiarySpy).not.toHaveBeenCalled();
+    expect(component.finishDiaryError()).toBe(
+      'Aucune étape avec une date de fin n’est disponible pour ce carnet.'
+    );
+    expect(component.isFinishingDiary()).toBeFalse();
+
+    getDiarySpy.and.callThrough();
+    updateDiarySpy.and.callThrough();
+  });
+
+  it('should disable the finish action for non owners', () => {
+    userService.setCurrentUserId(1);
+    syncViewerLikes();
+    component.state.setCurrentDiary(baseDiary);
+    component.state.setAllDiaries([baseDiary]);
+    component.state.setSteps(baseDiary.steps);
+    component.state.setCurrentDiaryId(baseDiary.id);
+    fixture.detectChanges();
+
+    expect(component.isFinishDiaryDisabled()).toBeTrue();
   });
 
   it('should skip deletion when the viewer is not the diary owner', () => {

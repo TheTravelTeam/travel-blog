@@ -32,4 +32,5 @@ export interface TravelDiary {
   /** Indique si les visiteurs peuvent poster des commentaires. */
   canComment?: boolean;
   startDate?: string;
+  endDate?: string | null;
 }

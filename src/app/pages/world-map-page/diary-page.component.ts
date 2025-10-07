@@ -24,8 +24,8 @@ import { TravelMapStateService } from '@service/travel-map-state.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserService } from '@service/user.service';
 import { User } from '@model/user.model';
-import { Observable, Subscription, forkJoin, of } from 'rxjs';
-import { map, switchMap, take } from 'rxjs/operators';
+import { Observable, Subscription, forkJoin, of, EMPTY } from 'rxjs';
+import { finalize, map, switchMap, take } from 'rxjs/operators';
 import { CreateStepFormComponent } from 'components/Organisms/create-step-form/create-step-form.component';
 import { StepService } from '@service/step.service';
 import { CommentService } from '@service/comment.service';
@@ -45,6 +45,12 @@ type DiaryOwnerInfo = {
   id: number;
   avatar?: string | null;
   label: string;
+};
+
+type DiaryCompletionUpdate = {
+  initial: TravelDiary;
+  updatedDiary: TravelDiary | null | undefined;
+  endDate: string;
 };
 
 @Component({
@@ -106,6 +112,8 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
   readonly editingCommentId = signal<number | null>(null);
   readonly stepLikePending = signal<Record<number, boolean>>({});
   readonly stepLikeErrors = signal<Record<number, string | null>>({});
+  readonly finishDiaryError = signal<string | null>(null);
+  readonly isFinishingDiary = signal(false);
 
   readonly currentViewerId = computed(() => this.userService.currentUserId());
 
@@ -204,6 +212,82 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     this.stepFormError.set(null);
     this.ensureThemesLoaded();
     queueMicrotask(() => this.createStepForm?.reset());
+  }
+
+  /**
+   * True when the finish button should be disabled for the current viewer.
+   */
+  isFinishDiaryDisabled(): boolean {
+    return !this.isDiaryOwner() || this.isFinishingDiary();
+  }
+
+  /**
+   * Close the current diary by aligning its end date with the last step.
+   */
+  onFinishDiary(): void {
+    if (!this.isDiaryOwner() || this.isFinishingDiary()) {
+      return;
+    }
+
+    if (this.isViewerDisabled()) {
+      this.finishDiaryError.set(
+        'Votre compte est désactivé. Vous ne pouvez plus modifier ce carnet.'
+      );
+      return;
+    }
+
+    const currentDiary = this.state.currentDiary();
+    const diaryId = currentDiary?.id;
+
+    if (!Number.isFinite(diaryId)) {
+      this.finishDiaryError.set("Impossible d'identifier le carnet courant.");
+      return;
+    }
+
+    this.finishDiaryError.set(null);
+    this.isFinishingDiary.set(true);
+
+    this.stepService
+      .getDiaryWithSteps(diaryId as number)
+      .pipe(
+        take(1),
+        switchMap((loadedDiary) => {
+          const latestEndDate = this.extractLatestStepEndDate(loadedDiary?.steps ?? []);
+          if (!latestEndDate) {
+            this.finishDiaryError.set(
+              'Aucune étape avec une date de fin n’est disponible pour ce carnet.'
+            );
+            return EMPTY as Observable<DiaryCompletionUpdate>;
+          }
+
+          return this.stepService
+            .updateDiary(loadedDiary.id, {
+              endDate: latestEndDate,
+              status: 'COMPLETED',
+            })
+            .pipe(
+              map((updatedDiary) => ({
+                initial: loadedDiary,
+                updatedDiary,
+                endDate: latestEndDate,
+              }))
+            );
+        }),
+        finalize(() => {
+          this.isFinishingDiary.set(false);
+        })
+      )
+      .subscribe({
+        next: ({ initial, updatedDiary, endDate }) => {
+          const merged = this.mergeDiaryCompletion(initial, updatedDiary, endDate);
+          this.applyUpdatedDiary(merged);
+          this.finishDiaryError.set(null);
+        },
+        error: (err) => {
+          console.error('Failed to finish diary', err);
+          this.finishDiaryError.set('Impossible de terminer ce carnet pour le moment.');
+        },
+      });
   }
 
   /** Closes the step form and clears the editing state. */
@@ -426,6 +510,68 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
       updatedList[diaryIndex] = normalizedDiary;
       this.state.setAllDiaries(updatedList);
     }
+  }
+
+  private mergeDiaryCompletion(
+    source: TravelDiary,
+    updated: TravelDiary | null | undefined,
+    endDate: string
+  ): TravelDiary {
+    const candidate = updated ?? source;
+    const steps = Array.isArray(candidate.steps) && candidate.steps.length
+      ? candidate.steps
+      : source.steps ?? [];
+
+    return {
+      ...source,
+      ...candidate,
+      endDate,
+      status: candidate.status ?? 'COMPLETED',
+      steps,
+    };
+  }
+
+  private extractLatestStepEndDate(steps: Step[] | null | undefined): string | null {
+    if (!Array.isArray(steps) || !steps.length) {
+      return null;
+    }
+
+    let latest: { iso: string; timestamp: number } | null = null;
+
+    for (const step of steps) {
+      const iso = this.normalizeDate(step?.endDate);
+      if (!iso) {
+        continue;
+      }
+
+      const timestamp = Date.parse(iso);
+      if (!Number.isFinite(timestamp)) {
+        continue;
+      }
+
+      if (!latest || timestamp > latest.timestamp) {
+        latest = { iso, timestamp };
+      }
+    }
+
+    return latest?.iso ?? null;
+  }
+
+  private normalizeDate(value: string | Date | null | undefined): string | null {
+    if (!value) {
+      return null;
+    }
+
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, '0');
+    const day = `${date.getDate()}`.padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   }
 
   /**

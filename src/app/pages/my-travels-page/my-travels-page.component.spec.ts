@@ -308,4 +308,5 @@ describe('MyTravelsPageComponent', () => {
       })
     );
   });
+
 });
