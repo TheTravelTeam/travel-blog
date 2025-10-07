@@ -28,6 +28,7 @@ class CommentServiceStub {
 class UserServiceStub {
   private currentId = signal<number | null>(1);
   private disabled = signal(false);
+  private admin = signal(false);
 
   currentUserId(): number | null {
     return this.currentId();
@@ -43,6 +44,14 @@ class UserServiceStub {
 
   isCurrentUserDisabled(): boolean {
     return this.disabled();
+  }
+
+  isCurrentUserAdmin(): boolean {
+    return this.admin();
+  }
+
+  setAdmin(value: boolean): void {
+    this.admin.set(value);
   }
 
   getUserProfile(): ReturnType<UserService['getUserProfile']> {
@@ -331,6 +340,59 @@ describe('DiaryPageComponent', () => {
     expect(commentService.delete).not.toHaveBeenCalled();
     const comments = component.state.steps()[0].comments ?? [];
     expect(comments.length).toBe(1);
+  });
+
+  it('should let administrators delete any comment', () => {
+    userService.setCurrentUserId(1);
+    userService.setAdmin(true);
+    syncViewerLikes();
+    const diary = { ...baseDiary } satisfies TravelDiary;
+    const comment: Comment = {
+      id: 205,
+      content: 'Ravis du voyage !',
+      status: 'APPROVED',
+      createdAt: '2024-07-02T11:00:00Z',
+      updatedAt: '2024-07-02T11:00:00Z',
+      user: mockUser,
+    };
+    const step: Step = { ...baseStep, comments: [comment] };
+
+    component.state.setCurrentDiary({ ...diary, steps: [step] });
+    component.state.setSteps([step]);
+    commentService.delete.and.returnValue(of(void 0));
+
+    component.onDeleteComment(step, comment);
+
+    expect(commentService.delete).toHaveBeenCalledWith(comment.id);
+    const comments = component.state.steps()[0].comments ?? [];
+    expect(comments.length).toBe(0);
+    expect(component.isCommentDeleting(comment.id)).toBeFalse();
+    userService.setAdmin(false);
+  });
+
+  it('should prevent administrators from editing comments they do not own', () => {
+    userService.setCurrentUserId(1);
+    userService.setAdmin(true);
+    syncViewerLikes();
+    const diary = { ...baseDiary } satisfies TravelDiary;
+    const comment: Comment = {
+      id: 206,
+      content: 'Besoin de mise à jour',
+      status: 'APPROVED',
+      createdAt: '2024-07-03T12:00:00Z',
+      updatedAt: '2024-07-03T12:00:00Z',
+      user: mockUser,
+    };
+    const step: Step = { ...baseStep, comments: [comment] };
+
+    component.state.setCurrentDiary({ ...diary, steps: [step] });
+    component.state.setSteps([step]);
+
+    component.onEditComment(step, comment);
+
+    expect(component.isCommentEditing(comment.id)).toBeFalse();
+    expect(component.getCommentEditDraft(comment.id)).toBe('');
+    userService.setAdmin(false);
   });
 
   it('should delete a comment when the viewer owns the diary', () => {

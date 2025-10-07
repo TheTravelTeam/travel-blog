@@ -1021,10 +1021,18 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     return this.commentUpdating()[commentId] ?? false;
   }
 
-  /** Checks whether the viewer can manage (edit/delete) the provided comment. */
+  /**
+   * Checks whether the viewer can manage (edit/delete) a comment.
+   * Admins bypass ownership checks so they can moderate any comment.
+   */
   canManageComment(comment: Comment | null | undefined): boolean {
     if (!comment) {
       return false;
+    }
+
+    // Administrators always retain moderation capabilities regardless of ownership.
+    if (this.userService.isCurrentUserAdmin()) {
+      return true;
     }
 
     if (this.isViewerDisabled()) {
@@ -1041,6 +1049,29 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     }
 
     return comment.user?.id === viewerId;
+  }
+
+  /** Indicates if the viewer can edit the provided comment. */
+  canEditComment(comment: Comment | null | undefined): boolean {
+    if (!comment) {
+      return false;
+    }
+
+    if (this.isViewerDisabled()) {
+      return false;
+    }
+
+    const viewerId = this.currentViewerId();
+    if (!Number.isFinite(viewerId)) {
+      return false;
+    }
+
+    return comment.user?.id === viewerId;
+  }
+
+  /** Indicates if the viewer can delete the provided comment. */
+  canDeleteComment(comment: Comment | null | undefined): boolean {
+    return this.canManageComment(comment);
   }
 
   /**
@@ -1147,7 +1178,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
 
   /** Enables edit mode for the provided comment. */
   onEditComment(step: Step, comment: Comment): void {
-    if (!this.canManageComment(comment)) {
+    if (!this.canEditComment(comment)) {
       return;
     }
 
@@ -1183,7 +1214,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
 
   /** Persists the edited comment content. */
   onSubmitCommentEdit(step: Step, comment: Comment): void {
-    if (!this.canManageComment(comment)) {
+    if (!this.canEditComment(comment)) {
       return;
     }
 

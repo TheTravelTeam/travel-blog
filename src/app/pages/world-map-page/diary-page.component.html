@@ -245,24 +245,28 @@
                           <p class="step_comment__content">{{ comment.content }}</p>
                         }
 
-                        @if (canManageComment(comment) && !isCommentEditing(comment.id)) {
+                        @if ((canEditComment(comment) || canDeleteComment(comment)) && !isCommentEditing(comment.id)) {
                           <div class="step_comment__footer">
-                            <button
-                              type="button"
-                              class="step_comment__action"
-                              (click)="onEditComment(step, comment)"
-                              [disabled]="isCommentDeleting(comment.id) || isCommentEditing(comment.id)"
-                            >
-                              Modifier
-                            </button>
-                            <button
-                              type="button"
-                              class="step_comment__action step_comment__action--danger"
-                              (click)="onDeleteComment(step, comment)"
-                              [disabled]="isCommentDeleting(comment.id)"
-                            >
-                              Supprimer
-                            </button>
+                            @if (canEditComment(comment)) {
+                              <button
+                                type="button"
+                                class="step_comment__action"
+                                (click)="onEditComment(step, comment)"
+                                [disabled]="isCommentDeleting(comment.id) || isCommentEditing(comment.id)"
+                              >
+                                Modifier
+                              </button>
+                            }
+                            @if (canDeleteComment(comment)) {
+                              <button
+                                type="button"
+                                class="step_comment__action step_comment__action--danger"
+                                (click)="onDeleteComment(step, comment)"
+                                [disabled]="isCommentDeleting(comment.id)"
+                              >
+                                Supprimer
+                              </button>
+                            }
                           </div>
                         }
                       </div>

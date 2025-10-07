@@ -131,17 +131,17 @@ export class MePageComponent implements OnInit, OnDestroy {
 
   // Construit le menu latéral : ajoute l'onglet admin si l'utilisateur possède le rôle adéquat.
   readonly sections = computed<SectionItem[]>(() => {
-    const base: SectionItem[] = [
+    const sections: SectionItem[] = [
       { id: 'info', label: 'Mes informations' },
       { id: 'diaries', label: 'Mes carnets' },
-      { id: 'articles', label: 'Gestion des articles' },
     ];
 
     if (this.isAdmin()) {
-      base.push({ id: 'users', label: 'Gestion des utilisateurs', adminOnly: true });
+      sections.push({ id: 'articles', label: 'Gestion des articles' });
+      sections.push({ id: 'users', label: 'Gestion des utilisateurs', adminOnly: true });
     }
 
-    return base;
+    return sections;
   });
 
   readonly filteredArticles = computed(() => {
@@ -182,7 +182,6 @@ export class MePageComponent implements OnInit, OnDestroy {
   /** Initialise la page et attache les effets réactifs liés aux signaux. */
   ngOnInit(): void {
     this.loadProfile();
-    this.loadArticles();
   }
 
   /** Libère les abonnements RxJS pour éviter les fuites mémoire. */
@@ -198,6 +197,10 @@ export class MePageComponent implements OnInit, OnDestroy {
 
   /** Ouvre la section souhaitée dans la navigation latérale. */
   setActiveSection(id: SectionId): void {
+    if (!this.sections().some((section) => section.id === id)) {
+      return;
+    }
+
     this.openSection.set(id);
   }
 
@@ -257,12 +260,20 @@ export class MePageComponent implements OnInit, OnDestroy {
 
   /** Gestion du terme de recherche côté articles. */
   onArticleSearch(term: string): void {
+    if (!this.isAdmin()) {
+      return;
+    }
+
     this.articleSearchTerm.set(term);
     this.articlesCurrentPage.set(1);
   }
 
   /** Affiche la vue liste des articles. */
   showArticleList(): void {
+    if (!this.isAdmin()) {
+      return;
+    }
+
     this.articleEditorView.set('list');
     this.articleFormMode.set('create');
     this.editingArticleId.set(null);
@@ -273,6 +284,10 @@ export class MePageComponent implements OnInit, OnDestroy {
 
   /** Prépare la création d'un nouvel article. */
   startArticleCreation(): void {
+    if (!this.isAdmin()) {
+      return;
+    }
+
     this.articleEditorView.set('form');
     this.articleFormMode.set('create');
     this.editingArticleId.set(null);
@@ -282,6 +297,10 @@ export class MePageComponent implements OnInit, OnDestroy {
 
   /** Prépare l'édition d'un article existant. */
   startArticleEdition(articleId: number): void {
+    if (!this.isAdmin()) {
+      return;
+    }
+
     const article = this.articles().find((item) => item.id === articleId);
     if (!article) {
       return;
@@ -320,6 +339,10 @@ export class MePageComponent implements OnInit, OnDestroy {
 
   /** Supprime un article via l'API et synchronise la liste locale. */
   deleteArticle(articleId: number): void {
+    if (!this.isAdmin()) {
+      return;
+    }
+
     this.articlesError.set(null);
 
     this.articleService
@@ -478,6 +501,10 @@ export class MePageComponent implements OnInit, OnDestroy {
 
   /** Envoie le brouillon d'article vers l'API puis réinitialise le formulaire. */
   submitArticle(): void {
+    if (!this.isAdmin()) {
+      return;
+    }
+
     if (this.articleFormSubmitting()) {
       return;
     }
@@ -638,6 +665,11 @@ export class MePageComponent implements OnInit, OnDestroy {
   }
 
   private loadArticles(): void {
+    if (!this.isAdmin()) {
+      this.articlesLoading.set(false);
+      return;
+    }
+
     this.articlesLoading.set(true);
     this.articlesError.set(null);
 
@@ -691,17 +723,12 @@ export class MePageComponent implements OnInit, OnDestroy {
       this.profileFormError.set('Le pseudo est obligatoire.');
       return null;
     }
-
-    const maybeTrim = (value: string | undefined) => {
-      const trimmed = value?.trim();
-      return trimmed && trimmed.length ? trimmed : undefined;
-    };
     const payload: Partial<UserProfileDto> = {
       pseudo,
-      firstName: maybeTrim(form.firstName),
-      lastName: maybeTrim(form.lastName),
-      email: maybeTrim(form.email),
     };
+
+    const email = form.email?.trim();
+    payload.email = email && email.length ? email : undefined;
 
     const password = form.password.trim();
     const confirmPassword = form.confirmPassword.trim();
@@ -782,6 +809,19 @@ export class MePageComponent implements OnInit, OnDestroy {
           this.diariesCurrentPage.set(1);
           this.ensureDiariesPageWithinBounds();
           this.patchProfileForm(profile);
+          if (this.isAdmin()) {
+            this.loadArticles();
+          } else {
+            this.articles.set([]);
+            this.articlesError.set(null);
+            this.articlesLoading.set(false);
+            this.articlesCurrentPage.set(1);
+            this.articleEditorView.set('list');
+            this.editingArticleId.set(null);
+            this.articleSearchTerm.set('');
+            this.resetArticleForm();
+          }
+          this.ensureAccessibleSection();
           this.isLoading.set(false);
           this.profileDeleteSubmitting.set(false);
           this.profileDeleteError.set(null);
@@ -799,8 +839,6 @@ export class MePageComponent implements OnInit, OnDestroy {
   /** Alimente le formulaire local avec les données du profil récupéré en API. */
   private patchProfileForm(profile: UserProfileDto): void {
     this.profileForm.set({
-      firstName: profile.firstName,
-      lastName: profile.lastName,
       email: profile.email ?? '',
       pseudo: profile.pseudo,
       password: '',
@@ -861,6 +899,19 @@ export class MePageComponent implements OnInit, OnDestroy {
     const current = this.articlesCurrentPage();
     if (current > maxPage) {
       this.articlesCurrentPage.set(maxPage);
+    }
+  }
+
+  private ensureAccessibleSection(): void {
+    const available = this.sections().map((section) => section.id);
+    if (!available.length) {
+      this.openSection.set('info');
+      return;
+    }
+
+    const current = this.openSection();
+    if (!current || !available.includes(current)) {
+      this.openSection.set(available[0]);
     }
   }
 
