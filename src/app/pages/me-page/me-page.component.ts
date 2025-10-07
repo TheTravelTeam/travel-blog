@@ -10,7 +10,6 @@ import { DividerComponent } from 'components/Atoms/Divider/divider.component';
 import { TextInputComponent } from 'components/Atoms/text-input/text-input.component';
 import { EditorComponent } from '../../shared/editor/editor.component';
 import { TravelDiaryCardComponent } from 'components/Molecules/Card-ready-to-use/travel-diary-card/travel-diary-card.component';
-import { SelectComponent } from 'components/Atoms/select/select.component';
 import {
   MediaGridUploaderComponent,
   MediaItem,
@@ -21,15 +20,12 @@ import { BreakpointService } from '@service/breakpoint.service';
 import { UserService } from '@service/user.service';
 import { AuthService } from '@service/auth.service';
 import { ArticleService } from '@service/article.service';
-import { ThemeService } from '@service/theme.service';
 import { StepService } from '@service/step.service';
 import { TravelMapStateService } from '@service/travel-map-state.service';
 import { MediaService } from '@service/media.service';
 import { TravelDiary } from '@model/travel-diary.model';
 // import { UserProfile } from '@model/user-profile.model';
 import { Article } from '@model/article.model';
-import { Theme } from '@model/theme.model';
-import { ItemProps } from '@model/select.model';
 import { CreateMediaDto } from '@dto/create-media.dto';
 import { UpsertArticleDto } from '@dto/article.dto';
 import { UserProfileDto } from '@dto/user-profile.dto';
@@ -61,7 +57,6 @@ import {
     TextInputComponent,
     EditorComponent,
     TravelDiaryCardComponent,
-    SelectComponent,
     MediaGridUploaderComponent,
     AdminUsersSectionComponent,
   ],
@@ -73,7 +68,6 @@ export class MePageComponent implements OnInit, OnDestroy {
   private readonly breakpointService = inject(BreakpointService);
   private readonly authService = inject(AuthService);
   private readonly articleService = inject(ArticleService);
-  private readonly themeService = inject(ThemeService);
   private readonly stepService = inject(StepService);
   private readonly travelMapState = inject(TravelMapStateService);
   private readonly router = inject(Router);
@@ -116,10 +110,6 @@ export class MePageComponent implements OnInit, OnDestroy {
   readonly articles = signal<ArticleItem[]>([]);
   readonly articlesLoading = signal(false);
   readonly articlesError = signal<string | null>(null);
-  readonly themes = signal<Theme[]>([]);
-  readonly themeOptions = computed(() =>
-    this.themes().map((theme) => ({ id: theme.id, label: theme.name }))
-  );
 
   readonly roleBadges = computed(() => this.profile()?.roles ?? []);
   readonly isAdmin = computed(() => this.roleBadges().includes('ADMIN'));
@@ -172,7 +162,6 @@ export class MePageComponent implements OnInit, OnDestroy {
   /** Initialise la page et attache les effets réactifs liés aux signaux. */
   ngOnInit(): void {
     this.loadProfile();
-    this.loadThemes();
     this.loadArticles();
   }
 
@@ -272,13 +261,11 @@ export class MePageComponent implements OnInit, OnDestroy {
     this.articleEditorView.set('form');
     this.articleFormMode.set('edit');
     this.editingArticleId.set(articleId);
-    const categoryLabel = this.resolveThemeLabel(article.themeId, article.category);
     this.articleDraft.set({
       title: article.title,
       author: article.author,
-      category: categoryLabel,
+      category: article.category?.trim() ?? '',
       content: article.content,
-      themeId: article.themeId ?? null,
       coverUrl: article.coverUrl ?? null,
     });
     this.articleFormError.set(null);
@@ -459,20 +446,6 @@ export class MePageComponent implements OnInit, OnDestroy {
     this.profileForm.update((state) => ({ ...state, [field]: value }));
   }
 
-  onThemeSelect(selection: ItemProps | ItemProps[]): void {
-    const item = Array.isArray(selection) ? (selection.at(0) ?? null) : selection;
-
-    if (!item) {
-      this.updateDraft('category', '');
-      this.updateDraft('themeId', null);
-      return;
-    }
-
-    const themeId = Number(item.id);
-    this.updateDraft('category', item.label);
-    this.updateDraft('themeId', Number.isNaN(themeId) ? null : themeId);
-  }
-
   /** Envoie le brouillon d'article vers l'API puis réinitialise le formulaire. */
   submitArticle(): void {
     if (this.articleFormSubmitting()) {
@@ -645,7 +618,6 @@ export class MePageComponent implements OnInit, OnDestroy {
           const items = articles.map((article) => this.mapArticleToItem(article));
           this.articles.set(items);
           this.articlesLoading.set(false);
-          this.refreshArticleCategories();
         },
         error: (err) => {
           this.articlesError.set(
@@ -653,22 +625,6 @@ export class MePageComponent implements OnInit, OnDestroy {
           );
           this.articlesLoading.set(false);
           console.error('articles fetch failed', err);
-        },
-      });
-  }
-
-  private loadThemes(): void {
-    this.themeService
-      .getThemes()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (themes) => {
-          this.themes.set(themes);
-          this.refreshArticleCategories();
-        },
-        error: (err) => {
-          console.error('themes fetch failed', err);
-          this.themes.set([]);
         },
       });
   }
@@ -740,21 +696,15 @@ export class MePageComponent implements OnInit, OnDestroy {
   }
 
   private mapArticleToItem(article: Article): ArticleItem {
-    const rawThemeId = article.themeId;
-    const themeId = rawThemeId != null ? Number(rawThemeId) : null;
-    const normalizedThemeId = themeId !== null && Number.isNaN(themeId) ? null : themeId;
-    const categoryLabel = this.resolveThemeLabel(normalizedThemeId, article.category ?? undefined);
-    const fallbackCategory = categoryLabel || this.resolveCategoryFromThemes(article.themes);
+    const category = article.category?.trim() ?? '';
     return {
       id: article.id,
       title: article.title,
       author: article.author ?? '',
-      category: fallbackCategory,
+      category,
       content: article.content,
-      themeId: normalizedThemeId,
       publishedAt: article.updatedAt,
       slug: article.slug,
-      themes: article.themes,
       userId: article.userId ?? null,
       coverUrl: article.coverUrl ?? null,
       medias: article.medias,
@@ -762,54 +712,18 @@ export class MePageComponent implements OnInit, OnDestroy {
   }
 
   private buildUpsertPayload(draft: ArticleDraft, userId: number): UpsertArticleDto {
-    const rawThemeId = draft.themeId;
-    const themeId = rawThemeId != null ? Number(rawThemeId) : undefined;
-    const normalizedThemeId = themeId !== undefined && Number.isNaN(themeId) ? undefined : themeId;
-    const themeIds = normalizedThemeId != null ? [normalizedThemeId] : [];
     const coverUrl = draft.coverUrl?.trim();
     const mediaIds = this.getArticleMediaIds();
+    const category = draft.category.trim();
 
     return {
       title: draft.title.trim(),
       content: draft.content,
       userId,
-      themeIds,
+      category: category.length ? category : undefined,
       coverUrl: coverUrl?.length ? coverUrl : undefined,
       mediaIds,
     };
-  }
-
-  private resolveThemeLabel(themeId: number | null | undefined, fallback?: string | null): string {
-    if (themeId != null) {
-      const theme = this.themes().find((item) => item.id === themeId);
-      if (theme) {
-        return theme.name;
-      }
-    }
-
-    return fallback?.trim() ?? '';
-  }
-
-  private resolveCategoryFromThemes(themes?: Theme[] | null): string {
-    if (!themes || !themes.length) {
-      return '';
-    }
-
-    const firstTheme = themes.find((theme) => Boolean(theme?.name?.trim()));
-    return firstTheme?.name?.trim() ?? '';
-  }
-
-  private refreshArticleCategories(): void {
-    this.articles.update((items) =>
-      items.map((article) => {
-        const resolved = this.resolveThemeLabel(article.themeId, article.category);
-        const category = resolved || this.resolveCategoryFromThemes(article.themes);
-        return {
-          ...article,
-          category,
-        };
-      })
-    );
   }
 
   /**

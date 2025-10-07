@@ -67,6 +67,15 @@
     margin-top: 1rem;
   }
 
+  &__error {
+    color: #e53e3e;
+    font-size: 0.875rem;
+    font-family: $font-text;
+    margin-top: -0.5rem;
+    padding-left: 0.5rem;
+    min-height: 1.25rem;
+  }
+
   &__footer {
     text-align: center;
     margin-top: 1.5rem;

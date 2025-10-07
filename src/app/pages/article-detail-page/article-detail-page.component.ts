@@ -147,10 +147,6 @@ export class ArticleDetailPageComponent implements OnInit {
     if (article.category?.trim()) {
       return article.category.trim();
     }
-    const theme = article.themes?.find((item) => item?.name?.trim());
-    if (theme?.name) {
-      return theme.name.trim();
-    }
     return '';
   }
 

@@ -20,7 +20,9 @@
         formControlName="startDate"
         label="Début de l'étape"
         placeholder="Date et heure"
-        type="datetime-local"
+        type="date"
+        [isRequired]="true"
+        [errorMessage]="getControlError('startDate')"
         data-test="step-form-start"
       ></app-text-input>
 
@@ -28,7 +30,9 @@
         formControlName="endDate"
         label="Fin de l'étape"
         placeholder="Date et heure"
-        type="datetime-local"
+        type="date"
+        [isRequired]="true"
+        [errorMessage]="getControlError('endDate')"
         data-test="step-form-end"
       ></app-text-input>
     </div>
@@ -78,9 +82,6 @@
             (btnClick)="openLocationModal()"
             data-test="step-form-location"
           ></app-button>
-          <span class="create-step__location-summary">{{
-            locationEnrichmentSummary || selectedCoordinatesSummary
-          }}</span>
         </div>
         @if (isGeocoding) {
           <p class="create-step__location-status">Recherche de l'adresse…</p>

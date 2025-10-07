@@ -47,14 +47,17 @@
               label="Nom du voyage"
               placeholder="Le nom de votre voyage"
               [isRequired]="true"
+              [errorMessage]="getDiaryControlError('title')"
               data-test="create-diary-title"
             ></app-text-input>
 
             <app-text-input
-              formControlName="period"
+              formControlName="startDate"
               label="Date de début de voyage"
               placeholder="Choisissez la date de départ"
-              type="datetime-local"
+              type="date"
+              [isRequired]="true"
+              [errorMessage]="getDiaryControlError('startDate')"
               data-test="create-diary-period"
             ></app-text-input>
           </div>
@@ -207,7 +210,9 @@
               formControlName="startDate"
               label="Début de l'étape"
               placeholder="Date et heure"
-              type="datetime-local"
+              type="date"
+              [isRequired]="true"
+              [errorMessage]="getStepControlError('startDate')"
               data-test="create-step-start"
             ></app-text-input>
 
@@ -215,7 +220,9 @@
               formControlName="endDate"
               label="Fin de l'étape"
               placeholder="Date et heure"
-              type="datetime-local"
+              type="date"
+              [isRequired]="true"
+              [errorMessage]="getStepControlError('endDate')"
               data-test="create-step-end"
             ></app-text-input>
           </div>

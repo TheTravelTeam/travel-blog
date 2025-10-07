@@ -1,6 +1,5 @@
 import { TravelDiary } from '@model/travel-diary.model';
 import { Step } from '@model/step.model';
-import { Theme } from '@model/theme.model';
 import { Media } from '@model/media.model';
 
 export type SectionId = 'info' | 'diaries' | 'articles' | 'users';
@@ -16,7 +15,6 @@ export interface ArticleDraft {
   author: string;
   category: string;
   content: string;
-  themeId: number | null;
   coverUrl: string | null;
 }
 
@@ -24,7 +22,6 @@ export interface ArticleItem extends ArticleDraft {
   id: number;
   publishedAt: string;
   slug?: string;
-  themes?: Theme[];
   userId?: number | null;
   medias?: Media[];
 }
@@ -45,7 +42,6 @@ export const INITIAL_ARTICLE_DRAFT: ArticleDraft = {
   author: '',
   category: '',
   content: '',
-  themeId: null,
   coverUrl: null,
 };
 

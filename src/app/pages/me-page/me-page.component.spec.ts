@@ -90,7 +90,6 @@ describe('MePageComponent', () => {
     httpMock = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
 
-    httpMock.expectOne(`${environment.apiUrl}/themes`).flush([]);
     httpMock.expectOne(`${environment.apiUrl}/articles`).flush([]);
   });
 

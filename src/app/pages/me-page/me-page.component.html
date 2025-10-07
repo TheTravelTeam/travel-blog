@@ -418,14 +418,6 @@
                             (ngModelChange)="updateDraft('author', $event)"
                           ></app-text-input>
                         </div>
-                        <app-select
-                          label="Catégorie de l'article"
-                          [itemsList]="themeOptions()"
-                          placeholder="Sélectionnez une catégorie"
-                          [disabled]="!themeOptions().length"
-                          [selectedId]="articleDraft().themeId"
-                          (selectOnChange)="onThemeSelect($event)"
-                        ></app-select>
                         <app-editor
                           label="Contenu de l'article"
                           [content]="articleDraft().content || ''"

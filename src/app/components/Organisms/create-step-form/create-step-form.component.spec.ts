@@ -20,7 +20,8 @@ describe('CreateStepFormComponent', () => {
     fixture.detectChanges();
   });
 
-  function setValidBaseFormValues(): void {
+  function setValidBaseFormValues(options: { includeDates?: boolean } = {}): void {
+    const { includeDates = true } = options;
     component.stepForm.patchValue({
       title: 'Nouvelle étape test',
       city: 'Paris',
@@ -30,18 +31,18 @@ describe('CreateStepFormComponent', () => {
       longitude: '2.3522',
       description: 'Une description suffisamment longue',
       mediaUrl: '',
-      startDate: '',
-      endDate: '',
+      startDate: includeDates ? '2024-07-14' : '',
+      endDate: includeDates ? '2024-07-20' : '',
       themeId: null,
       themeIds: [],
     });
   }
 
-  it('should normalize datetime-local inputs to ISO dates on submit', () => {
+  it('should normalize date inputs to ISO dates on submit', () => {
     setValidBaseFormValues();
     component.stepForm.patchValue({
-      startDate: '2024-07-14T12:30',
-      endDate: '2024-07-20T08:15',
+      startDate: '2024-07-14',
+      endDate: '2024-07-20',
     });
 
     const emitSpy = spyOn(component.submitStep, 'emit');
@@ -59,8 +60,21 @@ describe('CreateStepFormComponent', () => {
     );
   });
 
-  it('should emit null for empty date inputs on submit', () => {
+  it('should block submission when date inputs are missing', () => {
+    setValidBaseFormValues({ includeDates: false });
+
+    const emitSpy = spyOn(component.submitStep, 'emit');
+
+    component.handleSubmit();
+
+    expect(emitSpy).not.toHaveBeenCalled();
+    expect(component.stepForm.get('startDate')?.errors?.['required']).toBeTrue();
+    expect(component.stepForm.get('endDate')?.errors?.['required']).toBeTrue();
+  });
+
+  it('should normalise French-formatted dates before emission', () => {
     setValidBaseFormValues();
+    component.stepForm.patchValue({ startDate: '14/07/2024', endDate: '20/07/2024' });
 
     const emitSpy = spyOn(component.submitStep, 'emit');
 
@@ -69,8 +83,8 @@ describe('CreateStepFormComponent', () => {
     expect(emitSpy).toHaveBeenCalledTimes(1);
     expect(emitSpy.calls.mostRecent().args[0]).toEqual(
       jasmine.objectContaining({
-        startDate: null,
-        endDate: null,
+        startDate: '2024-07-14',
+        endDate: '2024-07-20',
       })
     );
   });

@@ -8,6 +8,7 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AuthService } from '@service/auth.service';
 import { TextInputComponent } from '../../Atoms/text-input/text-input.component';
@@ -26,6 +27,7 @@ export class RegisterFormComponent implements OnInit {
 
   registerForm!: FormGroup;
   isSubmitting = false;
+  submissionError = '';
 
   private readonly passwordsMatchValidator: ValidatorFn = (
     control: AbstractControl
@@ -47,7 +49,7 @@ export class RegisterFormComponent implements OnInit {
   private initializeForm(): void {
     this.registerForm = this.fb.group(
       {
-        pseudo: ['', [Validators.required]],
+        pseudo: ['', [Validators.required, Validators.minLength(3)]],
         email: ['', [Validators.required, Validators.email]],
         password: ['', [Validators.required, Validators.minLength(6)]],
         confirmPassword: ['', [Validators.required]],
@@ -65,6 +67,7 @@ export class RegisterFormComponent implements OnInit {
     switch (fieldName) {
       case 'pseudo':
         if (errors?.['required']) return 'Le pseudo est requis';
+        if (errors?.['minlength']) return 'Le pseudo doit contenir au moins 3 caractères';
         break;
       case 'email':
         if (errors?.['required']) return "L'email est requis";
@@ -85,15 +88,20 @@ export class RegisterFormComponent implements OnInit {
   }
 
   onSubmit(): void {
+    this.submissionError = '';
+
     if (this.registerForm.valid) {
       this.isSubmitting = true;
       const { pseudo, email, password } = this.registerForm.value;
 
       this.authService.register(email, password, pseudo).subscribe({
-        next: () => this.router.navigate(['/login']),
-        error: () => {
+        next: () => {
           this.isSubmitting = false;
-          alert("Échec de l'inscription, veuillez réessayer.");
+          this.router.navigate(['/login']);
+        },
+        error: (error) => {
+          this.isSubmitting = false;
+          this.submissionError = this.extractErrorMessage(error);
         },
       });
     } else {
@@ -108,6 +116,37 @@ export class RegisterFormComponent implements OnInit {
         control.markAsTouched();
       }
     });
+  }
+
+  private extractErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      const payload = error.error;
+
+      if (payload?.errors && typeof payload.errors === 'object') {
+        const first = Object.values(payload.errors)[0];
+        if (Array.isArray(first)) {
+          return first.join(' ');
+        }
+        if (typeof first === 'string' && first.trim()) {
+          return first.trim();
+        }
+      }
+
+      if (typeof payload === 'string' && payload.trim()) {
+        return payload.trim();
+      }
+
+      const message = typeof payload?.message === 'string' ? payload.message.trim() : '';
+      if (message) {
+        return message;
+      }
+    }
+
+    if (error instanceof Error && error.message.trim()) {
+      return error.message.trim();
+    }
+
+    return "Échec de l'inscription, veuillez réessayer.";
   }
 
   navigateToLogin(): void {
