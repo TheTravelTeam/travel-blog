@@ -57,6 +57,7 @@ export type IconName =
   | 'public'
   | 'travel_explore'
   | 'map_search'
+  | 'power_settings_new'
   | 'calendar_today'
   | 'location_on'
   | 'photo_library'

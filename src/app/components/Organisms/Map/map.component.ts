@@ -35,6 +35,7 @@ import { CreateStepDto } from '@dto/create-step.dto';
 import { AvatarComponent } from 'components/Atoms/avatar/avatar.component';
 import { BreakpointService } from '@service/breakpoint.service';
 import { Router } from '@angular/router';
+import { Location } from '@angular/common';
 import { TravelMapStateService } from '@service/travel-map-state.service';
 import { AuthService } from '@service/auth.service';
 import { UserService } from '@service/user.service';
@@ -86,6 +87,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
   private stepService = inject(StepService);
   private breakpointService = inject(BreakpointService);
   private router = inject(Router);
+  private readonly location = inject(Location);
   public state = inject(TravelMapStateService);
   private readonly authService = inject(AuthService);
   private readonly userService = inject(UserService);
@@ -554,8 +556,16 @@ export class MapComponent implements AfterViewInit, OnChanges {
     }
 
     if (!skipNavigation) {
-      this.router.navigate(['/travels']).catch(() => undefined);
+      if (this.hasBrowserHistory()) {
+        this.location.back();
+      } else {
+        this.router.navigate(['/travels']).catch(() => undefined);
+      }
     }
+  }
+
+  private hasBrowserHistory(): boolean {
+    return typeof window !== 'undefined' && window.history.length > 1;
   }
 
   /**
