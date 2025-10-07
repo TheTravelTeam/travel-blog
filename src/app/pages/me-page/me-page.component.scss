@@ -575,8 +575,10 @@
 
 .me-page__pagination {
   align-self: center;
-  font-size: 0.85rem;
-  color: $commentTextColor;
+  margin-top: 1.5rem;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .me-page__article-editor {

@@ -197,7 +197,7 @@
                   }
                   @if (diaries().length) {
                     <ul class="me-page__diary-grid">
-                      @for (diary of diaries(); track diary.id) {
+                      @for (diary of paginatedDiaries(); track diary.id) {
                         <li class="me-page__diary-card">
                           <app-travel-diary-card
                             [id]="diary.id"
@@ -285,6 +285,13 @@
                         </li>
                       }
                     </ul>
+                    <app-pagination
+                      class="me-page__pagination"
+                      [totalItems]="diaries().length"
+                      [itemsPerPage]="diariesPageSize"
+                      [currentPage]="diariesCurrentPage()"
+                      (pageChange)="onDiariesPageChange($event)"
+                    ></app-pagination>
                   } @else {
                     <p class="me-page__empty">Aucun carnet pour le moment.</p>
                   }
@@ -329,7 +336,7 @@
                         }
                         @if (filteredArticles().length) {
                           <ul class="me-page__article-list">
-                            @for (article of filteredArticles(); track article.id) {
+                            @for (article of paginatedArticles(); track article.id) {
                               <li class="me-page__article-card">
                                 <div class="me-page__article-header">
                                   <h3>{{ article.title }}</h3>
@@ -371,11 +378,17 @@
                               </li>
                             }
                           </ul>
+                          <app-pagination
+                            class="me-page__pagination"
+                            [totalItems]="filteredArticles().length"
+                            [itemsPerPage]="articlesPageSize"
+                            [currentPage]="articlesCurrentPage()"
+                            (pageChange)="onArticlesPageChange($event)"
+                          ></app-pagination>
                         } @else {
                           <p class="me-page__empty">Aucun article ne correspond à votre recherche.</p>
                         }
                       }
-                      <p class="me-page__pagination">Page 1 · 2 · 3 · 4 · 5</p>
                     </div>
                   } @else {
                     <div class="me-page__article-editor">

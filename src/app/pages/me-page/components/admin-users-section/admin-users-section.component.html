@@ -66,7 +66,7 @@
 
         @if (filteredUsers().length) {
           <ul class="admin-users__list-content" data-test="admin-users-list">
-            @for (user of filteredUsers(); track user.id) {
+            @for (user of paginatedUsers(); track user.id) {
               <li class="admin-users__card" [attr.data-test]="'admin-user-' + user.id">
                 <div class="admin-users__card-main">
                   <div>
@@ -139,6 +139,13 @@
               </li>
             }
           </ul>
+          <app-pagination
+            class="admin-users__pagination"
+            [totalItems]="filteredUsers().length"
+            [itemsPerPage]="usersPageSize"
+            [currentPage]="usersCurrentPage()"
+            (pageChange)="onUsersPageChange($event)"
+          ></app-pagination>
         } @else {
           <p class="admin-users__empty">Aucun utilisateur trouvé.</p>
         }
@@ -202,7 +209,7 @@
 
         @if (!selectedUserLoading() && !selectedUserError() && (selectedUser()?.diaries?.length ?? 0)) {
           <ul class="admin-users__diaries" data-test="admin-diaries-list">
-            @for (diary of selectedUser()?.diaries ?? []; track diary.id) {
+            @for (diary of paginatedSelectedUserDiaries(); track diary.id) {
               <li class="admin-users__diary-card" [attr.data-test]="'admin-diary-' + diary.id">
                 <app-travel-diary-card
                   [id]="diary.id"
@@ -308,6 +315,13 @@
               </li>
             }
           </ul>
+          <app-pagination
+            class="admin-users__pagination"
+            [totalItems]="selectedUser()?.diaries?.length ?? 0"
+            [itemsPerPage]="selectedUserDiariesPageSize"
+            [currentPage]="selectedUserDiariesCurrentPage()"
+            (pageChange)="onSelectedUserDiariesPageChange($event)"
+          ></app-pagination>
         } @else {
           <p class="admin-users__empty">Aucun carnet associé pour le moment.</p>
         }
