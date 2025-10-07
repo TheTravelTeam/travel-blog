@@ -197,6 +197,7 @@ describe('MyTravelsPageComponent', () => {
       title: diary.title ?? '',
       description: diary.description ?? '',
       coverUrl: diary.media?.fileUrl ?? null,
+      startDate: diary.startDate ?? null,
     });
     expect(component.state.currentDiaryId()).toBe(diary.id);
     expect(component.state.currentDiary()).toEqual(jasmine.objectContaining({ id: diary.id }));

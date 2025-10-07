@@ -130,8 +130,8 @@ describe('CreateStepFormComponent', () => {
         longitude: '56.78',
         description: 'Description existante',
         mediaUrl: 'https://example.com/pic.jpg',
-        startDate: '2024-07-14T10:00',
-        endDate: '2024-07-20T16:30',
+        startDate: '2024-07-14',
+        endDate: '2024-07-20',
         themeId: 3,
         themeIds: [3],
       })
