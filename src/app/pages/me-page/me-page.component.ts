@@ -15,6 +15,7 @@ import {
   MediaItem,
 } from 'components/Molecules/media-grid-uploader/media-grid-uploader.component';
 import { AdminUsersSectionComponent } from './components/admin-users-section/admin-users-section.component';
+import { PaginationComponent } from 'components/Molecules/pagination/pagination.component';
 import { Router } from '@angular/router';
 import { BreakpointService } from '@service/breakpoint.service';
 import { UserService } from '@service/user.service';
@@ -59,6 +60,7 @@ import {
     TravelDiaryCardComponent,
     MediaGridUploaderComponent,
     AdminUsersSectionComponent,
+    PaginationComponent,
   ],
   templateUrl: './me-page.component.html',
   styleUrl: './me-page.component.scss',
@@ -85,6 +87,17 @@ export class MePageComponent implements OnInit, OnDestroy {
   readonly profile = signal<UserProfileDto | null>(null);
   readonly diaries = signal<NormalizedDiary[]>([]);
   readonly diariesError = signal<string | null>(null);
+
+  readonly diariesPageSize = 6;
+  readonly articlesPageSize = 5;
+  readonly diariesCurrentPage = signal(1);
+  readonly articlesCurrentPage = signal(1);
+  readonly paginatedDiaries = computed(() => {
+    const items = this.diaries();
+    const perPage = this.diariesPageSize;
+    const startIndex = (this.diariesCurrentPage() - 1) * perPage;
+    return items.slice(startIndex, startIndex + perPage);
+  });
 
   readonly openSection = signal<SectionId | null>('info');
   readonly articleDraft = signal<ArticleDraft>({ ...INITIAL_ARTICLE_DRAFT });
@@ -143,6 +156,13 @@ export class MePageComponent implements OnInit, OnDestroy {
         `${article.title} ${article.author} ${article.category} ${textPreview}`.toLowerCase();
       return haystack.includes(term);
     });
+  });
+
+  readonly paginatedArticles = computed(() => {
+    const items = this.filteredArticles();
+    const perPage = this.articlesPageSize;
+    const startIndex = (this.articlesCurrentPage() - 1) * perPage;
+    return items.slice(startIndex, startIndex + perPage);
   });
 
   readonly articleSubmitLabel = computed(() => {
@@ -226,10 +246,19 @@ export class MePageComponent implements OnInit, OnDestroy {
     return this.openSection() === id;
   }
 
+  onDiariesPageChange(page: number): void {
+    this.diariesCurrentPage.set(page);
+  }
+
+  onArticlesPageChange(page: number): void {
+    this.articlesCurrentPage.set(page);
+  }
+
 
   /** Gestion du terme de recherche côté articles. */
   onArticleSearch(term: string): void {
     this.articleSearchTerm.set(term);
+    this.articlesCurrentPage.set(1);
   }
 
   /** Affiche la vue liste des articles. */
@@ -299,6 +328,7 @@ export class MePageComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.articles.update((items) => items.filter((article) => article.id !== articleId));
+          this.ensureArticlesPageWithinBounds();
           if (this.editingArticleId() === articleId) {
             this.showArticleList();
           }
@@ -501,6 +531,7 @@ export class MePageComponent implements OnInit, OnDestroy {
           );
         } else {
           this.articles.update((items) => [item, ...items]);
+          this.articlesCurrentPage.set(1);
         }
 
         this.articleFormSubmitting.set(false);
@@ -618,6 +649,8 @@ export class MePageComponent implements OnInit, OnDestroy {
           const items = articles.map((article) => this.mapArticleToItem(article));
           this.articles.set(items);
           this.articlesLoading.set(false);
+          this.articlesCurrentPage.set(1);
+          this.ensureArticlesPageWithinBounds();
         },
         error: (err) => {
           this.articlesError.set(
@@ -746,6 +779,8 @@ export class MePageComponent implements OnInit, OnDestroy {
             this.normalizeDiary(diary)
           );
           this.diaries.set(normalizedDiaries);
+          this.diariesCurrentPage.set(1);
+          this.ensureDiariesPageWithinBounds();
           this.patchProfileForm(profile);
           this.isLoading.set(false);
           this.profileDeleteSubmitting.set(false);
@@ -809,6 +844,24 @@ export class MePageComponent implements OnInit, OnDestroy {
       return 'Aucun aperçu disponible.';
     }
     return text.length > 160 ? `${text.slice(0, 160)}…` : text;
+  }
+
+  private ensureDiariesPageWithinBounds(): void {
+    const total = this.diaries().length;
+    const maxPage = Math.max(1, Math.ceil(total / this.diariesPageSize));
+    const current = this.diariesCurrentPage();
+    if (current > maxPage) {
+      this.diariesCurrentPage.set(maxPage);
+    }
+  }
+
+  private ensureArticlesPageWithinBounds(): void {
+    const total = this.filteredArticles().length;
+    const maxPage = Math.max(1, Math.ceil(total / this.articlesPageSize));
+    const current = this.articlesCurrentPage();
+    if (current > maxPage) {
+      this.articlesCurrentPage.set(maxPage);
+    }
   }
 
   /** Garantit que les tableaux optionnels des carnets sont toujours définis. */
@@ -887,6 +940,7 @@ export class MePageComponent implements OnInit, OnDestroy {
     this.diariesError.set(null);
 
     this.diaries.update((items) => items.filter((diary) => diary.id !== diaryId));
+    this.ensureDiariesPageWithinBounds();
 
     this.stepService
       .deleteDiary(diaryId)
@@ -895,6 +949,7 @@ export class MePageComponent implements OnInit, OnDestroy {
         next: () => undefined,
         error: (err) => {
           this.diaries.set(snapshotDiaries);
+          this.ensureDiariesPageWithinBounds();
           const message = err?.message ?? 'Impossible de supprimer ce carnet pour le moment.';
           this.diariesError.set(message);
           console.error('diary deletion failed', err);

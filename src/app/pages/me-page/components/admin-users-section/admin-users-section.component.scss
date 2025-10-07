@@ -102,6 +102,12 @@
   list-style: none;
 }
 
+.admin-users__pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
 .admin-users__card {
   display: flex;
   flex-direction: column;

@@ -6,6 +6,7 @@ import { Subject } from 'rxjs';
 import { ButtonComponent } from 'components/Atoms/Button/button.component';
 import { IconComponent } from 'components/Atoms/Icon/icon.component';
 import { TravelDiaryCardComponent } from 'components/Molecules/Card-ready-to-use/travel-diary-card/travel-diary-card.component';
+import { PaginationComponent } from 'components/Molecules/pagination/pagination.component';
 import { UserService } from '@service/user.service';
 import { StepService } from '@service/step.service';
 import { TravelMapStateService } from '@service/travel-map-state.service';
@@ -54,7 +55,13 @@ interface AdminUserSummary {
 @Component({
   selector: 'app-admin-users-section',
   standalone: true,
-  imports: [CommonModule, ButtonComponent, IconComponent, TravelDiaryCardComponent],
+  imports: [
+    CommonModule,
+    ButtonComponent,
+    IconComponent,
+    TravelDiaryCardComponent,
+    PaginationComponent,
+  ],
   templateUrl: './admin-users-section.component.html',
   styleUrl: './admin-users-section.component.scss',
 })
@@ -84,12 +91,31 @@ export class AdminUsersSectionComponent implements OnInit, OnDestroy {
   readonly diaryFeedback = signal<{ type: 'success' | 'error'; message: string } | null>(null);
   private readonly pendingDiaryActions = signal(new Set<string>());
 
+  readonly usersPageSize = 4;
+  readonly selectedUserDiariesPageSize = 4;
+  readonly usersCurrentPage = signal(1);
+  readonly selectedUserDiariesCurrentPage = signal(1);
+
   readonly filteredUsers = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
     if (!term) {
       return this.managedUsers();
     }
     return this.managedUsers().filter((user) => user.name.toLowerCase().includes(term));
+  });
+
+  readonly paginatedUsers = computed(() => {
+    const users = this.filteredUsers();
+    const perPage = this.usersPageSize;
+    const startIndex = (this.usersCurrentPage() - 1) * perPage;
+    return users.slice(startIndex, startIndex + perPage);
+  });
+
+  readonly paginatedSelectedUserDiaries = computed(() => {
+    const diaries = this.selectedUser()?.diaries ?? [];
+    const perPage = this.selectedUserDiariesPageSize;
+    const startIndex = (this.selectedUserDiariesCurrentPage() - 1) * perPage;
+    return diaries.slice(startIndex, startIndex + perPage);
   });
 
   /** Loads the initial set of managed users when the component starts. */
@@ -111,6 +137,7 @@ export class AdminUsersSectionComponent implements OnInit, OnDestroy {
   /** Applies a textual filter to the managed users list. */
   onSearch(term: string): void {
     this.searchTerm.set(term);
+    this.usersCurrentPage.set(1);
   }
 
   /** Retrieves detailed information for a specific user. */
@@ -119,6 +146,8 @@ export class AdminUsersSectionComponent implements OnInit, OnDestroy {
     this.selectedUserError.set(null);
     const cached = this.managedUsers().find((user) => user.id === userId) ?? null;
     this.selectedUser.set(cached);
+    this.ensureSelectedUserDiariesPageWithinBounds();
+    this.selectedUserDiariesCurrentPage.set(1);
     this.diaryFeedback.set(null);
     this.pendingDiaryActions.set(new Set());
 
@@ -140,6 +169,7 @@ export class AdminUsersSectionComponent implements OnInit, OnDestroy {
             return clone;
           });
           this.selectedUserLoading.set(false);
+          this.ensureSelectedUserDiariesPageWithinBounds();
         },
         error: (err) => {
           this.selectedUserLoading.set(false);
@@ -159,6 +189,15 @@ export class AdminUsersSectionComponent implements OnInit, OnDestroy {
     this.selectedUserError.set(null);
     this.diaryFeedback.set(null);
     this.pendingDiaryActions.set(new Set());
+    this.selectedUserDiariesCurrentPage.set(1);
+  }
+
+  onUsersPageChange(page: number): void {
+    this.usersCurrentPage.set(page);
+  }
+
+  onSelectedUserDiariesPageChange(page: number): void {
+    this.selectedUserDiariesCurrentPage.set(page);
   }
 
   /** Indicates if a mutation is currently running for a given user. */
@@ -323,6 +362,7 @@ export class AdminUsersSectionComponent implements OnInit, OnDestroy {
         next: () => {
           this.userAction.set(null);
           this.managedUsers.update((users) => users.filter((user) => user.id !== userId));
+          this.ensureUsersPageWithinBounds();
 
           if (this.selectedUserId() === userId) {
             this.clearSelection();
@@ -472,6 +512,24 @@ export class AdminUsersSectionComponent implements OnInit, OnDestroy {
     return parts.filter(Boolean).join(' • ');
   }
 
+  private ensureUsersPageWithinBounds(): void {
+    const total = this.filteredUsers().length;
+    const maxPage = Math.max(1, Math.ceil(total / this.usersPageSize));
+    const current = this.usersCurrentPage();
+    if (current > maxPage) {
+      this.usersCurrentPage.set(maxPage);
+    }
+  }
+
+  private ensureSelectedUserDiariesPageWithinBounds(): void {
+    const total = this.selectedUser()?.diaries?.length ?? 0;
+    const maxPage = Math.max(1, Math.ceil(total / this.selectedUserDiariesPageSize));
+    const current = this.selectedUserDiariesCurrentPage();
+    if (current > maxPage) {
+      this.selectedUserDiariesCurrentPage.set(maxPage);
+    }
+  }
+
   /** Maps internal diary statuses to human-readable labels. */
   getDiaryStatusLabel(diary: AdminDiarySummary): string {
     switch (diary.status) {
@@ -571,6 +629,8 @@ export class AdminUsersSectionComponent implements OnInit, OnDestroy {
           const summaries = profiles.map((profile) => this.mapProfileToUser(profile));
           this.managedUsers.set(summaries);
           this.managedUsersLoading.set(false);
+          this.usersCurrentPage.set(1);
+          this.ensureUsersPageWithinBounds();
         },
         error: (err) => {
           this.managedUsersLoading.set(false);
@@ -620,7 +680,10 @@ export class AdminUsersSectionComponent implements OnInit, OnDestroy {
 
     if (this.selectedUserId() === summary.id) {
       this.selectedUser.set(summary);
+      this.ensureSelectedUserDiariesPageWithinBounds();
     }
+
+    this.ensureUsersPageWithinBounds();
   }
 
   private updateDiaryState(userId: number, diary: TravelDiary, overrides?: Partial<AdminDiarySummary>): void {
@@ -679,6 +742,8 @@ export class AdminUsersSectionComponent implements OnInit, OnDestroy {
       const diaries = selected.diaries.filter((entry) => entry.id !== diaryId);
       this.selectedUser.set({ ...selected, diaries });
     }
+
+    this.ensureSelectedUserDiariesPageWithinBounds();
   }
 
   private markDiaryAction(userId: number, diaryId: number, pending: boolean): void {
