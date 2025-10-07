@@ -14,6 +14,7 @@ import { ArticlesPageComponent } from './pages/articles-page/articles-page.compo
 import { ArticleDetailPageComponent } from './pages/article-detail-page/article-detail-page.component';
 import { authGuard } from './core/guards/auth.guard';
 import { visitorOnlyGuard } from './core/guards/visitor-only.guard';
+import { NotFoundPageComponent } from './pages/not-found-page/not-found-page.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginFormComponent, canActivate: [visitorOnlyGuard] },
@@ -34,4 +35,5 @@ export const routes: Routes = [
   },
   { path: 'test', component: TestPageComponent },
   { path: 'me', component: MePageComponent, canActivate: [authGuard] },
+  { path: '**', component: NotFoundPageComponent },
 ];
