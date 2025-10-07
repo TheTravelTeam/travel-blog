@@ -27,8 +27,6 @@ export interface ArticleItem extends ArticleDraft {
 }
 
 export interface ProfileFormState {
-  firstName?: string;
-  lastName?: string;
   pseudo: string;
   email: string;
   password: string;
@@ -46,8 +44,6 @@ export const INITIAL_ARTICLE_DRAFT: ArticleDraft = {
 };
 
 export const INITIAL_PROFILE_FORM: ProfileFormState = {
-  firstName: '',
-  lastName: '',
   pseudo: '',
   email: '',
   password: '',

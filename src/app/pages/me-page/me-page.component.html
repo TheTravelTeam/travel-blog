@@ -80,28 +80,6 @@
                   @if (profileFormError()) {
                     <p class="me-page__form-error">{{ profileFormError() }}</p>
                   }
-                  <div class="me-page__form-row">
-                    <app-text-input
-                      label="Nom"
-                      [placeholder]="profile()!.lastName || 'Votre nom'"
-                      name="userLastname"
-                      size="large"
-                      variant="outlined"
-                      iconPosition="left"
-                      [ngModel]="profileForm().lastName"
-                      (ngModelChange)="onProfileFieldChange('lastName', $event)"
-                    ></app-text-input>
-                    <app-text-input
-                      label="Prénom"
-                      name="userfirstName"
-                      [placeholder]="profile()!.firstName || 'Votre prénom'"
-                      size="large"
-                      variant="outlined"
-                      iconPosition="left"
-                      [ngModel]="profileForm().firstName"
-                      (ngModelChange)="onProfileFieldChange('firstName', $event)"
-                    ></app-text-input>
-                  </div>
                   <app-text-input
                     label="Pseudo"
                     name="userPseudo"
@@ -298,7 +276,8 @@
                 </div>
               }
               @case ('articles') {
-                <div class="me-page__section me-page__section--articles">
+                @if (isAdmin()) {
+                  <div class="me-page__section me-page__section--articles">
                   @if (articleEditorView() === 'list') {
                     <div class="me-page__section-header">
                       <h2>Gestion des articles</h2>
@@ -500,10 +479,15 @@
                       </form>
                     </div>
                   }
-                </div>
+                  </div>
+                } @else {
+                  <p class="me-page__empty">Section réservée aux administrateurs.</p>
+                }
               }
               @case ('users') {
-                <app-admin-users-section></app-admin-users-section>
+                @if (isAdmin()) {
+                  <app-admin-users-section></app-admin-users-section>
+                }
               }
             }
           </div>
