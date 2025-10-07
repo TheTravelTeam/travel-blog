@@ -1,0 +1,25 @@
+<section class="not-found">
+  <div class="not-found__wrapper">
+    <figure class="not-found__plate">
+      <img
+        src="/Images/404.png"
+        alt="404 – Travel not found"
+        class="not-found__image"
+      />
+    </figure>
+
+    <p class="not-found__message">
+      Le voyage que vous cherchez s'est probablement perdu en route. Retournez à la carte pour
+      explorer de nouvelles destinations.
+    </p>
+
+    <app-button
+      text="Retour à l'accueil"
+      color="primary"
+      size="lg"
+      radius="border_lg"
+      [routerLink]="['/']"
+      class="not-found__cta"
+    ></app-button>
+  </div>
+</section>
