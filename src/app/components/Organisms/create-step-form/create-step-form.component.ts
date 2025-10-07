@@ -1,6 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { ButtonComponent } from 'components/Atoms/Button/button.component';
 import { TextInputComponent } from 'components/Atoms/text-input/text-input.component';
 import { IconComponent } from 'components/Atoms/Icon/icon.component';
@@ -68,6 +76,23 @@ export class CreateStepFormComponent implements OnDestroy {
   }
   mediaItems: MediaItem[] = [];
   isMediaUploading = false;
+  /** Validator shared across date inputs to ensure ISO or French formatting. */
+  private readonly dateFormatValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value;
+    if (value == null || value === '') {
+      return null;
+    }
+
+    const raw = value.toString().trim();
+    if (!raw) {
+      return null;
+    }
+
+    const isIso = /^\d{4}-\d{2}-\d{2}$/.test(raw);
+    const isFrench = /^\d{2}\/\d{2}\/\d{4}$/.test(raw);
+
+    return isIso || isFrench ? null : { invalidDate: true };
+  };
 
   /**
    * Receives the latest list of media items uploaded from the grid.
@@ -132,8 +157,8 @@ export class CreateStepFormComponent implements OnDestroy {
    * @param step Step to surface in the editor.
    */
   populateFromStep(step: Step): void {
-    const startDate = this.formatDateTimeLocal(step.startDate);
-    const endDate = this.formatDateTimeLocal(step.endDate ?? null);
+    const startDate = this.formatDate(step.startDate);
+    const endDate = this.formatDate(step.endDate ?? null);
 
     // Réhydratation éventuelle si ton Step contient déjà une liste de médias
     type MediaLike = { fileUrl: string; publicId?: string };
@@ -403,6 +428,12 @@ export class CreateStepFormComponent implements OnDestroy {
     }
 
     if (control.errors?.['required']) {
+      if (controlName === 'startDate') {
+        return 'Sélectionnez une date de départ';
+      }
+      if (controlName === 'endDate') {
+        return 'Sélectionnez une date de fin';
+      }
       return 'Champ obligatoire';
     }
 
@@ -414,6 +445,10 @@ export class CreateStepFormComponent implements OnDestroy {
     if (control.errors?.['maxlength']) {
       const maxLength = control.errors['maxlength'].requiredLength;
       return `Maximum ${maxLength} caractères autorisés`;
+    }
+
+    if (control.errors?.['invalidDate']) {
+      return 'Format de date invalide. Utilisez jj/mm/aaaa.';
     }
 
     if (control.errors?.['invalid']) {
@@ -449,8 +484,8 @@ export class CreateStepFormComponent implements OnDestroy {
       longitude: this.fb.control('', [Validators.required]),
       description: this.fb.control('', [Validators.required, Validators.minLength(10)]),
       mediaUrl: this.fb.control(''),
-      startDate: this.fb.control(''),
-      endDate: this.fb.control(''),
+      startDate: this.fb.control('', [Validators.required, this.dateFormatValidator]),
+      endDate: this.fb.control('', [Validators.required, this.dateFormatValidator]),
       themeId: this.fb.control<number | null>(null),
       themeIds: this.fb.control<number[]>([]),
     });
@@ -554,6 +589,11 @@ export class CreateStepFormComponent implements OnDestroy {
       return raw.slice(0, 10);
     }
 
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(raw)) {
+      const [day, month, year] = raw.split('/');
+      return `${year}-${month}-${day}`;
+    }
+
     return raw;
   }
 
@@ -561,7 +601,7 @@ export class CreateStepFormComponent implements OnDestroy {
    * Formats a backend date value into an input-friendly string.
    * @param value Raw date value.
    */
-  private formatDateTimeLocal(value: string | Date | null | undefined): string {
+  private formatDate(value: string | Date | null | undefined): string {
     if (!value) {
       return '';
     }
@@ -574,9 +614,8 @@ export class CreateStepFormComponent implements OnDestroy {
     const year = date.getFullYear();
     const month = `${date.getMonth() + 1}`.padStart(2, '0');
     const day = `${date.getDate()}`.padStart(2, '0');
-    const hours = `${date.getHours()}`.padStart(2, '0');
-    const minutes = `${date.getMinutes()}`.padStart(2, '0');
 
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+
+    return `${year}-${month}-${day}`;
   }
 }

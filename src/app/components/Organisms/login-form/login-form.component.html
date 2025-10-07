@@ -52,6 +52,12 @@
           </a>
         </div>
 
+        @if (submissionError) {
+          <p class="login-form__error" data-test="login-error">
+            {{ submissionError }}
+          </p>
+        }
+
         <div class="login-form__actions">
           <app-button
             color="primary"

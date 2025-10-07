@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { ForgotPasswordFormComponent } from './forgot-password-form.component';
 import { AuthService } from '@service/auth.service';
@@ -62,18 +63,47 @@ describe('ForgotPasswordFormComponent', () => {
 
     expect(authServiceSpy.requestPasswordReset).toHaveBeenCalledWith('user@example.com');
     expect(component.requestSent).toBeTrue();
+    expect(component.submissionError).toBe('');
     expect(component.isSubmitting).toBeFalse();
     expect(toastSpy.success).toHaveBeenCalled();
   }));
 
-  it('should notify error and keep submitting false on failure', fakeAsync(() => {
-    authServiceSpy.requestPasswordReset.and.returnValue(throwError(() => new Error('fail')));
+  it('surfaces backend validation errors when available', fakeAsync(() => {
+    authServiceSpy.requestPasswordReset.and.returnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 400,
+            error: {
+              errors: {
+                email: ["L'email est invalide"],
+              },
+            },
+          })
+      )
+    );
+    component.forgotPasswordForm.setValue({ email: 'user@example.com' });
+
+    component.onSubmit();
+    tick();
+
+    expect(toastSpy.error).toHaveBeenCalledWith("L'email est invalide");
+    expect(component.submissionError).toBe("L'email est invalide");
+    expect(component.isSubmitting).toBeFalse();
+    expect(component.requestSent).toBeFalse();
+  }));
+
+  it('falls back to generic message when backend is silent', fakeAsync(() => {
+    authServiceSpy.requestPasswordReset.and.returnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
     component.forgotPasswordForm.setValue({ email: 'user@example.com' });
 
     component.onSubmit();
     tick();
 
     expect(toastSpy.error).toHaveBeenCalledWith(
+      "Impossible d'envoyer le lien. Veuillez réessayer plus tard."
+    );
+    expect(component.submissionError).toBe(
       "Impossible d'envoyer le lien. Veuillez réessayer plus tard."
     );
     expect(component.isSubmitting).toBeFalse();

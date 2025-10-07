@@ -4,6 +4,10 @@
   display: flex;
   overflow: hidden;
 
+  &__card {
+    width: 100%;
+  }
+
   app-travel-diary-card {
     border-radius: 1rem;
   }

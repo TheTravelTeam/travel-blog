@@ -1,4 +1,3 @@
-import { Theme } from '@model/theme.model';
 import { Media } from '@model/media.model';
 
 export interface Article {
@@ -9,9 +8,7 @@ export interface Article {
   slug: string;
   author: string;
   category?: string;
-  themeId?: number | null;
   userId?: number | null;
-  themes?: Theme[];
   coverUrl?: string | null;
   thumbnailUrl?: string | null;
   medias?: Media[];

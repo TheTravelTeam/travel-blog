@@ -73,6 +73,12 @@
         </app-text-input>
       </div>
 
+      @if (submissionError) {
+        <p class="register-form__error" data-test="register-error">
+          {{ submissionError }}
+        </p>
+      }
+
       <div class="register-form__actions">
         <app-button
           color="primary"

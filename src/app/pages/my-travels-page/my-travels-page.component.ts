@@ -64,7 +64,7 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
 
   isCreateModalOpen = false;
   isEditMode = false;
-  editInitialDiary: { title: string; description: string; coverUrl: string | null } | null = null;
+  editInitialDiary: { title: string; description: string; coverUrl: string | null; startDate: string | null } | null = null;
   isCreateModalSubmitting = false;
   createModalError: string | null = null;
   themeOptions: ItemProps[] = [];
@@ -300,10 +300,12 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
     this.createModalError = null;
     this.isCreateModalSubmitting = false;
     this.isEditMode = true;
+    console.log('diary', diary)
     this.editInitialDiary = {
       title: diary.title ?? '',
       description: diary.description ?? '',
       coverUrl: diary.media?.fileUrl ?? null,
+      startDate: diary.startDate ?? null,
     };
     // Positionner le carnet courant pour garantir l'ID lors du submit édition
     const currentId = this.state.currentDiaryId();

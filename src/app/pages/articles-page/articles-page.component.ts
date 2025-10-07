@@ -68,10 +68,6 @@ export class ArticlesPageComponent implements OnInit {
     if (article.category?.trim()) {
       return article.category.trim();
     }
-    const primaryTheme = article.themes?.find((theme) => theme?.name?.trim());
-    if (primaryTheme?.name) {
-      return primaryTheme.name.trim();
-    }
     return 'Destination inconnue';
   }
 
