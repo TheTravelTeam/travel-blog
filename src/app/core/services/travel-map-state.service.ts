@@ -3,6 +3,7 @@ import { Step } from '@model/step.model';
 import { TravelDiary } from '@model/travel-diary.model';
 import { Media } from '@model/media.model';
 import { Theme } from '@model/theme.model';
+import { User } from '@model/user.model';
 
 /**
  * Service de coordination entre la carte et les pages consommant les carnets.
@@ -422,7 +423,7 @@ export class TravelMapStateService {
       return true;
     }
 
-    const diaryOwnerId = typeof diary.user?.id === 'number' ? diary.user.id : null;
+    const diaryOwnerId = this.extractDiaryOwnerId(diary);
     const isViewerOwner = diaryOwnerId !== null && diaryOwnerId === viewerId;
 
     if (isViewerOwner) {
@@ -433,7 +434,7 @@ export class TravelMapStateService {
       return false;
     }
 
-    const owner = diary.user;
+    const owner = this.extractDiaryOwner(diary);
     if (!owner) {
       return true;
     }
@@ -462,6 +463,37 @@ export class TravelMapStateService {
     }
 
     return value.trim().toUpperCase().replace(/[\s_-]+/g, '');
+  }
+
+  /**
+   * Extracts the owner object when available in the diary payload. When the backend only
+   * returns an identifier, moderation checks cannot apply and the diary stays accessible.
+   */
+  private extractDiaryOwner(diary: TravelDiary): User | null {
+    const user = diary.user;
+    if (typeof user === 'object' && user !== null) {
+      return user;
+    }
+
+    return null;
+  }
+
+  /** Returns the owner identifier regardless of the shape provided by the API. */
+  private extractDiaryOwnerId(diary: TravelDiary): number | null {
+    const owner = this.extractDiaryOwner(diary);
+    if (owner) {
+      return owner.id;
+    }
+
+    if (typeof diary.user === 'number') {
+      return diary.user;
+    }
+
+    if (typeof diary.userId === 'number') {
+      return diary.userId;
+    }
+
+    return null;
   }
 
   private coerceLikes(value: unknown): number {
