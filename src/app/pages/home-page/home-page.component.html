@@ -24,7 +24,7 @@
         </div>
         <h2>Découvrez votre future destination</h2>
         <div class="tripCardsList">
-          @for (card of cards; track card.id) {
+          @for (card of heroDiaryCards(); track card.id) {
             <app-visual-trip-card
               [id]="card.id"
               [title]="card.title"
@@ -32,6 +32,7 @@
               [image]="card.image"
               [author]="card.author"
               [dateCreation]="card.dateCreation"
+              [routeCommands]="['/travels', card.id]"
             ></app-visual-trip-card>
           }
         </div>
@@ -77,11 +78,12 @@
         image="Images/svg/mappemonde-filigrane.svg"
         author=""
         dateCreation=""
+        [routeCommands]="['/travels']"
       ></app-visual-trip-card>
     }
     @if (breakpoint.isDesktop()) {
       <div class="tripCardsList tripCardsList--grid">
-        @for (card of cards.slice(0, 4); track card.id) {
+        @for (card of gridDiaryCards(); track card.id) {
           <app-visual-trip-card
             [id]="card.id"
             [title]="card.title"
@@ -89,6 +91,7 @@
             [image]="card.image"
             [author]="card.author"
             [dateCreation]="card.dateCreation"
+            [routeCommands]="['/travels', card.id]"
           ></app-visual-trip-card>
         }
       </div>
@@ -105,15 +108,17 @@
     <div class="subSection">
       @if (breakpoint.isDesktop()) {
         <div class="destinationsList destinationsList--grid">
-          @for (article of articles.slice(0, 6); track article.id) {
+          @for (article of gridArticlePreviews(); track article.id) {
             <app-card
               borderColor="text-secondary"
               class="imageDestinationContainer"
               width="312px"
               height="220px"
               radius="lg"
+              [isClickable]="true"
+              (cardClick)="openArticle(article.id)"
             >
-              <img [src]="article.src" />
+              <img [src]="article.image" />
               <app-chip
                 [children]="article.title"
                 backgroundColor="whiteOpacity"
@@ -124,15 +129,17 @@
         </div>
       } @else {
         <div class="destinationsList destinationsList--carousel">
-          @for (article of articles; track article.id) {
+          @for (article of gridArticlePreviews(); track article.id) {
             <app-card
               borderColor="text-secondary"
               class="imageDestinationContainer"
               width="312px"
               height="220px"
               radius="lg"
+              [isClickable]="true"
+              (cardClick)="openArticle(article.id)"
             >
-              <img [src]="article.src" />
+              <img [src]="article.image" />
               <app-chip
                 [children]="article.title"
                 backgroundColor="whiteOpacity"
@@ -142,7 +149,12 @@
           }
         </div>
       }
-      <app-button text="Découvrez nos articles" color="secondary" size="lg"></app-button>
+      <app-button
+        text="Découvrez nos articles"
+        color="secondary"
+        size="lg"
+        (btnClick)="openArticlesListing()"
+      ></app-button>
     </div>
   </section>
 </main>

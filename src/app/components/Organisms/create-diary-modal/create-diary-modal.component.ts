@@ -197,7 +197,6 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
     coverUrl: string | null;
     startDate: string | null;
   }): void {
-    console.log('tooooot', data);
     this.diaryEditorContent = data.description ?? '';
     this.diaryForm.patchValue(
       {

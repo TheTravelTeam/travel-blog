@@ -300,7 +300,6 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
     this.createModalError = null;
     this.isCreateModalSubmitting = false;
     this.isEditMode = true;
-    console.log('diary', diary)
     this.editInitialDiary = {
       title: diary.title ?? '',
       description: diary.description ?? '',
