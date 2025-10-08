@@ -1,28 +1,5 @@
 @use '../../../styles/utilities' as *;
-
-// Horizontal carousel helper to keep mobile layouts swipeable without extra markup
-@mixin horizontal-carousel($min-width, $max-width) {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: clamp($min-width, 80vw, $max-width);
-  gap: 1rem;
-  padding: 1rem 0;
-  margin: 0;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
-  touch-action: pan-x;
-  -webkit-overflow-scrolling: touch;
-
-  & > * {
-    scroll-snap-align: center;
-  }
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
+@use '../../../styles/mixin' as mixins;
 
 
 :host {
@@ -303,7 +280,7 @@ section {
     .mobile-header-content {
       .title-with-cards {
         .tripCardsList {
-          @include horizontal-carousel(240px, 250px);
+          @include mixins.horizontal-carousel(240px, 250px);
           padding-block: 1.5rem;
         }
       }
@@ -311,7 +288,7 @@ section {
   }
 
   .destinationsList--carousel {
-    @include horizontal-carousel(260px, 340px);
+    @include mixins.horizontal-carousel(260px, 340px);
 
     .imageDestinationContainer {
       min-width: clamp(260px, 75vw, 340px);
@@ -324,12 +301,10 @@ section {
     }
     &:nth-of-type(odd) {
       .tripCardsList--carousel {
-        @include horizontal-carousel(240px, 250px);
+        @include mixins.horizontal-carousel(240px, 250px);
         gap: 1.25rem;
         padding-block: 1.5rem;
       }
     }
   }
 }
-
-

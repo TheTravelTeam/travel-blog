@@ -1561,23 +1561,6 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  scrollMediaContainer(stepId: number, direction: 'left' | 'right') {
-    // Trouver le container avec querySelector
-    const container = document.querySelector<HTMLDivElement>(
-      `.step__media__container[data-id="${stepId}"]`
-    );
-
-    if (!container) return;
-
-    const scrollAmount = 200; // pixels à scroller
-
-    if (direction === 'left') {
-      container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-    } else {
-      container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    }
-  }
-
   /** URL de couverture pour le panneau latéral (alias pratique pour le template). */
   getDiaryCover(): string {
     const diary = this.state.currentDiary();
