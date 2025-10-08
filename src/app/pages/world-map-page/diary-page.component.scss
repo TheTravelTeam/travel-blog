@@ -1,5 +1,6 @@
 @use 'sass:color';
 @use 'variables' as *;
+@use 'mixin' as mixins;
 
 app-accordion {
   display: flex;
@@ -274,19 +275,17 @@ app-accordion {
 }
 
 .step__media__container {
-  display: flex;
-  overflow-x: hidden;
-  scroll-behavior: smooth;
-  gap: 1rem;
-  padding: 0.5rem 0.5rem 1rem 0.5rem;
+  @include mixins.horizontal-carousel(220px, 320px, 1rem, 0.5rem 0);
+  width: 100%;
+  padding-inline: 0.5rem;
 
   img {
-    max-height: 15rem;
-    width: min(100%, 18rem);
+    width: 100%;
+    aspect-ratio: 4 / 3;
     height: auto;
+    max-height: 15rem;
     border-radius: 15%;
     object-fit: cover;
-    flex-shrink: 0;
   }
 }
 
@@ -452,43 +451,6 @@ app-accordion {
   clip: rect(0 0 0 0);
   clip-path: inset(50%);
   border: 0;
-}
-
-.step__media__wrapper {
-  position: relative;
-}
-
-.scroll-btn {
-  background: white;
-  border: 1px solid #008080;
-  border-radius: 50%;
-  width: 2rem;
-  height: 2rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-
-  &--left {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-
-  &--right {
-    position: absolute;
-    top: 50%;
-    right: 0;
-    transform: translateY(-50%);
-  }
-}
-
-.step__media__wrapper:hover .scroll-btn {
-  opacity: 1;
-  pointer-events: auto;
 }
 
 .worldMap__detail-panel {

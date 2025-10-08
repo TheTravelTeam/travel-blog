@@ -134,35 +134,15 @@
                 [innerHTML]="step.description | safeHtml"
               ></div>
 
-              <div class="step__media__wrapper">
-                @if (medias.length > 1) {
-                  <button
-                    class="scroll-btn scroll-btn--left"
-                    (click)="scrollMediaContainer(step.id, 'left')"
-                  >
-                    ←
-                  </button>
-                }
-
-                <div class="step__media__container" [attr.data-id]="step.id">
-                  @for (media of medias; track $index) {
-                    <img
-                      [src]="getStepMediaUrl(media)"
-                      sizes="100vw"
-                      loading="lazy"
-                      decoding="async"
-                      alt=""
-                    />
-                  }
-                </div>
-
-                @if (medias.length > 1) {
-                  <button
-                    class="scroll-btn scroll-btn--right"
-                    (click)="scrollMediaContainer(step.id, 'right')"
-                  >
-                    →
-                  </button>
+              <div class="step__media__container" [attr.data-id]="step.id">
+                @for (media of medias; track $index) {
+                  <img
+                    [src]="getStepMediaUrl(media)"
+                    sizes="100vw"
+                    loading="lazy"
+                    decoding="async"
+                    alt=""
+                  />
                 }
               </div>
 
