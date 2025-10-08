@@ -74,6 +74,18 @@ describe('DiaryPageComponent', () => {
   const syncViewerLikes = () => {
     component.state.setViewerLikeOwner(userService.currentUserId());
   };
+  const getDiaryOwnerId = (diary: TravelDiary): number => {
+    if (typeof diary.user === 'object' && diary.user) {
+      return diary.user.id;
+    }
+    if (typeof diary.user === 'number') {
+      return diary.user;
+    }
+    if (typeof diary.userId === 'number') {
+      return diary.userId;
+    }
+    throw new Error('Diary owner is not defined for this test setup.');
+  };
 
   const mockUser: User = {
     id: 99,
@@ -246,7 +258,7 @@ describe('DiaryPageComponent', () => {
 
     const getDiarySpy = spyOn(stepService, 'getDiaryWithSteps').and.returnValue(of(diary));
     const updateDiarySpy = spyOn(stepService, 'updateDiary').and.returnValue(of(updatedDiary));
-    userService.setCurrentUserId(diary.user.id);
+    userService.setCurrentUserId(getDiaryOwnerId(diary));
     userService.setDisabled(false);
     syncViewerLikes();
     component.state.setCurrentDiary(diary);
@@ -283,7 +295,7 @@ describe('DiaryPageComponent', () => {
 
     const getDiarySpy = spyOn(stepService, 'getDiaryWithSteps').and.returnValue(of(diary));
     const updateDiarySpy = spyOn(stepService, 'updateDiary');
-    userService.setCurrentUserId(diary.user.id);
+    userService.setCurrentUserId(getDiaryOwnerId(diary));
     userService.setDisabled(false);
     syncViewerLikes();
     component.state.setCurrentDiary(diary);

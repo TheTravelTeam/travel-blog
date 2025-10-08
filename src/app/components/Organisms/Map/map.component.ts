@@ -376,7 +376,8 @@ export class MapComponent implements AfterViewInit, OnChanges {
           this.clearMapLayers();
 
           const steps: Step[] = Array.isArray(diary.steps) ? diary.steps : [];
-          const currentUser: User = diary.user;
+          const currentUser = this.resolveDiaryOwner(diary);
+          const authorLabel = this.resolveDiaryAuthorName(diary, currentUser);
 
           this.diarySelected.emit({ diary, steps });
 
@@ -387,6 +388,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
               step.longitude,
               medias,
               currentUser,
+              authorLabel,
               step,
               index
             );
@@ -446,7 +448,8 @@ export class MapComponent implements AfterViewInit, OnChanges {
     lat: number,
     lng: number,
     medias: Media[],
-    currentUser: User,
+    _owner: User | null,
+    authorLabel: string,
     step?: Step,
     stepIndex?: number
   ): void {
@@ -463,8 +466,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
     if (medias && medias.length > 0) {
       compRef.setInput('picture', medias[0].fileUrl);
     } else {
-      const label = typeof currentUser?.pseudo === 'string' ? currentUser.pseudo.trim() : '';
-      compRef.setInput('label', label);
+      compRef.setInput('label', authorLabel);
     }
 
     compRef.setInput('color', 'mint');
@@ -489,6 +491,34 @@ export class MapComponent implements AfterViewInit, OnChanges {
     }
 
     compRef.destroy();
+  }
+
+  /** Retourne l'objet utilisateur lorsqu'il est présent dans la payload du carnet. */
+  private resolveDiaryOwner(diary: TravelDiary): User | null {
+    const owner = diary.user;
+    if (typeof owner === 'object' && owner !== null) {
+      return owner;
+    }
+    return null;
+  }
+
+  /**
+   * Détermine le libellé auteur à afficher sur un marker.
+   * Cherche d'abord le pseudo de l'objet utilisateur, puis un champ `author` embarqué,
+   * et finit sur un libellé générique.
+   */
+  private resolveDiaryAuthorName(diary: TravelDiary, owner: User | null): string {
+    const pseudo = owner?.pseudo?.trim();
+    if (pseudo) {
+      return pseudo;
+    }
+
+    const inlineAuthor = (diary as { author?: string | null }).author?.trim();
+    if (inlineAuthor) {
+      return inlineAuthor;
+    }
+
+    return 'Voyageur anonyme';
   }
 
   /**

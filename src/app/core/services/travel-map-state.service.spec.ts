@@ -7,6 +7,19 @@ import { User } from '@model/user.model';
 
 describe('TravelMapStateService', () => {
   let service: TravelMapStateService;
+  const getDiaryOwnerId = (diary: TravelDiary): number => {
+    if (typeof diary.user === 'object' && diary.user) {
+      return diary.user.id;
+    }
+    if (typeof diary.user === 'number') {
+      return diary.user;
+    }
+    if (typeof diary.userId === 'number') {
+      return diary.userId;
+    }
+
+    throw new Error('Diary owner is not defined for this test.');
+  };
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
@@ -313,7 +326,7 @@ describe('TravelMapStateService', () => {
     it('should allow the owner to access a disabled diary', () => {
       const diary = buildDiary({ status: 'DISABLED' });
       const isAccessible = service.isDiaryAccessible(diary, {
-        viewerId: diary.user.id,
+        viewerId: getDiaryOwnerId(diary),
       });
 
       expect(isAccessible).toBeTrue();
