@@ -136,13 +136,20 @@
 
               <div class="step__media__container" [attr.data-id]="step.id">
                 @for (media of medias; track $index) {
-                  <img
-                    [src]="getStepMediaUrl(media)"
-                    sizes="100vw"
-                    loading="lazy"
-                    decoding="async"
-                    alt=""
-                  />
+                  <button
+                    type="button"
+                    class="step__media__item"
+                    (click)="openMediaViewer(step, $index)"
+                    aria-label="Afficher la photo en plein écran"
+                  >
+                    <img
+                      [src]="getStepMediaUrl(media)"
+                      sizes="100vw"
+                      loading="lazy"
+                      decoding="async"
+                      alt=""
+                    />
+                  </button>
                 }
               </div>
 
@@ -304,4 +311,60 @@
       </div>
     </div>
   </div>
+
+  @if (activeMediaPayload(); as viewer) {
+    <div
+      class="media-lightbox"
+      role="dialog"
+      aria-modal="true"
+      (click)="closeMediaViewer()"
+    >
+      <div class="media-lightbox__content" (click)="$event.stopPropagation()">
+        <button
+          type="button"
+          class="media-lightbox__close"
+          aria-label="Fermer la visionneuse"
+          (click)="closeMediaViewer()"
+        >
+          &times;
+        </button>
+
+        @if (viewer.medias.length > 1) {
+          <button
+            type="button"
+            class="media-lightbox__nav media-lightbox__nav--prev"
+            aria-label="Voir la photo précédente"
+            (click)="showPreviousMedia()"
+          >
+            &lsaquo;
+          </button>
+        }
+
+        <div class="media-lightbox__image-wrapper">
+          <img
+            class="media-lightbox__image"
+            [src]="getStepMediaUrl(viewer.media)"
+            loading="lazy"
+            decoding="async"
+            alt=""
+          />
+        </div>
+
+        @if (viewer.medias.length > 1) {
+          <button
+            type="button"
+            class="media-lightbox__nav media-lightbox__nav--next"
+            aria-label="Voir la photo suivante"
+            (click)="showNextMedia()"
+          >
+            &rsaquo;
+          </button>
+        }
+
+        <p class="media-lightbox__counter">
+          {{ viewer.index + 1 }} / {{ viewer.medias.length }}
+        </p>
+      </div>
+    </div>
+  }
 </div>

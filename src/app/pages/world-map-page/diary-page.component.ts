@@ -1,5 +1,6 @@
 import {
   Component,
+  HostListener,
   computed,
   effect,
   ElementRef,
@@ -16,7 +17,7 @@ import { Step } from '@model/step.model';
 import { Media } from '@model/media.model';
 import { Comment } from '@model/comment';
 import { ButtonComponent } from 'components/Atoms/Button/button.component';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { DividerComponent } from 'components/Atoms/Divider/divider.component';
 import { BreakpointService } from '@service/breakpoint.service';
 import { AvatarComponent } from '../../components/Atoms/avatar/avatar.component';
@@ -83,6 +84,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
 
   private activatedRoute = inject(ActivatedRoute);
   private router = inject(Router);
+  private document = inject(DOCUMENT);
 
   @ViewChild('detailPanel') detailPanelRef!: ElementRef<HTMLDivElement>;
   @ViewChild(CreateStepFormComponent) createStepForm?: CreateStepFormComponent;
@@ -96,6 +98,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
   private readonly commentCreationSubs = new Map<number, Subscription>();
   private readonly commentDeletionSubs = new Map<number, Subscription>();
   private readonly commentUpdateSubs = new Map<number, Subscription>();
+  private bodyOverflowBackup: string | null = null;
 
   readonly isStepFormVisible = signal(false);
   readonly isStepSubmitting = signal(false);
@@ -114,6 +117,44 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
   readonly stepLikeErrors = signal<Record<number, string | null>>({});
   readonly finishDiaryError = signal<string | null>(null);
   readonly isFinishingDiary = signal(false);
+
+  /**
+   * Indique quel média est actuellement affiché dans la visionneuse plein écran.
+   * stepId permet de retrouver les médias associés à l'étape, index cible la photo active.
+   */
+  readonly activeMediaViewer = signal<{ stepId: number; index: number } | null>(null);
+
+  /**
+   * Dérive le média, la liste complète et l'index à partir de l'état actif.
+   * Retourne null si l'étape ou le média n'existent plus (suppression concurrente, etc.).
+   */
+  readonly activeMediaPayload = computed(() => {
+    const selection = this.activeMediaViewer();
+    if (!selection) {
+      return null;
+    }
+
+    const step = this.state
+      .steps()
+      .find((item) => Number(item.id) === selection.stepId);
+
+    if (!step) {
+      return null;
+    }
+
+    const medias = this.getStepMedias(step);
+    const media = medias[selection.index];
+
+    if (!media) {
+      return null;
+    }
+
+    return {
+      medias,
+      index: selection.index,
+      media,
+    };
+  });
 
   readonly currentViewerId = computed(() => this.userService.currentUserId());
 
@@ -711,6 +752,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     this.commentDeletionSubs.clear();
     this.commentUpdateSubs.forEach((sub) => sub.unsubscribe());
     this.commentUpdateSubs.clear();
+    this.unlockBodyScroll();
   }
 
   /**
@@ -788,6 +830,102 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     this.lastResolvedOwnerId = null;
 
     this.fetchDiaryOwner(ownerId);
+  }
+
+  /**
+   * Ouvre la visionneuse sur le média demandé et verrouille le scroll du body.
+   * Ignoré si l'identifiant de l'étape est invalide.
+   */
+  openMediaViewer(step: Step, mediaIndex: number): void {
+    const stepId = Number(step.id);
+    if (Number.isNaN(stepId)) {
+      return;
+    }
+
+    this.activeMediaViewer.set({ stepId, index: mediaIndex });
+    this.lockBodyScroll();
+  }
+
+  /** Ferme la visionneuse et restaure le scroll de la page. */
+  closeMediaViewer(): void {
+    this.activeMediaViewer.set(null);
+    this.unlockBodyScroll();
+  }
+
+  /** Navigue vers le média précédent (boucle en fin de liste). */
+  showPreviousMedia(): void {
+    const payload = this.activeMediaPayload();
+    if (!payload) {
+      return;
+    }
+
+    const nextIndex = payload.index === 0 ? payload.medias.length - 1 : payload.index - 1;
+    this.activeMediaViewer.update((current) =>
+      current ? { stepId: current.stepId, index: nextIndex } : current
+    );
+  }
+
+  /** Navigue vers le média suivant (boucle au début de la liste). */
+  showNextMedia(): void {
+    const payload = this.activeMediaPayload();
+    if (!payload) {
+      return;
+    }
+
+    const nextIndex = payload.index === payload.medias.length - 1 ? 0 : payload.index + 1;
+    this.activeMediaViewer.update((current) =>
+      current ? { stepId: current.stepId, index: nextIndex } : current
+    );
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  /** Gère les raccourcis clavier (Échap, flèches) quand la visionneuse est ouverte. */
+  handleLightboxKeyboard(event: KeyboardEvent): void {
+    if (!this.activeMediaViewer()) {
+      return;
+    }
+
+    switch (event.key) {
+      case 'Escape':
+        event.preventDefault();
+        this.closeMediaViewer();
+        break;
+      case 'ArrowLeft':
+        event.preventDefault();
+        this.showPreviousMedia();
+        break;
+      case 'ArrowRight':
+        event.preventDefault();
+        this.showNextMedia();
+        break;
+      default:
+        break;
+    }
+  }
+
+  /** Retient la valeur initiale de overflow et désactive le scroll de la page. */
+  private lockBodyScroll(): void {
+    if (this.bodyOverflowBackup !== null) {
+      return;
+    }
+
+    this.bodyOverflowBackup = this.document.body.style.overflow ?? '';
+    this.document.body.style.overflow = 'hidden';
+  }
+
+  /** Ré-applique la valeur initiale de overflow après fermeture de la visionneuse. */
+  private unlockBodyScroll(): void {
+    if (this.bodyOverflowBackup === null) {
+      return;
+    }
+
+    if (this.bodyOverflowBackup) {
+      this.document.body.style.overflow = this.bodyOverflowBackup;
+    } else {
+      this.document.body.style.removeProperty('overflow');
+    }
+
+    this.bodyOverflowBackup = null;
   }
 
   /**
