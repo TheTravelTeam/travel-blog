@@ -23,11 +23,11 @@ export interface TravelDiary {
   description: string;
   /** Liste normalisée des étapes. */
   steps: Step[];
-  /** Auteur du carnet (objet) lorsque présent. */
-  user: User;
+  /** Auteur du carnet (objet complet ou identifiant selon endpoint). */
+  user?: User | number | null;
   /** Média principal fourni par l'API (photo ou vidéo). */
   media: Media | null;
-  /** Identifiant simple de l'auteur lorsque l'API ne renvoie pas l'objet complet. */
+  /** Identifiant simple de l'auteur lorsque l'API le fournit séparément. */
   userId?: number;
   /** Indique si les visiteurs peuvent poster des commentaires. */
   canComment?: boolean;

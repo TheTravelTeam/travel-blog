@@ -194,12 +194,20 @@ section {
     .tripCardsList {
       width: 100%;
       padding: 36px;
-      gap: 8px;
+      gap: 2rem;
 
       &.tripCardsList--grid {
         display: flex;
-        flex-direction: row;
+        flex-wrap: wrap;
+        max-width: min(100%, calc(4 * 280px + 3 * 2rem));
+        margin-inline: auto;
         justify-content: center;
+        justify-items: center;
+
+        app-visual-trip-card {
+          width: 100%;
+          max-width: 260px;
+        }
       }
     }
   }
