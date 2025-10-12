@@ -4,7 +4,6 @@
 .text-input {
   display: flex;
   flex-direction: column;
-  gap: 6px;
   width: 100%;
 
   &__label {
@@ -13,7 +12,7 @@
     font-size: 14px;
     line-height: 20px;
     color: $textColor;
-    margin-bottom: 2px;
+    margin-bottom: 8px;
 
     &--required {
       .text-input__required-indicator {
