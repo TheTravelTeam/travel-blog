@@ -17,6 +17,7 @@
         <app-text-input
           label="Pseudo"
           placeholder="Choisissez un pseudo"
+          [maxLength]="11"
           type="text"
           size="large"
           variant="outlined"
@@ -31,6 +32,7 @@
         <app-text-input
           label="Email"
           placeholder="Entrez votre email"
+          [maxLength]="101"
           type="email"
           size="large"
           variant="outlined"
@@ -45,6 +47,7 @@
         <app-text-input
           label="Mot de passe"
           placeholder="Créer un mot de passe"
+          [maxLength]="65"
           type="password"
           size="large"
           variant="outlined"

@@ -51,7 +51,9 @@ describe('RegisterFormComponent', () => {
     pseudoControl?.markAsTouched();
     pseudoControl?.setErrors({ minlength: { requiredLength: 3, actualLength: 2 } });
 
-    expect(component.getErrorMessage('pseudo')).toBe('Le pseudo doit contenir au moins 3 caractères');
+    expect(component.getErrorMessage('pseudo')).toBe(
+      'Le pseudo doit contenir au moins 3 caractères'
+    );
   });
 
   it('flags password mismatch when confirmation differs', () => {
@@ -65,7 +67,9 @@ describe('RegisterFormComponent', () => {
     component.registerForm.updateValueAndValidity();
 
     expect(component.registerForm.hasError('passwordsMismatch')).toBeTrue();
-    expect(component.getErrorMessage('confirmPassword')).toBe('Les mots de passe ne correspondent pas');
+    expect(component.getErrorMessage('confirmPassword')).toBe(
+      'Les mots de passe ne correspondent pas'
+    );
   });
 
   it('marks controls as touched when submitting an invalid form', () => {
@@ -82,14 +86,16 @@ describe('RegisterFormComponent', () => {
     component.registerForm.setValue({
       pseudo: 'Jane',
       email: 'jane@doe.com',
-      password: 'azerty1',
-      confirmPassword: 'azerty1',
+      password: 'Azerty1!',
+      confirmPassword: 'Azerty1!',
     });
   }
 
   it('surfaces backend error messages on failure', () => {
     authService.register.and.returnValue(
-      throwError(() => new HttpErrorResponse({ error: { message: 'Adresse déjà utilisée' }, status: 409 }))
+      throwError(
+        () => new HttpErrorResponse({ error: { message: 'Adresse déjà utilisée' }, status: 409 })
+      )
     );
 
     fillForm();
@@ -107,7 +113,7 @@ describe('RegisterFormComponent', () => {
             status: 400,
             error: {
               errors: {
-                pseudo: ['Le nom d\'utilisateur est obligatoire'],
+                pseudo: ["Le nom d'utilisateur est obligatoire"],
                 email: "L'email est invalide",
               },
             },
@@ -152,7 +158,7 @@ describe('RegisterFormComponent', () => {
 
     component.onSubmit();
 
-    expect(authService.register).toHaveBeenCalledWith('jane@doe.com', 'azerty1', 'Jane');
+    expect(authService.register).toHaveBeenCalledWith('jane@doe.com', 'Azerty1!', 'Jane');
   });
 
   it('navigates back to login when navigateToLogin is called', () => {
