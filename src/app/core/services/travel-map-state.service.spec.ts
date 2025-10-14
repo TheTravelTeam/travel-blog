@@ -1,3 +1,5 @@
+/// <reference types="jasmine" />
+
 import { TestBed } from '@angular/core/testing';
 
 import { TravelMapStateService } from './travel-map-state.service';

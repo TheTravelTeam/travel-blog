@@ -488,51 +488,6 @@ app-accordion {
   }
 }
 
-.search-bar {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background-color: white;
-  border-radius: 5rem;
-  padding: 0.5rem 1rem;
-  width: 100%;
-  max-width: 350px;
-  border: 1px solid #ccc;
-  font-size: 0.6rem;
-
-  &__icon {
-    font-size: 1.25rem;
-    color: gray;
-  }
-
-  &__input {
-    border: none;
-    outline: none;
-    width: fit-content;
-    font-size: 0.7rem;
-  }
-
-  &__clear {
-    background: transparent;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: rgba(0, 0, 0, 0.5);
-    cursor: pointer;
-
-    &:hover,
-    &:focus-visible {
-      color: rgba(0, 0, 0, 0.8);
-      outline: none;
-    }
-
-    .material-symbols-outlined {
-      font-size: 1.2rem;
-    }
-  }
-}
-
 @media screen and (min-width: 600px) {
   .worldMap {
     height: 88%;

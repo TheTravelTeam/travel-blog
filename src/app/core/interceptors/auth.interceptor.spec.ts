@@ -1,3 +1,5 @@
+/// <reference types="jasmine" />
+
 import { HttpHeaders, HttpRequest } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';

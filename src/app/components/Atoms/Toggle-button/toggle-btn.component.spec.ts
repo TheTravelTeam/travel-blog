@@ -1,3 +1,5 @@
+/// <reference types="jasmine" />
+
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ToggleBtnComponent } from './toggle-btn.component';

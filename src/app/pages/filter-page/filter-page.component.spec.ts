@@ -1,3 +1,5 @@
+/// <reference types="jasmine" />
+
 import { ComponentFixture, TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
