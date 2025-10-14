@@ -1,4 +1,14 @@
-import { Component, DestroyRef, ElementRef, ViewChild, computed, effect, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  OnInit,
+  ViewChild,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { AccordionComponent } from '../../components/Atoms/accordion/accordion.component';
 import { CheckboxComponent } from 'components/Atoms/Checkbox/checkbox.component';
 import { IconComponent } from 'components/Atoms/Icon/icon.component';
@@ -78,7 +88,7 @@ interface DiaryMeta {
   templateUrl: './filter-page.component.html',
   styleUrl: './filter-page.component.scss',
 })
-export class FilterPageComponent {
+export class FilterPageComponent implements OnInit {
   readonly state = inject(TravelMapStateService);
   public router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -184,29 +194,11 @@ export class FilterPageComponent {
   );
 
   /**
-   * Initialise les écouteurs de formulaire, synchronise l'état et déclenche les recherches.
-   * - Navigation : reflète les modifications du champ de recherche dans les query params.
+   * Initialise les effets et synchronise l'état applicatif.
    * - Effets : met à jour les carnets visibles, le panneau et les thèmes disponibles.
-   * - Recherche : écoute les query params et interroge l'API.
+   * - Formulaire de recherche, requêtes et thèmes : initialisés via ngOnInit pour conserver un cycle de vie clair.
    */
   constructor() {
-    this.searchControl.valueChanges
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        map((raw) => raw.trim()),
-        debounceTime(200),
-        distinctUntilChanged()
-      )
-      .subscribe((query) => {
-        void this.router.navigate([], {
-          relativeTo: this.route,
-          queryParams: {
-            q: query.length ? query : null,
-          },
-          queryParamsHandling: 'merge',
-        });
-      });
-
     effect(() => {
       const filtered = this.filteredDiaries();
       this.state.setVisibleDiaries(filtered.length ? filtered : null);
@@ -221,25 +213,11 @@ export class FilterPageComponent {
         this.state.panelHeight.set('collapsed');
       }
     });
+  }
 
-    this.themeService
-      .getThemes()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (themes) => {
-          // Récupère les thèmes disponibles pour alimenter les filtres.
-          const lookup = new Map<number, string>();
-          themes.forEach((theme) => {
-            lookup.set(theme.id, theme.name);
-          });
-          this.themeLookup.set(lookup);
-        },
-        error: () => {
-          // Défaut : en cas d'erreur API on réinitialise la table pour éviter les valeurs obsolètes.
-          this.themeLookup.set(new Map());
-        },
-      });
-
+  ngOnInit(): void {
+    this.initSearchControlSync();
+    this.initThemes();
     this.search()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe();
@@ -606,45 +584,6 @@ export class FilterPageComponent {
     return Number.isNaN(parsed.getTime()) ? null : parsed;
   }
 
-  /**
-   * Synchronise les query params avec l'état et déclenche les recherches côté page filtre.
-   */
-  private search(): Observable<SearchResultItem[]> {
-    return this.route.queryParamMap.pipe(
-      map((params) => (params.get('q') ?? '').trim()), // Trim : nettoie la valeur issue de l'URL avant traitement.
-      distinctUntilChanged(),
-      tap((query) => {
-        // Synchronisation : reflète immédiatement la requête dans le formulaire sans réémettre.
-        this.activeSearchQuery.set(query);
-        this.searchControl.setValue(query, { emitEvent: false });
-      }),
-      switchMap((query) => {
-        // Filtre : interprète une requête vide comme un reset et évite d'interroger l'API.
-        if (!query.length) {
-          this.searchResults.set([]);
-          this.searchError.set(null);
-          this.isSearchLoading.set(false);
-          return of([] as SearchResultItem[]);
-        }
-
-        // SwitchMap : relance la recherche quand les query params changent et annule la précédente.
-        this.isSearchLoading.set(true);
-        return this.searchService.search(query).pipe(
-          tap((results) => {
-            this.searchResults.set(results);
-            this.searchError.set(null);
-          }), // Tap : stocke les résultats réussis et efface les erreurs avant diffusion.
-          catchError(() => {
-            this.searchResults.set([]);
-            this.searchError.set('Impossible de lancer la recherche pour le moment.');
-            return of([] as SearchResultItem[]); // Gestion erreur : retourne un tableau vide pour respecter la signature.
-          }), // CatchError : capture l'échec, réinitialise l'état et reconduit un tableau vide.
-          finalize(() => this.isSearchLoading.set(false)) // Finalize : stoppe l'indicateur de chargement quelle que soit l'issue.
-        );
-      })
-    );
-  }
-
   togglePanel() {
     if (!this.state.currentDiary() || this.router.url === '/travels') {
       // Si pas de diary, toggle simple entre collapsed/expanded
@@ -713,5 +652,83 @@ export class FilterPageComponent {
       queryParams: { q: null },
       queryParamsHandling: 'merge',
     });
+  }
+
+  /**
+   * Synchronise les query params avec l'état et déclenche les recherches côté page filtre.
+   */
+  private search(): Observable<SearchResultItem[]> {
+    return this.route.queryParamMap.pipe(
+      map((params) => (params.get('q') ?? '').trim()), // Trim : nettoie la valeur issue de l'URL avant traitement.
+      distinctUntilChanged(),
+      tap((query) => {
+        // Synchronisation : reflète immédiatement la requête dans le formulaire sans réémettre.
+        this.activeSearchQuery.set(query);
+        this.searchControl.setValue(query, { emitEvent: false });
+      }),
+      switchMap((query) => {
+        // Filtre : interprète une requête vide comme un reset et évite d'interroger l'API.
+        if (!query.length) {
+          this.searchResults.set([]);
+          this.searchError.set(null);
+          this.isSearchLoading.set(false);
+          return of([] as SearchResultItem[]);
+        }
+
+        // SwitchMap : relance la recherche quand les query params changent et annule la précédente.
+        this.isSearchLoading.set(true);
+        return this.searchService.search(query).pipe(
+          tap((results) => {
+            this.searchResults.set(results);
+            this.searchError.set(null);
+          }), // Tap : stocke les résultats réussis et efface les erreurs avant diffusion.
+          catchError(() => {
+            this.searchResults.set([]);
+            this.searchError.set('Impossible de lancer la recherche pour le moment.');
+            return of([] as SearchResultItem[]); // Gestion erreur : retourne un tableau vide pour respecter la signature.
+          }), // CatchError : capture l'échec, réinitialise l'état et reconduit un tableau vide.
+          finalize(() => this.isSearchLoading.set(false)) // Finalize : stoppe l'indicateur de chargement quelle que soit l'issue.
+        );
+      })
+    );
+  }
+
+  private initThemes(): void {
+    this.themeService
+      .getThemes()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (themes) => {
+          // Récupère les thèmes disponibles pour alimenter les filtres.
+          const lookup = new Map<number, string>();
+          themes.forEach((theme) => {
+            lookup.set(theme.id, theme.name);
+          });
+          this.themeLookup.set(lookup);
+        },
+        error: () => {
+          // Défaut : en cas d'erreur API on réinitialise la table pour éviter les valeurs obsolètes.
+          this.themeLookup.set(new Map());
+        },
+      });
+  }
+
+  private initSearchControlSync(): void {
+    this.searchControl.valueChanges
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        map((raw) => raw.trim()),
+        debounceTime(200),
+        distinctUntilChanged()
+      )
+      .subscribe((query) => {
+        void this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: {
+            q: query.length ? query : null,
+          },
+          queryParamsHandling: 'merge',
+        });
+      });
   }
 }
