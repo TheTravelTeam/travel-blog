@@ -1,13 +1,4 @@
-import {
-  Component,
-  DestroyRef,
-  ElementRef,
-  ViewChild,
-  computed,
-  effect,
-  inject,
-  signal,
-} from '@angular/core';
+import { Component, DestroyRef, ElementRef, ViewChild, computed, effect, inject, signal } from '@angular/core';
 import { AccordionComponent } from '../../components/Atoms/accordion/accordion.component';
 import { CheckboxComponent } from 'components/Atoms/Checkbox/checkbox.component';
 import { IconComponent } from 'components/Atoms/Icon/icon.component';
@@ -21,19 +12,19 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   map,
   distinctUntilChanged,
-  switchMap,
-  tap,
-  finalize,
-  catchError,
   debounceTime,
+  tap,
+  switchMap,
+  catchError,
+  finalize,
 } from 'rxjs/operators';
-import { of } from 'rxjs';
 import { SearchService } from '@service/search.service';
 import { SearchResultItem } from '@model/search-result.model';
 import { TravelDiary } from '@model/travel-diary.model';
 import { Step } from '@model/step.model';
 import { ThemeService } from '@service/theme.service';
 import { SearchBarComponent } from 'components/Molecules/search-bar/search-bar.component';
+import { Observable, of } from 'rxjs';
 
 const DURATION_BUCKETS = [
   { id: '0-3' as const, label: '0-3 jours', min: 0, max: 3 },
@@ -191,6 +182,68 @@ export class FilterPageComponent {
       .slice()
       .sort((a, b) => a.title.localeCompare(b.title, 'fr', { sensitivity: 'base' }))
   );
+
+  /**
+   * Initialise les écouteurs de formulaire, synchronise l'état et déclenche les recherches.
+   * - Navigation : reflète les modifications du champ de recherche dans les query params.
+   * - Effets : met à jour les carnets visibles, le panneau et les thèmes disponibles.
+   * - Recherche : écoute les query params et interroge l'API.
+   */
+  constructor() {
+    this.searchControl.valueChanges
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        map((raw) => raw.trim()),
+        debounceTime(200),
+        distinctUntilChanged()
+      )
+      .subscribe((query) => {
+        void this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: {
+            q: query.length ? query : null,
+          },
+          queryParamsHandling: 'merge',
+        });
+      });
+
+    effect(() => {
+      const filtered = this.filteredDiaries();
+      this.state.setVisibleDiaries(filtered.length ? filtered : null);
+    });
+
+    this.destroyRef.onDestroy(() => {
+      this.state.setVisibleDiaries(null);
+    });
+
+    effect(() => {
+      if (this.router.url === '/travels' && this.state.panelHeight() !== 'expanded') {
+        this.state.panelHeight.set('collapsed');
+      }
+    });
+
+    this.themeService
+      .getThemes()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (themes) => {
+          // Récupère les thèmes disponibles pour alimenter les filtres.
+          const lookup = new Map<number, string>();
+          themes.forEach((theme) => {
+            lookup.set(theme.id, theme.name);
+          });
+          this.themeLookup.set(lookup);
+        },
+        error: () => {
+          // Défaut : en cas d'erreur API on réinitialise la table pour éviter les valeurs obsolètes.
+          this.themeLookup.set(new Map());
+        },
+      });
+
+    this.search()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe();
+  }
 
   isFilterSelected(type: FilterType, value: string): boolean {
     return this.selectedFilters()[type].has(value);
@@ -554,89 +607,42 @@ export class FilterPageComponent {
   }
 
   /**
-   * Connects route-aware signals to the shared filter state without using the deprecated allowSignalWrites flag.
+   * Synchronise les query params avec l'état et déclenche les recherches côté page filtre.
    */
-  constructor() {
-    this.searchControl.valueChanges
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        map((raw) => raw.trim()),
-        debounceTime(200),
-        distinctUntilChanged()
-      )
-      .subscribe((query) => {
-        void this.router.navigate([], {
-          relativeTo: this.route,
-          queryParams: {
-            q: query.length ? query : null,
-          },
-          queryParamsHandling: 'merge',
-        });
-      });
+  private search(): Observable<SearchResultItem[]> {
+    return this.route.queryParamMap.pipe(
+      map((params) => (params.get('q') ?? '').trim()), // Trim : nettoie la valeur issue de l'URL avant traitement.
+      distinctUntilChanged(),
+      tap((query) => {
+        // Synchronisation : reflète immédiatement la requête dans le formulaire sans réémettre.
+        this.activeSearchQuery.set(query);
+        this.searchControl.setValue(query, { emitEvent: false });
+      }),
+      switchMap((query) => {
+        // Filtre : interprète une requête vide comme un reset et évite d'interroger l'API.
+        if (!query.length) {
+          this.searchResults.set([]);
+          this.searchError.set(null);
+          this.isSearchLoading.set(false);
+          return of([] as SearchResultItem[]);
+        }
 
-    effect(() => {
-      const filtered = this.filteredDiaries();
-      this.state.setVisibleDiaries(filtered.length ? filtered : null);
-    });
-
-    this.destroyRef.onDestroy(() => {
-      this.state.setVisibleDiaries(null);
-    });
-
-    effect(() => {
-      if (this.router.url === '/travels' && this.state.panelHeight() !== 'expanded') {
-        this.state.panelHeight.set('collapsed');
-      }
-    });
-
-    this.themeService
-      .getThemes()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (themes) => {
-          const lookup = new Map<number, string>();
-          themes.forEach((theme) => {
-            lookup.set(theme.id, theme.name);
-          });
-          this.themeLookup.set(lookup);
-        },
-        error: () => {
-          this.themeLookup.set(new Map());
-        },
-      });
-
-    this.route.queryParamMap
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        map((params) => (params.get('q') ?? '').trim()),
-        distinctUntilChanged(),
-        switchMap((query) => {
-          this.activeSearchQuery.set(query);
-          this.searchControl.setValue(query, { emitEvent: false });
-
-          if (!query) {
-            this.searchResults.set([]);
+        // SwitchMap : relance la recherche quand les query params changent et annule la précédente.
+        this.isSearchLoading.set(true);
+        return this.searchService.search(query).pipe(
+          tap((results) => {
+            this.searchResults.set(results);
             this.searchError.set(null);
-            this.isSearchLoading.set(false);
-            return of(null);
-          }
-
-          this.isSearchLoading.set(true);
-          return this.searchService.search(query).pipe(
-            tap((results) => {
-              this.searchResults.set(results);
-              this.searchError.set(null);
-            }),
-            catchError(() => {
-              this.searchResults.set([]);
-              this.searchError.set('Impossible de lancer la recherche pour le moment.');
-              return of([] as SearchResultItem[]);
-            }),
-            finalize(() => this.isSearchLoading.set(false))
-          );
-        })
-      )
-      .subscribe();
+          }), // Tap : stocke les résultats réussis et efface les erreurs avant diffusion.
+          catchError(() => {
+            this.searchResults.set([]);
+            this.searchError.set('Impossible de lancer la recherche pour le moment.');
+            return of([] as SearchResultItem[]); // Gestion erreur : retourne un tableau vide pour respecter la signature.
+          }), // CatchError : capture l'échec, réinitialise l'état et reconduit un tableau vide.
+          finalize(() => this.isSearchLoading.set(false)) // Finalize : stoppe l'indicateur de chargement quelle que soit l'issue.
+        );
+      })
+    );
   }
 
   togglePanel() {

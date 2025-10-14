@@ -10,6 +10,8 @@ import {
 import { CommonModule, Location } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Observable, of } from 'rxjs';
 import {
   catchError,
   debounceTime,
@@ -20,8 +22,6 @@ import {
   switchMap,
   tap,
 } from 'rxjs/operators';
-import { of } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { IconSize, Size } from '@model/variant.model';
 import { BreakpointService } from '@service/breakpoint.service';
@@ -130,42 +130,53 @@ export class TopBarComponent implements OnInit, OnDestroy {
     return this.isAuthenticated() && this.currentUserId() !== null;
   }
 
+  /**
+   * Initialise le flux de recherche et charge l'utilisateur au besoin.
+   */
   ngOnInit(): void {
     if (!this.authService.currentUser()) {
       // Charge l'utilisateur courant lors d'un rafraîchissement avec session déjà active
       this.authService.loadCurrentUser().subscribe({ error: () => undefined });
     }
 
-    this.searchControl.valueChanges
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        map((raw) => raw.trim()),
-        tap((value) => {
-          this.searchError.set(null);
-          const hasQuery = value.length >= 2;
-          this.hasSearchQuery.set(hasQuery);
-          if (!hasQuery) {
-            this.searchResults.set([]);
-            this.isSearchLoading.set(false);
-          }
-        }),
-        debounceTime(250),
-        distinctUntilChanged(),
-        filter((value) => value.length >= 2),
-        switchMap((value) => {
-          this.isSearchLoading.set(true);
-          return this.searchService.search(value).pipe(
-            tap((results) => this.searchResults.set(results)),
-            finalize(() => this.isSearchLoading.set(false)),
-            catchError(() => {
-              this.searchError.set('Impossible de lancer la recherche pour le moment.');
-              this.searchResults.set([]);
-              return of([] as SearchResultItem[]);
-            })
-          );
-        })
-      )
+    this.search()
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe();
+  }
+
+  /**
+   * Prépare le flux de recherche de la top bar : normalise la requête,
+   * applique un délai, filtre les entrées trop courtes et interroge l'API.
+   */
+  private search(): Observable<SearchResultItem[]> {
+    return this.searchControl.valueChanges.pipe(
+      map((raw) => raw.trim()), // map : retire les espaces avant/arrière pour comparer des chaînes standardisées.
+      tap((value) => {
+        this.searchError.set(null); // tap : purge l'erreur éventuelle, la moindre frappe relance une recherche saine.
+        const hasQuery = value.length >= 2; // calcule si la requête atteint la longueur minimum.
+        this.hasSearchQuery.set(hasQuery); // enregistre la présence d'une recherche pour piloter l'affichage du panneau.
+        if (!hasQuery) {
+          this.searchResults.set([]); // reset : efface les résultats lorsqu'on passe sous le seuil de longueur.
+          this.isSearchLoading.set(false); // annule un éventuel loader puisqu'aucune requête ne partira.
+        }
+      }),
+      debounceTime(250), // debounceTime : impose 250 ms de silence avant de relancer la recherche (limite les frappes rapides).
+      distinctUntilChanged(), // distinctUntilChanged : évite de requêter si la valeur n'a finalement pas changé.
+      filter((value) => value.length >= 2), // filter : bloque la séquence tant que la requête est trop courte.
+      switchMap((value) => {
+        // switchMap : annule la requête précédente et ne conserve que la dernière saisie.
+        this.isSearchLoading.set(true); // active le loader avant l'appel réseau.
+        return this.searchService.search(value).pipe(
+          tap((results) => this.searchResults.set(results)), // tap : stocke les résultats immédiatement après leur arrivée.
+          catchError(() => {
+            this.searchError.set('Impossible de lancer la recherche pour le moment.'); // catchError : message user-friendly.
+            this.searchResults.set([]); // catchError : vide la liste pour éviter d'afficher d'anciennes données.
+            return of([] as SearchResultItem[]); // catchError : renvoie un observable vide pour maintenir la chaîne.
+          }),
+          finalize(() => this.isSearchLoading.set(false)) // finalize : coupe le loader qu'il y ait succès ou erreur.
+        );
+      })
+    );
   }
 
   ngOnDestroy(): void {
@@ -174,25 +185,40 @@ export class TopBarComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Navigue vers la page de connexion.
+   */
   onNavigateToLogin(): void {
     void this.router.navigate(['/login']);
   }
 
+  /**
+   * Déconnecte l'utilisateur et redirige vers la connexion.
+   */
   onLogout(): void {
     this.authService.logout().subscribe({
       next: () => this.router.navigate(['/login']),
     });
   }
 
+  /**
+   * Affiche le panneau de recherche lorsque l'input reçoit le focus.
+   */
   onSearchFocus(): void {
     this.cancelHideResultsTimeout();
     this.isSearchDropdownOpen.set(true);
   }
 
+  /**
+   * Planifie la fermeture du panneau lorsque l'input perd le focus.
+   */
   onSearchBlur(): void {
     this.hideResultsTimeout = setTimeout(() => this.isSearchDropdownOpen.set(false), 150);
   }
 
+  /**
+   * Soumet la recherche manuelle et redirige vers la page des voyages.
+   */
   onSearchSubmit(rawQuery: string): void {
     const query = rawQuery.trim();
     if (!query.length) {
@@ -202,6 +228,9 @@ export class TopBarComponent implements OnInit, OnDestroy {
     this.isSearchDropdownOpen.set(false);
   }
 
+  /**
+   * Navigue vers la ressource associée au résultat sélectionné.
+   */
   onSearchResultClick(result: SearchResultItem): void {
     this.isSearchDropdownOpen.set(false);
     if (result.type === 'step' && result.diaryId != null) {
@@ -214,6 +243,9 @@ export class TopBarComponent implements OnInit, OnDestroy {
     void this.router.navigate(['/travels', result.diaryId ?? result.id]);
   }
 
+  /**
+   * Gère le bouton retour sur mobile en se basant sur l'historique ou un fallback.
+   */
   onMobileBack(): void {
     if (this.hasBrowserHistory()) {
       this.location.back();
@@ -224,6 +256,9 @@ export class TopBarComponent implements OnInit, OnDestroy {
     void this.router.navigateByUrl(fallback);
   }
 
+  /**
+   * Réinitialise le champ de recherche et les résultats affichés.
+   */
   onClearSearch(): void {
     this.searchControl.setValue('');
     this.searchResults.set([]);
@@ -231,6 +266,9 @@ export class TopBarComponent implements OnInit, OnDestroy {
     this.hasSearchQuery.set(false);
   }
 
+  /**
+   * Annule la fermeture différée du panneau de recherche.
+   */
   private cancelHideResultsTimeout(): void {
     if (this.hideResultsTimeout) {
       clearTimeout(this.hideResultsTimeout);
@@ -238,6 +276,9 @@ export class TopBarComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Construit le libellé de l'avatar selon les informations disponibles.
+   */
   private buildAvatarLabel(user: UserProfileDto | null): string {
     if (!user) {
       return 'Voyageur';
@@ -262,10 +303,16 @@ export class TopBarComponent implements OnInit, OnDestroy {
     return 'Voyageur';
   }
 
+  /**
+   * Détermine si l'historique du navigateur peut être utilisé.
+   */
   private hasBrowserHistory(): boolean {
     return typeof window !== 'undefined' && window.history.length > 1;
   }
 
+  /**
+   * Calcule la destination par défaut du bouton retour mobile.
+   */
   private resolveMobileBackFallback(): string {
     if (this.isMapPage || this.isMyDiariesPage) {
       return '/travels';
