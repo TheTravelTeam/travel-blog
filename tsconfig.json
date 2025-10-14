@@ -26,8 +26,16 @@
       "@dto/*": ["shared/dto/*"],
       "@service/*": ["core/services/*"],
       "@utils/*": ["shared/utils/*"]
-    }
+    },
+    "types": []
   },
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.spec.json" },
+    { "path": "./tsconfig.cypress.json" }
+  ],
+  "exclude": ["cypress", "dist", "out-tsc", "node_modules"],
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,

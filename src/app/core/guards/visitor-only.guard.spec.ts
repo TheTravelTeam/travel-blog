@@ -1,3 +1,5 @@
+/// <reference types="jasmine" />
+
 import { signal } from '@angular/core';
 import { GuardResult, Router, UrlTree } from '@angular/router';
 import { TestBed } from '@angular/core/testing';

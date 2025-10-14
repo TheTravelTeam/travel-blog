@@ -51,7 +51,7 @@
     flex-direction: column;
     gap: 0.5rem;
 
-    .search-bar {
+    app-search-bar {
       flex: 1;
       margin: 0 0.5rem;
 
@@ -276,60 +276,4 @@
     }
   }
 
-}
-
-.search-bar {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background-color: white;
-  border-radius: 5rem;
-  padding: 0.5rem 1rem;
-  width: 100%;
-  max-width: 350px;
-  border: 1px solid #ccc;
-  position: relative;
-
-  @media screen and (min-width: 430px) and (max-width: 768px) {
-    font-size: 0.6rem;
-  }
-
-  &__icon {
-    font-size: 1.25rem;
-    color: gray;
-  }
-
-  &__input {
-    border: none;
-    outline: none;
-    width: 100%;
-    font-size: 0.8rem;
-    @media screen and (max-width: 608px) {
-      font-size: 0.6rem;
-    }
-    @media screen and (min-width: 610px) and (max-width: 850px) {
-      width: fit-content;
-      font-size: 0.7rem;
-    }
-  }
-
-  &__clear {
-    background: transparent;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: rgba(0, 0, 0, 0.5);
-    cursor: pointer;
-
-    &:hover,
-    &:focus-visible {
-      color: rgba(0, 0, 0, 0.8);
-      outline: none;
-    }
-
-    .material-symbols-outlined {
-      font-size: 1.2rem;
-    }
-  }
 }

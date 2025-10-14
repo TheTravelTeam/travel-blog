@@ -22,30 +22,15 @@
     }
     @if (!bp.isMobileOrTablet() && !isHomeOrArticlePage) {
       <div class="topbar__center">
-        <form class="search-bar" role="search" (submit)="onSearchSubmit($event)">
-          <span class="search-bar__icon material-symbols-outlined">search</span>
-          <input
-            type="search"
-            class="search-bar__input"
-            placeholder="Rechercher un carnet ou une étape"
-            autocomplete="off"
-            [formControl]="searchControl"
-            (focus)="onSearchFocus()"
-            (blur)="onSearchBlur()"
-            data-test="topbar-search-input"
-          />
-          @if (searchControl.value.trim().length) {
-            <button
-              type="button"
-              class="search-bar__clear"
-              aria-label="Effacer la recherche"
-              (mousedown)="$event.preventDefault()"
-              (click)="onClearSearch()"
-            >
-              <span class="material-symbols-outlined">close</span>
-            </button>
-          }
-        </form>
+        <app-search-bar
+          [control]="searchControl"
+          placeholder="Rechercher un carnet ou une étape"
+          dataTestId="topbar-search-input"
+          (searchSubmit)="onSearchSubmit($event)"
+          (searchFocus)="onSearchFocus()"
+          (searchBlur)="onSearchBlur()"
+          (clear)="onClearSearch()"
+        />
         @if (shouldDisplaySearchPanel()) {
           <div class="topbar__search-results" (mousedown)="$event.preventDefault()">
             @if (isSearchLoading()) {

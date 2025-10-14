@@ -32,6 +32,7 @@ import { AuthService } from '@service/auth.service';
 import { UserProfileDto } from '@dto/user-profile.dto';
 import { SearchService } from '@service/search.service';
 import { SearchResultItem } from '@model/search-result.model';
+import { SearchBarComponent } from 'components/Molecules/search-bar/search-bar.component';
 
 @Component({
   selector: 'app-top-bar',
@@ -43,6 +44,7 @@ import { SearchResultItem } from '@model/search-result.model';
     AvatarComponent,
     RouterLink,
     ReactiveFormsModule,
+    SearchBarComponent,
   ],
   templateUrl: './top-bar.component.html',
   styleUrl: './top-bar.component.scss',
@@ -191,10 +193,9 @@ export class TopBarComponent implements OnInit, OnDestroy {
     this.hideResultsTimeout = setTimeout(() => this.isSearchDropdownOpen.set(false), 150);
   }
 
-  onSearchSubmit(event: Event): void {
-    event.preventDefault();
-    const query = this.searchControl.value.trim();
-    if (!query) {
+  onSearchSubmit(rawQuery: string): void {
+    const query = rawQuery.trim();
+    if (!query.length) {
       return;
     }
     void this.router.navigate(['/travels'], { queryParams: { q: query } });

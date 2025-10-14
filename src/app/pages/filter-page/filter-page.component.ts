@@ -33,6 +33,7 @@ import { SearchResultItem } from '@model/search-result.model';
 import { TravelDiary } from '@model/travel-diary.model';
 import { Step } from '@model/step.model';
 import { ThemeService } from '@service/theme.service';
+import { SearchBarComponent } from 'components/Molecules/search-bar/search-bar.component';
 
 const DURATION_BUCKETS = [
   { id: '0-3' as const, label: '0-3 jours', min: 0, max: 3 },
@@ -81,6 +82,7 @@ interface DiaryMeta {
     DividerComponent,
     CommonModule,
     ReactiveFormsModule,
+    SearchBarComponent,
   ],
   templateUrl: './filter-page.component.html',
   styleUrl: './filter-page.component.scss',
@@ -674,9 +676,8 @@ export class FilterPageComponent {
     void this.router.navigate(['/travels', result.diaryId ?? result.id]);
   }
 
-  onSearchSubmit(event: Event): void {
-    event.preventDefault();
-    const query = this.searchControl.value.trim();
+  onSearchSubmit(rawQuery: string): void {
+    const query = rawQuery.trim();
 
     if (!query) {
       this.clearSearchQuery();
