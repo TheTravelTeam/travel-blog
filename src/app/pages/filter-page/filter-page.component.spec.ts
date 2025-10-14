@@ -71,7 +71,7 @@ describe('FilterPageComponent', () => {
 
   it('updates search control when query param changes', fakeAsync(() => {
     queryParams$.next(convertToParamMap({ q: 'asia' }));
-    tick();
+    flushMicrotasks(); // flushMicrotasks : exécute immédiatement les tâches micro (Promise, Observables sync).
     fixture.detectChanges();
 
     expect(component.searchControl.value).toBe('asia');
@@ -80,8 +80,8 @@ describe('FilterPageComponent', () => {
 
   it('navigates with trimmed query when search value changes', fakeAsync(() => {
     component.searchControl.setValue('  peru  ');
-    tick(200);
-    flushMicrotasks();
+    tick(200); // tick : simule l'écoulement du délai de debounce configuré à 200 ms.
+    flushMicrotasks(); // flushMicrotasks : vide les micro-tâches produites par le pipe async.
 
     expect(routerNavigateSpy).toHaveBeenCalledWith([], {
       relativeTo: activatedRouteStub,
@@ -92,12 +92,12 @@ describe('FilterPageComponent', () => {
 
   it('removes query param when search value cleared', fakeAsync(() => {
     component.searchControl.setValue('tokyo');
-    tick(200);
+    tick(200); // tick : attend le debounce avant d'envoyer la requête initiale.
     flushMicrotasks();
     routerNavigateSpy.calls.reset();
 
     component.searchControl.setValue('');
-    tick(200);
+    tick(200); // tick : permet au debounce de finaliser le clear.
     flushMicrotasks();
 
     expect(routerNavigateSpy).toHaveBeenCalledWith([], {
@@ -111,7 +111,7 @@ describe('FilterPageComponent', () => {
     component.searchControl.setValue('lisbonne', { emitEvent: false });
 
     component.clearSearchQuery();
-    flushMicrotasks();
+    flushMicrotasks(); // flushMicrotasks : synchronise la mise à jour des signaux et du formulaire.
 
     expect(component.searchControl.value).toBe('');
     expect(component.activeSearchQuery()).toBe('');
