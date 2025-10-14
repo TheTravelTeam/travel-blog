@@ -10,10 +10,14 @@
       </div>
 
       @if (!state.currentDiary() || router.url === '/travels') {
-        <div class="search-bar">
-          <span class="search-bar__icon material-symbols-outlined">search</span>
-          <input type="text" class="search-bar__input" placeholder="Hinted search text" />
-        </div>
+        <app-search-bar
+          [control]="searchControl"
+          placeholder="Rechercher un carnet ou une étape"
+          dataTestId="filter-panel-search-input"
+          size="compact"
+          (searchSubmit)="onSearchSubmit($event)"
+          (clear)="onClearSearchClick()"
+        />
       }
     }
     @if (!isTabletOrMobile()) {
@@ -82,49 +86,115 @@
           }
         </section>
       }
+      <section class="worldMap__filtered-results">
+        <header class="worldMap__filtered-results__header">
+          <h2>
+            Carnets filtrés
+            <span>({{ filteredDiaries().length }})</span>
+          </h2>
+          @if (hasActiveFilters()) {
+            <button type="button" (click)="resetFilters()">Réinitialiser</button>
+          }
+        </header>
+        @if (!hasActiveFilters()) {
+          <p class="worldMap__filtered-results__status">
+            Sélectionnez un filtre pour afficher les carnets correspondants.
+          </p>
+        } @else if (!filteredDiaries().length) {
+          <p class="worldMap__filtered-results__status">
+            Aucun carnet ne correspond aux filtres sélectionnés.
+          </p>
+        } @else {
+          <ul class="worldMap__filtered-results__list">
+            @for (diary of filteredDiaries(); track diary.id) {
+              <li>
+                <button type="button" (click)="onFilteredDiaryClick(diary.id)">
+                  <span class="label">{{ diary.title }}</span>
+                  @let meta = getDiaryMeta(diary.id);
+                  @let durationLabel = getDurationLabel(meta?.durationId ?? null);
+                  @if (meta?.countries?.length) {
+                    <span class="description">Pays : {{ meta?.countries?.join(', ') }}</span>
+                  }
+                  @if (meta?.continents?.length) {
+                    <span class="description">
+                      Continents : {{ meta?.continents?.join(', ') }}
+                    </span>
+                  }
+                  @if (meta?.themes?.length) {
+                    <span class="description">Thèmes : {{ meta?.themes?.join(', ') }}</span>
+                  }
+                  @if (durationLabel) {
+                    <span class="description">Durée : {{ durationLabel }}</span>
+                  }
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </section>
       <div class="worldMap__filter-panel">
         <app-accordion [isFilter]="true" title="Pays">
           <div class="filter__container">
-            <app-checkbox checkboxName="Farniente" label="Farniente"></app-checkbox>
-            <app-checkbox checkboxName="A la dur" label="A la dur"></app-checkbox>
-            <app-checkbox
-              checkboxName="Je reste chez c'est triste"
-              label="Je reste chez c'est triste"
-            ></app-checkbox>
-            <app-checkbox checkboxName="La plage" label="la plage"></app-checkbox>
+            @if (countryOptions().length) {
+              @for (option of countryOptions(); track option.value) {
+                <app-checkbox
+                  [checkboxName]="buildCheckboxId('countries', option.value)"
+                  [label]="formatFilterLabel(option)"
+                  [checked]="isFilterSelected('countries', option.value)"
+                  (checkedChange)="onFilterChecked('countries', option.value, $event)"
+                ></app-checkbox>
+              }
+            } @else {
+              <p class="filter__empty">Aucun pays disponible</p>
+            }
           </div>
         </app-accordion>
         <app-accordion [isFilter]="true" title="Continent">
           <div class="filter__container">
-            <app-checkbox checkboxName="Farniente" label="Farniente"></app-checkbox>
-            <app-checkbox checkboxName="A la dur" label="A la dur"></app-checkbox>
-            <app-checkbox
-              checkboxName="Je reste chez c'est triste"
-              label="Je reste chez c'est triste"
-            ></app-checkbox>
-            <app-checkbox checkboxName="La plage" label="la plage"></app-checkbox>
+            @if (continentOptions().length) {
+              @for (option of continentOptions(); track option.value) {
+                <app-checkbox
+                  [checkboxName]="buildCheckboxId('continents', option.value)"
+                  [label]="formatFilterLabel(option)"
+                  [checked]="isFilterSelected('continents', option.value)"
+                  (checkedChange)="onFilterChecked('continents', option.value, $event)"
+                ></app-checkbox>
+              }
+            } @else {
+              <p class="filter__empty">Aucun continent disponible</p>
+            }
           </div>
         </app-accordion>
         <app-accordion [isFilter]="true" title="Durée">
           <div class="filter__container">
-            <app-checkbox checkboxName="Farniente" label="Farniente"></app-checkbox>
-            <app-checkbox checkboxName="A la dur" label="A la dur"></app-checkbox>
-            <app-checkbox
-              checkboxName="Je reste chez c'est triste"
-              label="Je reste chez c'est triste"
-            ></app-checkbox>
-            <app-checkbox checkboxName="La plage" label="la plage"></app-checkbox>
+            @if (durationOptions().length) {
+              @for (option of durationOptions(); track option.value) {
+                <app-checkbox
+                  [checkboxName]="buildCheckboxId('durations', option.value)"
+                  [label]="formatFilterLabel(option)"
+                  [checked]="isFilterSelected('durations', option.value)"
+                  (checkedChange)="onFilterChecked('durations', option.value, $event)"
+                ></app-checkbox>
+              }
+            } @else {
+              <p class="filter__empty">Aucune durée disponible</p>
+            }
           </div>
         </app-accordion>
         <app-accordion [isFilter]="true" title="Themes">
           <div class="filter__container">
-            <app-checkbox checkboxName="Farniente" label="Farniente" ></app-checkbox>
-            <app-checkbox checkboxName="A la dur" label="A la dur"></app-checkbox>
-            <app-checkbox
-              checkboxName="Je reste chez c'est triste"
-              label="Je reste chez c'est triste"
-            ></app-checkbox>
-            <app-checkbox checkboxName="La plage" label="la plage"></app-checkbox>
+            @if (themeOptions().length) {
+              @for (option of themeOptions(); track option.value) {
+                <app-checkbox
+                  [checkboxName]="buildCheckboxId('themes', option.value)"
+                  [label]="formatFilterLabel(option)"
+                  [checked]="isFilterSelected('themes', option.value)"
+                  (checkedChange)="onFilterChecked('themes', option.value, $event)"
+                ></app-checkbox>
+              }
+            } @else {
+              <p class="filter__empty">Aucun thème disponible</p>
+            }
           </div>
         </app-accordion>
       </div>

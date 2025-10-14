@@ -1,3 +1,5 @@
+/// <reference types="jasmine" />
+
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MePageComponent } from './me-page.component';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
