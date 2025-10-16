@@ -134,9 +134,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
       return null;
     }
 
-    const step = this.state
-      .steps()
-      .find((item) => Number(item.id) === selection.stepId);
+    const step = this.state.steps().find((item) => Number(item.id) === selection.stepId);
 
     if (!step) {
       return null;
@@ -345,9 +343,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
    */
   onStepFormSubmit(formValue: StepFormResult): void {
     if (this.isViewerDisabled()) {
-      this.stepFormError.set(
-        'Votre compte est désactivé. Vous ne pouvez plus gérer vos étapes.'
-      );
+      this.stepFormError.set('Votre compte est désactivé. Vous ne pouvez plus gérer vos étapes.');
       return;
     }
 
@@ -559,9 +555,10 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     endDate: string
   ): TravelDiary {
     const candidate = updated ?? source;
-    const steps = Array.isArray(candidate.steps) && candidate.steps.length
-      ? candidate.steps
-      : source.steps ?? [];
+    const steps =
+      Array.isArray(candidate.steps) && candidate.steps.length
+        ? candidate.steps
+        : (source.steps ?? []);
 
     return {
       ...source,
@@ -621,18 +618,18 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
    */
   private normalizeSteps(rawSteps: TravelDiary['steps']): Step[] {
     if (!Array.isArray(rawSteps)) {
-    return [];
-  }
+      return [];
+    }
 
-  return rawSteps.map((step) => ({
-    ...step,
-    themeIds: Array.isArray(step?.themeIds)
-      ? step.themeIds.filter((value): value is number => Number.isFinite(value as number))
-      : [],
-    themes: Array.isArray(step?.themes) ? (step.themes as Theme[]) : [],
-    comments: this.normalizeComments(step?.comments),
-    isEditing: typeof step?.isEditing === 'boolean' ? step.isEditing : false,
-  })) as Step[];
+    return rawSteps.map((step) => ({
+      ...step,
+      themeIds: Array.isArray(step?.themeIds)
+        ? step.themeIds.filter((value): value is number => Number.isFinite(value as number))
+        : [],
+      themes: Array.isArray(step?.themes) ? (step.themes as Theme[]) : [],
+      comments: this.normalizeComments(step?.comments),
+      isEditing: typeof step?.isEditing === 'boolean' ? step.isEditing : false,
+    })) as Step[];
   }
 
   /** Normalises comment collections coming from heterogeneous backend payloads. */
@@ -703,23 +700,19 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
       email?: unknown;
     };
 
-    const pseudo =
-      typeof candidate.pseudo === 'string' ? candidate.pseudo.trim() : '';
+    const pseudo = typeof candidate.pseudo === 'string' ? candidate.pseudo.trim() : '';
     if (pseudo) {
       return pseudo;
     }
 
-    const firstName =
-      typeof candidate.firstName === 'string' ? candidate.firstName.trim() : '';
-    const lastName =
-      typeof candidate.lastName === 'string' ? candidate.lastName.trim() : '';
+    const firstName = typeof candidate.firstName === 'string' ? candidate.firstName.trim() : '';
+    const lastName = typeof candidate.lastName === 'string' ? candidate.lastName.trim() : '';
     const composed = [firstName, lastName].filter(Boolean).join(' ').trim();
     if (composed) {
       return composed;
     }
 
-    const email =
-      typeof candidate.email === 'string' ? candidate.email.trim() : '';
+    const email = typeof candidate.email === 'string' ? candidate.email.trim() : '';
     if (email) {
       const localPart = email.split('@')[0]?.trim();
       if (localPart) {
@@ -1024,9 +1017,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     }
 
     if (this.isViewerDisabled()) {
-      this.stepFormError.set(
-        'Votre compte est désactivé. Vous ne pouvez plus gérer vos étapes.'
-      );
+      this.stepFormError.set('Votre compte est désactivé. Vous ne pouvez plus gérer vos étapes.');
       return;
     }
 
@@ -1228,10 +1219,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     }
 
     if (this.isViewerDisabled()) {
-      this.setCommentError(
-        stepId,
-        'Votre compte est désactivé. Vous ne pouvez plus commenter.'
-      );
+      this.setCommentError(stepId, 'Votre compte est désactivé. Vous ne pouvez plus commenter.');
       return;
     }
 
@@ -1262,10 +1250,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
           this.commentCreationSubs.delete(stepId);
         },
         error: () => {
-          this.setCommentError(
-            stepId,
-            "Impossible d'enregistrer le commentaire pour le moment."
-          );
+          this.setCommentError(stepId, "Impossible d'enregistrer le commentaire pour le moment.");
           this.setCommentSubmitting(stepId, false);
           this.commentCreationSubs.delete(stepId);
         },
@@ -1302,10 +1287,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
           this.commentDeletionSubs.delete(commentId);
         },
         error: () => {
-          this.setCommentError(
-            stepId,
-            "Impossible de supprimer le commentaire pour le moment."
-          );
+          this.setCommentError(stepId, 'Impossible de supprimer le commentaire pour le moment.');
           this.setCommentDeleting(commentId, false);
           this.commentDeletionSubs.delete(commentId);
         },
@@ -1340,6 +1322,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
       this.commentUpdateSubs.get(editingId)?.unsubscribe();
       this.commentUpdateSubs.delete(editingId);
       this.commentEditDrafts.update((drafts) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { [editingId]: _removed, ...rest } = drafts;
         return rest;
       });
@@ -1382,6 +1365,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
           this.updateCommentInCollections(stepId, updated);
           this.setCommentUpdating(commentId, false);
           this.commentEditDrafts.update((drafts) => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { [commentId]: _removed, ...rest } = drafts;
             return rest;
           });
@@ -1392,7 +1376,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
         error: () => {
           this.setCommentEditError(
             commentId,
-            "Impossible de mettre à jour le commentaire pour le moment."
+            'Impossible de mettre à jour le commentaire pour le moment.'
           );
           this.setCommentUpdating(commentId, false);
           this.commentUpdateSubs.delete(commentId);
@@ -1506,7 +1490,10 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
    * @param step Response payload coming from the API.
    * @param fallback Value to return when the response is missing the counter.
    */
-  private resolveLikesFromResponse(step: Partial<Step> | null | undefined, fallback: number): number {
+  private resolveLikesFromResponse(
+    step: Partial<Step> | null | undefined,
+    fallback: number
+  ): number {
     if (Number.isFinite(step?.likesCount)) {
       return Math.max(0, Number(step?.likesCount));
     }
@@ -1580,7 +1567,6 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
       const updatedDiarySteps = diary.steps.map(mapStep);
       this.state.setCurrentDiary({ ...diary, steps: updatedDiarySteps });
     }
-
   }
 
   /** Updates an existing comment in the shared collections. */

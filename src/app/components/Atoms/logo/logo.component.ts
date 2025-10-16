@@ -1,11 +1,11 @@
 import { Component, Input } from '@angular/core';
 import { Logo, logoDefault, LogosType } from '@model/logo.model';
 import { CommonModule } from '@angular/common';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { SafeHtmlPipe } from 'shared/pipes/safe-html.pipe';
 
 @Component({
   selector: 'app-logo',
-  imports: [CommonModule],
+  imports: [CommonModule, SafeHtmlPipe],
   templateUrl: './logo.component.html',
   styleUrl: './logo.component.scss',
 })
@@ -39,11 +39,8 @@ export class LogoComponent {
     },
   };
 
-  constructor(private sanitizer: DomSanitizer) {}
-
-  // Dis au DOM tqt je sais ce que je fais c'est bon tu peux injecter ce SVG
-  get svg(): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(this.logos[this.logoName].svg ?? '');
+  get svg(): string {
+    return this.logos[this.logoName].svg ?? '';
   }
 
   get logoUrl(): string {

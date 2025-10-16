@@ -41,7 +41,10 @@
               }
             </div>
 
-            <div class="article-detail__rich-text" [innerHTML]="article()!.content"></div>
+            <div
+              class="article-detail__rich-text"
+              [innerHTML]="article()!.content | safeHtml"
+            ></div>
 
             @if (galleryImages().length) {
               <section class="article-detail__gallery" aria-label="Galerie de l'article">
