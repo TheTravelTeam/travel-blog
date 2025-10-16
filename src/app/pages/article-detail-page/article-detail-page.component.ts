@@ -1,13 +1,6 @@
-import {
-  Component,
-  DestroyRef,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute} from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EMPTY } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
@@ -18,11 +11,12 @@ import { ArticleService } from '@service/article.service';
 import { BreadcrumbItem } from '@model/breadcrumb.model';
 import { BreadcrumbComponent } from 'components/Atoms/breadcrumb/breadcrumb.component';
 import { IconComponent } from 'components/Atoms/Icon/icon.component';
+import { SafeHtmlPipe } from 'shared/pipes/safe-html.pipe';
 
 @Component({
   selector: 'app-article-detail-page',
   standalone: true,
-  imports: [CommonModule, BreadcrumbComponent, IconComponent],
+  imports: [CommonModule, BreadcrumbComponent, IconComponent, SafeHtmlPipe],
   templateUrl: './article-detail-page.component.html',
   styleUrl: './article-detail-page.component.scss',
 })
@@ -30,7 +24,6 @@ export class ArticleDetailPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly articleService = inject(ArticleService);
   private readonly destroyRef = inject(DestroyRef);
-
   readonly article = signal<Article | null>(null);
   readonly isLoading = signal(true);
   readonly error = signal<string | null>(null);
