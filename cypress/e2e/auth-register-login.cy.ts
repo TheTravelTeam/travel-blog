@@ -2,7 +2,7 @@ describe('Auth - register, login and logout', () => {
   const timestamp = Date.now();
   const email = `cypress_user_${timestamp}@example.com`;
   const password = 'Password123!';
-  const pseudo = `Cypress User ${timestamp}`;
+  const pseudo = `CypressUser${timestamp}`;
   const userProfile = {
     id: timestamp,
     email,
