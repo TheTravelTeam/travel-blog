@@ -2,10 +2,15 @@
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CreateStepFormComponent } from './create-step-form.component';
-import { Step } from '@model/step.model';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import {
+  createStepFormBaseValues,
+  createStepFormFrenchDateValues,
+  existingStepFixture,
+  invalidCoordinateValues,
+} from './create-step-form.mock';
 
 describe('CreateStepFormComponent', () => {
   let component: CreateStepFormComponent;
@@ -24,35 +29,31 @@ describe('CreateStepFormComponent', () => {
 
   function setValidBaseFormValues(options: { includeDates?: boolean } = {}): void {
     const { includeDates = true } = options;
-    component.stepForm.patchValue({
-      title: 'Nouvelle étape test',
-      city: 'Paris',
-      country: 'France',
-      continent: 'Europe',
-      latitude: '48.8566',
-      longitude: '2.3522',
-      description: 'Une description suffisamment longue',
-      mediaUrl: '',
-      startDate: includeDates ? '2024-07-14' : '',
-      endDate: includeDates ? '2024-07-20' : '',
-      themeId: null,
-      themeIds: [],
-    });
+    const baseValues = {
+      ...createStepFormBaseValues,
+      themeIds: [...createStepFormBaseValues.themeIds],
+      startDate: includeDates ? createStepFormBaseValues.startDate : '',
+      endDate: includeDates ? createStepFormBaseValues.endDate : '',
+    };
+    component.stepForm.patchValue(baseValues);
   }
 
-  it('should normalize date inputs to ISO dates on submit', () => {
+  it('TC-STEP-FRM-01 should normalise dates and emit numeric coordinates on submit', () => {
     setValidBaseFormValues();
-    component.stepForm.patchValue({
-      startDate: '2024-07-14',
-      endDate: '2024-07-20',
-    });
+    component.stepForm.patchValue(createStepFormFrenchDateValues);
 
     const emitSpy = spyOn(component.submitStep, 'emit');
 
     component.handleSubmit();
 
     expect(emitSpy).toHaveBeenCalledTimes(1);
-    expect(emitSpy.calls.mostRecent().args[0]).toEqual(
+    const payload = emitSpy.calls.mostRecent().args[0] as any;
+    expect(payload).toBeDefined();
+    if (!payload) {
+      fail('Expected emitted payload');
+      return;
+    }
+    expect(payload).toEqual(
       jasmine.objectContaining({
         startDate: '2024-07-14',
         endDate: '2024-07-20',
@@ -60,9 +61,11 @@ describe('CreateStepFormComponent', () => {
         longitude: 2.3522,
       })
     );
+    expect(typeof payload.latitude).toBe('number');
+    expect(typeof payload.longitude).toBe('number');
   });
 
-  it('should block submission when date inputs are missing', () => {
+  it('TC-STEP-FRM-02 should block submission when date inputs are missing', () => {
     setValidBaseFormValues({ includeDates: false });
 
     const emitSpy = spyOn(component.submitStep, 'emit');
@@ -72,55 +75,12 @@ describe('CreateStepFormComponent', () => {
     expect(emitSpy).not.toHaveBeenCalled();
     expect(component.stepForm.get('startDate')?.errors?.['required']).toBeTrue();
     expect(component.stepForm.get('endDate')?.errors?.['required']).toBeTrue();
+    expect(component.getControlError('startDate')).toBe('Sélectionnez une date de départ');
+    expect(component.getControlError('endDate')).toBe('Sélectionnez une date de fin');
   });
 
-  it('should normalise French-formatted dates before emission', () => {
-    setValidBaseFormValues();
-    component.stepForm.patchValue({ startDate: '14/07/2024', endDate: '20/07/2024' });
-
-    const emitSpy = spyOn(component.submitStep, 'emit');
-
-    component.handleSubmit();
-
-    expect(emitSpy).toHaveBeenCalledTimes(1);
-    expect(emitSpy.calls.mostRecent().args[0]).toEqual(
-      jasmine.objectContaining({
-        startDate: '2024-07-14',
-        endDate: '2024-07-20',
-      })
-    );
-  });
-
-  it('should keep location identity fields disabled to avoid manual edits', () => {
-    expect(component.stepForm.get('city')?.disabled).toBeTrue();
-    expect(component.stepForm.get('country')?.disabled).toBeTrue();
-    expect(component.stepForm.get('continent')?.disabled).toBeTrue();
-  });
-
-  it('should populate the form from a Step instance', () => {
-    const step: Step = {
-      id: 12,
-      title: 'Titre existant',
-      description: 'Description existante',
-      latitude: 12.34,
-      longitude: 56.78,
-      media: [{ id: 1, fileUrl: 'https://example.com/pic.jpg', mediaType: 'PHOTO' } as any],
-      country: 'France',
-      city: 'Paris',
-      continent: 'Europe',
-      startDate: '2024-07-14T10:00',
-      endDate: '2024-07-20T16:30',
-      status: 'IN_PROGRESS',
-      themeId: 3,
-      travelDiaryId: 5,
-      isEditing: false,
-      comments: [],
-      likes: 0,
-      themeIds: [3],
-      themes: [{ id: 3, name: 'Nature', updatedAt: '2023-01-01' } as any],
-    };
-
-    component.populateFromStep(step);
+  it('TC-STEP-FRM-03 should populate the form from a Step instance and sync the editor', () => {
+    component.populateFromStep(existingStepFixture);
 
     expect(component.stepForm.getRawValue()).toEqual(
       jasmine.objectContaining({
@@ -139,5 +99,27 @@ describe('CreateStepFormComponent', () => {
       })
     );
     expect(component.stepEditorContent).toBe('Description existante');
+    expect(component.stepForm.get('city')?.disabled).toBeTrue();
+    expect(component.stepForm.get('country')?.disabled).toBeTrue();
+    expect(component.stepForm.get('continent')?.disabled).toBeTrue();
+  });
+
+  it('TC-STEP-FRM-04 should keep location identity fields disabled to avoid manual edits', () => {
+    expect(component.stepForm.get('city')?.disabled).toBeTrue();
+    expect(component.stepForm.get('country')?.disabled).toBeTrue();
+    expect(component.stepForm.get('continent')?.disabled).toBeTrue();
+  });
+
+  it('should prevent submission when coordinates cannot be parsed', () => {
+    setValidBaseFormValues();
+    component.stepForm.patchValue(invalidCoordinateValues);
+
+    const emitSpy = spyOn(component.submitStep, 'emit');
+
+    component.handleSubmit();
+
+    expect(emitSpy).not.toHaveBeenCalled();
+    expect(component.stepForm.get('latitude')?.errors?.['invalid']).toBeTrue();
+    expect(component.stepForm.get('longitude')?.errors?.['invalid']).toBeTrue();
   });
 });
