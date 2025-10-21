@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
+import { Component, EventEmitter, HostBinding, input, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconComponent } from '../Icon/icon.component';
 import { Chip, chipDefault } from '@model/chip.model';
@@ -30,7 +30,8 @@ export class ChipComponent {
   @Input() shadow: Chip['shadow'];
   @Input() margin: Chip['margin'];
   @Input() padding: Chip['padding'];
-  @Input() customClass?: Chip['customClass'];
+  customClass = input<Chip['customClass']>();
+
   @Output() closeChip = new EventEmitter<void>();
   @Output() chipClick = new EventEmitter<void>();
 
@@ -55,7 +56,7 @@ export class ChipComponent {
       this.isHoverable && !this.isDisabled ? 'hoverable' : '',
       this.isDisabled ? 'disabled' : '',
       this.isClickable && !this.isDisabled ? 'clickable' : '',
-      this.customClass,
+      this.customClass(),
     ]
       .filter(Boolean)
       .join(' ');

@@ -4,7 +4,7 @@
   position: fixed;
   inset: 0;
   height: 100dvh;
-  z-index: 20;
+  z-index: 200;
   display: flex;
   justify-content: center;
   align-items: stretch;
@@ -232,7 +232,10 @@
     border: 1px solid rgba(12, 20, 33, 0.1);
     background: #fff;
     cursor: pointer;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      transform 0.2s ease;
 
     input {
       position: absolute;
@@ -266,7 +269,10 @@
     border-radius: 14px;
     background: rgba(7, 91, 93, 0.08);
     color: $primaryColor;
-    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    transition:
+      background 0.2s ease,
+      color 0.2s ease,
+      box-shadow 0.2s ease;
   }
 
   &__option-content {
@@ -302,7 +308,9 @@
       font-size: 0.95rem;
       font-weight: 500;
       color: $textColor;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
 
       &:focus {
         outline: none;

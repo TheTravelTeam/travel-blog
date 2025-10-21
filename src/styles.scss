@@ -12,12 +12,6 @@
   }
 }
 
-@media (max-width: 768px) {
-  :root {
-    --top-bar-height: 56px;
-  }
-}
-/* You can add global styles to this file, and also import other style files */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -33,20 +27,23 @@ h4 {
   font-weight: 600;
 }
 
-html,
-body,
 app-root,
 app-home-page {
-  height: 100%;
+  min-height: 100vh;
 }
-
+html,
 body {
-  min-height: 100dvh;
-  height: 100vh;
-  height: 100dvh;
   font-family: $font-text;
   color: $textColor;
-  // overflow: hidden;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  min-height: 100vh;
+}
+
+html body.cz-move-body-down {
+  transform: none !important;
 }
 
 a {

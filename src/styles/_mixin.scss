@@ -7,7 +7,6 @@
 ) {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: clamp($min-width, 80vw, $max-width);
   gap: $gap;
   padding: $padding;
   margin: 0;
