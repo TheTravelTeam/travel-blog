@@ -4,6 +4,6 @@
   </a>
 } @else {
   <a [href]="logoUrl" [ngClass]="['logo--' + color]">
-    <div [innerHTML]="svg | safeHtml" [ngClass]="['logo', 'logo--' + size]"></div>
+    <div #svgContainer [ngClass]="['logo', 'logo--' + size]">{{ svg }}</div>
   </a>
 }

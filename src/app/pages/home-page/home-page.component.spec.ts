@@ -35,6 +35,7 @@ describe('HomePageComponent', () => {
             isMobile: () => false,
             isTablet: () => false,
             isDesktop: () => true,
+            isDesktopOrTablet: () => false,
             isMobileOrTablet: () => false,
             isLargeScreen: () => true,
           },

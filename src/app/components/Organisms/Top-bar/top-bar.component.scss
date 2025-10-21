@@ -10,18 +10,9 @@
   height: 4.25rem;
   font-size: 1rem;
 
-  @media screen and (min-width: 768px) and (max-width: 1024px) {
-    padding: 0.5rem 2rem;
-    height: 4rem;
-  }
-
   @media screen and (max-width: 768px) {
     padding: 0.45rem 1.25rem;
-    height: 3.5rem;
-  }
-
-  @media screen and (max-width: 430px) {
-    padding: 0 1.5rem;
+    height: 4.5rem;
   }
 
   &--desktop-home {
@@ -36,12 +27,8 @@
     height: 3rem;
     cursor: pointer;
 
-    @media screen and (min-width: 768px) and (max-width: 1024px) {
-      height: 2.5rem;
-    }
-
     @media screen and (max-width: 768px) {
-      height: 2rem;
+      height: 2.5rem;
     }
   }
 
@@ -275,5 +262,4 @@
       transform: scale(0.96);
     }
   }
-
 }

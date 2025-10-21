@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
 export class FooterComponent {
   private breakpointService = inject(BreakpointService);
 
-  isTabletOrMobile = this.breakpointService.isMobileOrTablet;
+  public isMobile = this.breakpointService.isMobile();
 
-  colorSignal = computed(() => (this.breakpointService.isMobileOrTablet() ? 'white' : 'primary'));
+  colorSignal = computed(() => (this.breakpointService.isMobile() ? 'white' : 'primary'));
 }

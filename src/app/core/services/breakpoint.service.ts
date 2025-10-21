@@ -16,17 +16,18 @@ export class BreakpointService {
 
   // Signaux computed pour des combinaisons
   isMobileOrTablet = computed(() => this.isMobile() || this.isTablet());
+  isDesktopOrTablet = computed(() => this.isDesktop() || this.isTablet());
   isLargeScreen = computed(() => !this.isMobile() && !this.isTablet());
 
   constructor(private breakpointObserver: BreakpointObserver) {
     // Mobile
     this.breakpointObserver
-      .observe(['(max-width: 430px)'])
+      .observe(['(max-width: 431px)'])
       .subscribe((result) => this._isMobile.set(result.matches));
 
     // Tablet
     this.breakpointObserver
-      .observe(['(min-width: 430px) and (max-width: 1023px)'])
+      .observe(['(min-width: 432px) and (max-width: 1023px)'])
       .subscribe((result) => this._isTablet.set(result.matches));
 
     // Desktop (custom breakpoint)
