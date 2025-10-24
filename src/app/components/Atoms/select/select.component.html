@@ -9,24 +9,6 @@
   (keydown)="navigateWithKey($event)"
 >
   <label>{{ label }}</label>
-  @if (withMutipleSelect) {
-    <div class="select__top-section">
-      @if (itemsSelected().length > 0) {
-        @for (item of itemsSelected(); track item.id) {
-          <span class="chip">
-            {{ item.label }}
-            <button
-              type="button"
-              [attr.aria-label]="'Retirer ' + item.label"
-              (click)="removeChip(item.id, $event)"
-            >
-              <app-icon name="close"></app-icon>
-            </button>
-          </span>
-        }
-      }
-    </div>
-  }
 
   @if (errorMessage()) {
     <div class="error-message">
@@ -71,4 +53,23 @@
       </ul>
     </div>
   </div>
+
+  @if (withMutipleSelect) {
+    <div class="select__bottom-section">
+      @if (itemsSelected().length > 0) {
+        @for (item of itemsSelected(); track item.id) {
+          <span class="chip">
+            {{ item.label }}
+            <button
+              type="button"
+              [attr.aria-label]="'Retirer ' + item.label"
+              (click)="removeChip(item.id, $event)"
+            >
+              <app-icon name="close"></app-icon>
+            </button>
+          </span>
+        }
+      }
+    </div>
+  }
 </div>

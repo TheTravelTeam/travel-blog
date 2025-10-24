@@ -1,0 +1,29 @@
+<form
+  class="search-bar"
+  role="search"
+  [ngClass]="{ 'search-bar--compact': size === 'compact' }"
+  (submit)="onSubmit($event)"
+>
+  <span class="search-bar__icon material-symbols-outlined">search</span>
+  <input
+    type="search"
+    class="search-bar__input"
+    [placeholder]="placeholder"
+    [autocomplete]="autocomplete"
+    [formControl]="control"
+    (focus)="onFocus($event)"
+    (blur)="onBlur($event)"
+    [attr.data-test]="dataTestId ?? null"
+  />
+  @if (hasValue) {
+    <button
+      type="button"
+      class="search-bar__clear"
+      aria-label="Effacer la recherche"
+      (mousedown)="onClearMouseDown($event)"
+      (click)="onClearClick()"
+    >
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  }
+</form>

@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { finalize, takeUntil } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { AvatarComponent } from 'components/Atoms/avatar/avatar.component';
 import { IconComponent } from 'components/Atoms/Icon/icon.component';
@@ -10,20 +10,24 @@ import { DividerComponent } from 'components/Atoms/Divider/divider.component';
 import { TextInputComponent } from 'components/Atoms/text-input/text-input.component';
 import { EditorComponent } from '../../shared/editor/editor.component';
 import { TravelDiaryCardComponent } from 'components/Molecules/Card-ready-to-use/travel-diary-card/travel-diary-card.component';
-import { SelectComponent } from 'components/Atoms/select/select.component';
+import {
+  MediaGridUploaderComponent,
+  MediaItem,
+} from 'components/Molecules/media-grid-uploader/media-grid-uploader.component';
+import { AdminUsersSectionComponent } from './components/admin-users-section/admin-users-section.component';
+import { PaginationComponent } from 'components/Molecules/pagination/pagination.component';
 import { Router } from '@angular/router';
 import { BreakpointService } from '@service/breakpoint.service';
 import { UserService } from '@service/user.service';
 import { AuthService } from '@service/auth.service';
 import { ArticleService } from '@service/article.service';
-import { ThemeService } from '@service/theme.service';
 import { StepService } from '@service/step.service';
 import { TravelMapStateService } from '@service/travel-map-state.service';
+import { MediaService } from '@service/media.service';
 import { TravelDiary } from '@model/travel-diary.model';
 // import { UserProfile } from '@model/user-profile.model';
 import { Article } from '@model/article.model';
-import { Theme } from '@model/theme.model';
-import { ItemProps } from '@model/select.model';
+import { CreateMediaDto } from '@dto/create-media.dto';
 import { UpsertArticleDto } from '@dto/article.dto';
 import { UserProfileDto } from '@dto/user-profile.dto';
 import {
@@ -31,9 +35,6 @@ import {
   ArticleItem,
   INITIAL_ARTICLE_DRAFT,
   INITIAL_PROFILE_FORM,
-  ManagedDiarySummary,
-  ManagedUser,
-  ManagedUserAction,
   NormalizedDiary,
   ProfileFormState,
   SectionId,
@@ -57,7 +58,9 @@ import {
     TextInputComponent,
     EditorComponent,
     TravelDiaryCardComponent,
-    SelectComponent,
+    MediaGridUploaderComponent,
+    AdminUsersSectionComponent,
+    PaginationComponent,
   ],
   templateUrl: './me-page.component.html',
   styleUrl: './me-page.component.scss',
@@ -67,10 +70,10 @@ export class MePageComponent implements OnInit, OnDestroy {
   private readonly breakpointService = inject(BreakpointService);
   private readonly authService = inject(AuthService);
   private readonly articleService = inject(ArticleService);
-  private readonly themeService = inject(ThemeService);
   private readonly stepService = inject(StepService);
   private readonly travelMapState = inject(TravelMapStateService);
   private readonly router = inject(Router);
+  private readonly mediaService = inject(MediaService);
 
   private readonly destroy$ = new Subject<void>();
 
@@ -85,11 +88,24 @@ export class MePageComponent implements OnInit, OnDestroy {
   readonly diaries = signal<NormalizedDiary[]>([]);
   readonly diariesError = signal<string | null>(null);
 
+  readonly diariesPageSize = 6;
+  readonly articlesPageSize = 5;
+  readonly diariesCurrentPage = signal(1);
+  readonly articlesCurrentPage = signal(1);
+  readonly paginatedDiaries = computed(() => {
+    const items = this.diaries();
+    const perPage = this.diariesPageSize;
+    const startIndex = (this.diariesCurrentPage() - 1) * perPage;
+    return items.slice(startIndex, startIndex + perPage);
+  });
+
   readonly openSection = signal<SectionId | null>('info');
-  readonly searchTerm = signal('');
-  readonly selectedManagedUserId = signal<number | null>(null);
   readonly articleDraft = signal<ArticleDraft>({ ...INITIAL_ARTICLE_DRAFT });
-  readonly articleMediaSlots = signal(3);
+  readonly articleCoverItems = signal<MediaItem[]>([]);
+  readonly articleGalleryItems = signal<MediaItem[]>([]);
+  readonly isArticleCoverUploading = signal(false);
+  readonly isArticleGalleryUploading = signal(false);
+  readonly articleMediaRequests = signal(0);
   readonly profileForm = signal<ProfileFormState>({ ...INITIAL_PROFILE_FORM });
   readonly articleSearchTerm = signal('');
   readonly articleEditorView = signal<'list' | 'form'>('list');
@@ -103,51 +119,29 @@ export class MePageComponent implements OnInit, OnDestroy {
   readonly profileDeleteError = signal<string | null>(null);
 
   private readonly defaultDiaryCover = '/Images/nosy-iranja.jpg';
-  private managedUsersLoaded = false;
-
-  readonly managedUsers = signal<ManagedUser[]>([]);
-  readonly managedUsersLoading = signal(false);
-  readonly managedUsersError = signal<string | null>(null);
-  readonly selectedManagedUser = signal<ManagedUser | null>(null);
-  readonly managedUserDetailsLoading = signal(false);
-  readonly managedUserDetailsError = signal<string | null>(null);
-  readonly managedUserAction = signal<ManagedUserAction | null>(null);
 
   readonly articles = signal<ArticleItem[]>([]);
   readonly articlesLoading = signal(false);
   readonly articlesError = signal<string | null>(null);
-  readonly themes = signal<Theme[]>([]);
-  readonly themeOptions = computed(() =>
-    this.themes().map((theme) => ({ id: theme.id, label: theme.name }))
-  );
 
   readonly roleBadges = computed(() => this.profile()?.roles ?? []);
   readonly isAdmin = computed(() => this.roleBadges().includes('ADMIN'));
+  readonly isCurrentUserDisabled = computed(() => this.userService.isCurrentUserDisabled());
   readonly userRoleLabel = computed(() => (this.isAdmin() ? 'Administrateur' : 'Voyageur'));
 
   // Construit le menu latéral : ajoute l'onglet admin si l'utilisateur possède le rôle adéquat.
   readonly sections = computed<SectionItem[]>(() => {
-    const base: SectionItem[] = [
+    const sections: SectionItem[] = [
       { id: 'info', label: 'Mes informations' },
       { id: 'diaries', label: 'Mes carnets' },
-      { id: 'articles', label: 'Gestion des articles' },
     ];
 
     if (this.isAdmin()) {
-      base.push({ id: 'users', label: 'Gestion des utilisateurs', adminOnly: true });
+      sections.push({ id: 'articles', label: 'Gestion des articles' });
+      sections.push({ id: 'users', label: 'Gestion des utilisateurs', adminOnly: true });
     }
 
-    return base;
-  });
-
-  // Simplissime filtrage côté client alimenté par l'input de recherche.
-  readonly filteredManagedUsers = computed(() => {
-    const term = this.searchTerm().trim().toLowerCase();
-    if (!term) {
-      return this.managedUsers();
-    }
-
-    return this.managedUsers().filter((user) => user.name.toLowerCase().includes(term));
+    return sections;
   });
 
   readonly filteredArticles = computed(() => {
@@ -164,6 +158,13 @@ export class MePageComponent implements OnInit, OnDestroy {
     });
   });
 
+  readonly paginatedArticles = computed(() => {
+    const items = this.filteredArticles();
+    const perPage = this.articlesPageSize;
+    const startIndex = (this.articlesCurrentPage() - 1) * perPage;
+    return items.slice(startIndex, startIndex + perPage);
+  });
+
   readonly articleSubmitLabel = computed(() => {
     if (this.articleFormSubmitting()) {
       return 'Enregistrement…';
@@ -171,16 +172,16 @@ export class MePageComponent implements OnInit, OnDestroy {
     return this.articleFormMode() === 'edit' ? "Enregistrer l'article" : "Créer l'article";
   });
 
-  // Génère les index nécessaires pour itérer sur les boutons d'upload.
-  readonly mediaSlotIndexes = computed(() =>
-    Array.from({ length: this.articleMediaSlots() }, (_, idx) => idx)
+  readonly isArticleMediaBusy = computed(
+    () =>
+      this.isArticleCoverUploading() ||
+      this.isArticleGalleryUploading() ||
+      this.articleMediaRequests() > 0
   );
 
   /** Initialise la page et attache les effets réactifs liés aux signaux. */
   ngOnInit(): void {
     this.loadProfile();
-    this.loadThemes();
-    this.loadArticles();
   }
 
   /** Libère les abonnements RxJS pour éviter les fuites mémoire. */
@@ -196,6 +197,10 @@ export class MePageComponent implements OnInit, OnDestroy {
 
   /** Ouvre la section souhaitée dans la navigation latérale. */
   setActiveSection(id: SectionId): void {
+    if (!this.sections().some((section) => section.id === id)) {
+      return;
+    }
+
     this.openSection.set(id);
   }
 
@@ -204,6 +209,10 @@ export class MePageComponent implements OnInit, OnDestroy {
    * La création se fait toujours sur `/travels/users/{userId}`.
    */
   openMyTravelsForCreation(): void {
+    if (this.forbidDiaryAction('Votre compte est désactivé. Vous ne pouvez plus créer de carnet.')) {
+      return;
+    }
+
     const current = this.profile();
     const userId = current?.id ?? this.userService.currentUserId();
     if (typeof userId !== 'number' || Number.isNaN(userId)) {
@@ -219,6 +228,12 @@ export class MePageComponent implements OnInit, OnDestroy {
    * Ouvre la page voyages utilisateur et demande l'édition du carnet donné.
    */
   openDiaryForEdit(diaryId: number): void {
+    if (
+      this.forbidDiaryAction('Votre compte est désactivé. Vous ne pouvez plus modifier de carnet.')
+    ) {
+      return;
+    }
+
     const current = this.profile();
     const userId = current?.id ?? this.userService.currentUserId();
     if (typeof userId !== 'number' || Number.isNaN(userId)) {
@@ -234,143 +249,31 @@ export class MePageComponent implements OnInit, OnDestroy {
     return this.openSection() === id;
   }
 
-  /** Met à jour le terme de recherche pour filtrer les utilisateurs gérés. */
-  onSearch(term: string): void {
-    this.searchTerm.set(term);
+  onDiariesPageChange(page: number): void {
+    this.diariesCurrentPage.set(page);
   }
 
-  /** Ouvre un utilisateur dans le panneau latéral détaillé. */
-  onSelectManagedUser(userId: number): void {
-    this.selectedManagedUserId.set(userId);
-    this.managedUserDetailsError.set(null);
-    const cached = this.managedUsers().find((user) => user.id === userId) ?? null;
-    this.selectedManagedUser.set(cached);
-    this.managedUserDetailsLoading.set(true);
-
-    this.userService
-      .getUserProfile(userId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (profile) => {
-          const managed = this.mapProfileToManagedUser(profile);
-          this.selectedManagedUser.set(managed);
-          this.managedUsers.update((users) => {
-            const index = users.findIndex((user) => user.id === managed.id);
-            if (index === -1) {
-              return [...users, managed];
-            }
-
-            const clone = [...users];
-            clone[index] = managed;
-            return clone;
-          });
-          this.managedUserDetailsLoading.set(false);
-        },
-        error: (err) => {
-          this.managedUserDetailsLoading.set(false);
-          this.managedUserDetailsError.set(
-            err?.message ?? "Impossible de charger les carnets de l'utilisateur."
-          );
-          console.error('managed user details fetch failed', err);
-        },
-      });
+  onArticlesPageChange(page: number): void {
+    this.articlesCurrentPage.set(page);
   }
 
-  /** Ferme le panneau détaillé des utilisateurs administrés. */
-  clearSelectedManagedUser(): void {
-    this.selectedManagedUserId.set(null);
-    this.selectedManagedUser.set(null);
-    this.managedUserDetailsLoading.set(false);
-    this.managedUserDetailsError.set(null);
-  }
-
-  reloadManagedUsers(): void {
-    this.managedUsersLoaded = false;
-    this.loadManagedUsers(true);
-  }
-
-  isManagedUserActionPending(userId: number): boolean {
-    const action = this.managedUserAction();
-    return Boolean(action && action.userId === userId);
-  }
-
-  /** Met à jour le rôle administrateur d'un utilisateur via l'API. */
-  toggleAdmin(userId: number): void {
-    const currentAction = this.managedUserAction();
-    if (currentAction && currentAction.userId === userId) {
-      return;
-    }
-
-    const target = this.managedUsers().find((user) => user.id === userId);
-    if (!target) {
-      return;
-    }
-
-    const admin = !target.isAdmin;
-    this.managedUsersError.set(null);
-    this.setManagedUserAction({ userId, type: 'toggle-role' });
-
-    this.userService
-      .setAdminRole(userId, admin)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (profile) => {
-          const managed = this.mapProfileToManagedUser(profile);
-          this.managedUsers.update((list) =>
-            list.map((user) => (user.id === userId ? managed : user))
-          );
-          if (this.selectedManagedUserId() === userId) {
-            this.selectedManagedUser.set(managed);
-          }
-          this.setManagedUserAction(null);
-        },
-        error: (err) => {
-          this.managedUsersError.set(
-            err?.message ?? 'Impossible de mettre à jour le rôle administrateur.'
-          );
-          this.setManagedUserAction(null);
-          console.error('managed user admin toggle failed', err);
-        },
-      });
-  }
-
-  /** Supprime un utilisateur via l'API puis synchronise la liste locale. */
-  removeManagedUser(userId: number): void {
-    const currentAction = this.managedUserAction();
-    if (currentAction && currentAction.userId === userId) {
-      return;
-    }
-
-    this.managedUsersError.set(null);
-    this.setManagedUserAction({ userId, type: 'delete' });
-
-    this.userService
-      .deleteUser(userId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.managedUsers.update((list) => list.filter((user) => user.id !== userId));
-          if (this.selectedManagedUserId() === userId) {
-            this.clearSelectedManagedUser();
-          }
-          this.setManagedUserAction(null);
-        },
-        error: (err) => {
-          const message = err?.message ?? 'Impossible de supprimer cet utilisateur.';
-          this.managedUsersError.set(message);
-          this.setManagedUserAction(null);
-          console.error('managed user deletion failed', err);
-        },
-      });
-  }
 
   /** Gestion du terme de recherche côté articles. */
   onArticleSearch(term: string): void {
+    if (!this.isAdmin()) {
+      return;
+    }
+
     this.articleSearchTerm.set(term);
+    this.articlesCurrentPage.set(1);
   }
 
   /** Affiche la vue liste des articles. */
   showArticleList(): void {
+    if (!this.isAdmin()) {
+      return;
+    }
+
     this.articleEditorView.set('list');
     this.articleFormMode.set('create');
     this.editingArticleId.set(null);
@@ -381,6 +284,10 @@ export class MePageComponent implements OnInit, OnDestroy {
 
   /** Prépare la création d'un nouvel article. */
   startArticleCreation(): void {
+    if (!this.isAdmin()) {
+      return;
+    }
+
     this.articleEditorView.set('form');
     this.articleFormMode.set('create');
     this.editingArticleId.set(null);
@@ -390,6 +297,10 @@ export class MePageComponent implements OnInit, OnDestroy {
 
   /** Prépare l'édition d'un article existant. */
   startArticleEdition(articleId: number): void {
+    if (!this.isAdmin()) {
+      return;
+    }
+
     const article = this.articles().find((item) => item.id === articleId);
     if (!article) {
       return;
@@ -398,20 +309,40 @@ export class MePageComponent implements OnInit, OnDestroy {
     this.articleEditorView.set('form');
     this.articleFormMode.set('edit');
     this.editingArticleId.set(articleId);
-    const categoryLabel = this.resolveThemeLabel(article.themeId, article.category);
     this.articleDraft.set({
       title: article.title,
       author: article.author,
-      category: categoryLabel,
+      category: article.category?.trim() ?? '',
       content: article.content,
-      themeId: article.themeId ?? null,
+      coverUrl: article.coverUrl ?? null,
     });
-    this.articleMediaSlots.set(3);
     this.articleFormError.set(null);
+
+    const coverItems: MediaItem[] = article.coverUrl
+      ? [{ publicId: '', secureUrl: article.coverUrl }]
+      : [];
+    this.articleCoverItems.set(coverItems);
+    const galleryItems = Array.isArray(article.medias)
+      ? article.medias
+          .map((media) => ({
+            id: media.id,
+            publicId: media.publicId ?? '',
+            secureUrl: media.fileUrl,
+          }))
+          .filter((media) => !!media.secureUrl)
+      : [];
+    this.articleGalleryItems.set(galleryItems);
+    this.isArticleCoverUploading.set(false);
+    this.isArticleGalleryUploading.set(false);
+    this.articleMediaRequests.set(0);
   }
 
   /** Supprime un article via l'API et synchronise la liste locale. */
   deleteArticle(articleId: number): void {
+    if (!this.isAdmin()) {
+      return;
+    }
+
     this.articlesError.set(null);
 
     this.articleService
@@ -420,6 +351,7 @@ export class MePageComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.articles.update((items) => items.filter((article) => article.id !== articleId));
+          this.ensureArticlesPageWithinBounds();
           if (this.editingArticleId() === articleId) {
             this.showArticleList();
           }
@@ -440,33 +372,139 @@ export class MePageComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Synchronise les médias de couverture sélectionnés via le composant Cloudinary.
+   * Ne conserve que le premier élément pour refléter l'unicité de la cover côté API.
+   */
+  onArticleCoverItemsChange(items: MediaItem[]): void {
+    const [first] = items;
+    const normalized = first ? [{ ...first }] : [];
+    this.articleCoverItems.set(normalized);
+    this.updateDraft('coverUrl', first?.secureUrl ?? null);
+  }
+
+  /**
+   * Aligne la cover lorsque l'utilisateur modifie l'élément principal.
+   */
+  onArticleCoverPrimaryChange(item: MediaItem | null): void {
+    this.updateDraft('coverUrl', item?.secureUrl ?? null);
+  }
+
+  /** Informe le formulaire d'un upload de couverture en cours. */
+  onArticleCoverUploadChange(isUploading: boolean): void {
+    this.isArticleCoverUploading.set(isUploading);
+  }
+
+  /**
+   * Synchronise la collection de médias de l'article et crée les entrées API manquantes.
+   */
+  onArticleGalleryItemsChange(items: MediaItem[]): void {
+    const previousItems = this.articleGalleryItems();
+    const previousByUrl = new Map(previousItems.map((item) => [item.secureUrl, item]));
+    const nextNormalized = items.map((item) => {
+      const existing = previousByUrl.get(item.secureUrl);
+      return existing && existing.id != null ? { ...item, id: existing.id } : item;
+    });
+
+    this.articleGalleryItems.set(nextNormalized);
+
+    const nextByUrl = new Set(nextNormalized.map((item) => item.secureUrl));
+
+    // Crée les entrées manquantes côté API.
+    nextNormalized
+      .filter((item) => !previousByUrl.has(item.secureUrl))
+      .forEach((item) => this.persistArticleMedia(item));
+
+    // Conserve l'identifiant si un élément revient après un reorder.
+    previousItems
+      .filter((item) => nextByUrl.has(item.secureUrl) && item.id != null)
+      .forEach((item) => this.updateArticleMediaItemId(item.secureUrl, item.id!));
+  }
+
+  /** Capture l'élément mis en avant dans la galerie (réutilisable ultérieurement). */
+  onArticleGalleryPrimaryChange(item: MediaItem | null): void {
+    if (!item) {
+      return;
+    }
+    const current = this.articleGalleryItems();
+    const existing = current.find((media) => media.secureUrl === item.secureUrl);
+    const promoted = existing ?? item;
+    const reordered = [promoted, ...current.filter((media) => media.secureUrl !== item.secureUrl)];
+    this.articleGalleryItems.set(reordered);
+  }
+
+  /** Tient compte de l'état de téléversement de la galerie pour désactiver le submit. */
+  onArticleGalleryUploadChange(isUploading: boolean): void {
+    this.isArticleGalleryUploading.set(isUploading);
+  }
+
+  private persistArticleMedia(item: MediaItem): void {
+    const fileUrl = item.secureUrl?.trim();
+    if (!fileUrl) {
+      return;
+    }
+
+    const payload: CreateMediaDto = {
+      fileUrl,
+      publicId: item.publicId || undefined,
+      mediaType: 'PHOTO',
+      articleId: this.articleFormMode() === 'edit' ? this.editingArticleId() : null,
+      isVisible: true,
+    };
+
+    this.incrementArticleMediaRequests();
+    this.mediaService
+      .createMedia(payload)
+      .pipe(takeUntil(this.destroy$), finalize(() => this.decrementArticleMediaRequests()))
+      .subscribe({
+        next: (media) => {
+          if (media?.id == null) {
+            return;
+          }
+          this.updateArticleMediaItemId(fileUrl, media.id);
+        },
+        error: (err) => {
+          console.error('article media creation failed', err);
+          this.articleFormError.set("Impossible de préparer certains médias. Veuillez réessayer.");
+          this.articleGalleryItems.update((items) =>
+            items.filter((mediaItem) => mediaItem.secureUrl !== fileUrl)
+          );
+        },
+      });
+  }
+
+  private updateArticleMediaItemId(secureUrl: string, id: number): void {
+    this.articleGalleryItems.update((items) =>
+      items.map((media) => (media.secureUrl === secureUrl ? { ...media, id } : media))
+    );
+  }
+
+  private incrementArticleMediaRequests(): void {
+    this.articleMediaRequests.update((count) => count + 1);
+  }
+
+  private decrementArticleMediaRequests(): void {
+    this.articleMediaRequests.update((count) => Math.max(0, count - 1));
+  }
+
+  private getArticleMediaIds(): number[] {
+    return this.articleGalleryItems()
+      .map((item) => item.id)
+      .filter((id): id is number => typeof id === 'number' && Number.isFinite(id));
+  }
+
+  /**
    * Met à jour un champ du formulaire profil (nom, prénom, pseudo, email).
    */
   onProfileFieldChange(field: keyof ProfileFormState, value: string): void {
     this.profileForm.update((state) => ({ ...state, [field]: value }));
   }
 
-  /** Ajoute un slot média supplémentaire dans la limite autorisée. */
-  addMediaSlot(): void {
-    this.articleMediaSlots.update((count) => Math.min(count + 1, 5));
-  }
-
-  onThemeSelect(selection: ItemProps | ItemProps[]): void {
-    const item = Array.isArray(selection) ? (selection.at(0) ?? null) : selection;
-
-    if (!item) {
-      this.updateDraft('category', '');
-      this.updateDraft('themeId', null);
+  /** Envoie le brouillon d'article vers l'API puis réinitialise le formulaire. */
+  submitArticle(): void {
+    if (!this.isAdmin()) {
       return;
     }
 
-    const themeId = Number(item.id);
-    this.updateDraft('category', item.label);
-    this.updateDraft('themeId', Number.isNaN(themeId) ? null : themeId);
-  }
-
-  /** Envoie le brouillon d'article vers l'API puis réinitialise le formulaire. */
-  submitArticle(): void {
     if (this.articleFormSubmitting()) {
       return;
     }
@@ -520,6 +558,7 @@ export class MePageComponent implements OnInit, OnDestroy {
           );
         } else {
           this.articles.update((items) => [item, ...items]);
+          this.articlesCurrentPage.set(1);
         }
 
         this.articleFormSubmitting.set(false);
@@ -607,11 +646,15 @@ export class MePageComponent implements OnInit, OnDestroy {
       });
   }
 
-  /** Réinitialise le formulaire d'article et ses slots média. */
+  /** Réinitialise le formulaire d'article et nettoie les médias en cours d'upload. */
   resetArticleForm(): void {
     const pseudo = this.profile()?.pseudo ?? '';
     this.articleDraft.set({ ...INITIAL_ARTICLE_DRAFT, author: pseudo });
-    this.articleMediaSlots.set(3);
+    this.articleCoverItems.set([]);
+    this.articleGalleryItems.set([]);
+    this.isArticleCoverUploading.set(false);
+    this.isArticleGalleryUploading.set(false);
+    this.articleMediaRequests.set(0);
   }
 
   /** Nettoie les informations d'authentification avant redirection éventuelle. */
@@ -622,6 +665,11 @@ export class MePageComponent implements OnInit, OnDestroy {
   }
 
   private loadArticles(): void {
+    if (!this.isAdmin()) {
+      this.articlesLoading.set(false);
+      return;
+    }
+
     this.articlesLoading.set(true);
     this.articlesError.set(null);
 
@@ -633,7 +681,8 @@ export class MePageComponent implements OnInit, OnDestroy {
           const items = articles.map((article) => this.mapArticleToItem(article));
           this.articles.set(items);
           this.articlesLoading.set(false);
-          this.refreshArticleCategories();
+          this.articlesCurrentPage.set(1);
+          this.ensureArticlesPageWithinBounds();
         },
         error: (err) => {
           this.articlesError.set(
@@ -645,118 +694,21 @@ export class MePageComponent implements OnInit, OnDestroy {
       });
   }
 
-  private loadThemes(): void {
-    this.themeService
-      .getThemes()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (themes) => {
-          this.themes.set(themes);
-          this.refreshArticleCategories();
-        },
-        error: (err) => {
-          console.error('themes fetch failed', err);
-          this.themes.set([]);
-        },
-      });
-  }
-
-  private loadManagedUsers(force = false): void {
-    if (!this.isAdmin()) {
-      return;
+  private extractBooleanField(
+    diary: TravelDiary,
+    primary: 'private' | 'published',
+    fallback: 'isPrivate' | 'isPublished'
+  ): boolean {
+    const direct = diary[primary];
+    if (typeof direct === 'boolean') {
+      return direct;
     }
 
-    if (!force && (this.managedUsersLoaded || this.managedUsersLoading())) {
-      return;
-    }
-
-    this.managedUsersLoading.set(true);
-    this.managedUsersError.set(null);
-
-    this.userService
-      .getAllUsers()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (profiles) => {
-          const managed = profiles.map((profile) => this.mapProfileToManagedUser(profile));
-          this.managedUsers.set(managed);
-          this.managedUsersLoading.set(false);
-          this.managedUsersLoaded = true;
-          const selectedId = this.selectedManagedUserId();
-          if (selectedId != null) {
-            const updated = managed.find((user) => user.id === selectedId) ?? null;
-            this.selectedManagedUser.set(updated);
-          }
-        },
-        error: (err) => {
-          this.managedUsersLoading.set(false);
-          this.managedUsersError.set(
-            err?.message ?? 'Impossible de charger la liste des utilisateurs.'
-          );
-          console.error('managed users fetch failed', err);
-        },
-      });
+    const fallbackSource = diary as unknown as Record<string, unknown>;
+    const fromApi = fallbackSource[fallback];
+    return typeof fromApi === 'boolean' ? (fromApi as boolean) : false;
   }
 
-  private mapProfileToManagedUser(profile: UserProfileDto): ManagedUser {
-    const diaries = (profile.travelDiaries ?? []).map((diary) =>
-      this.createManagedDiarySummary(diary)
-    );
-
-    return {
-      id: profile.id,
-      name: this.buildUserDisplayName(profile),
-      email: profile.email ?? 'Email non communiqué',
-      isAdmin: (profile.roles ?? []).includes('ADMIN'),
-      diaries,
-    };
-  }
-
-  private buildUserDisplayName(profile: UserProfileDto): string {
-    const firstName = profile.firstName?.trim() ?? '';
-    const lastName = profile.lastName?.trim() ?? '';
-    const fullName = `${firstName} ${lastName}`.trim();
-    return fullName || profile.pseudo;
-  }
-
-  private createManagedDiarySummary(diary: TravelDiary): ManagedDiarySummary {
-    /**
-     * On réutilise la normalisation utilisateur pour conserver un traitement
-     * homogène (steps, médias) puis on délègue la résolution d'image au service
-     * partagé afin d'éviter les divergences entre `/me`, `/travels` et `/travels/users/:id`.
-     */
-    const normalized = this.normalizeDiary(diary);
-    return {
-      id: normalized.id,
-      title: normalized.title,
-      destination: this.getDiaryDestination(normalized),
-      coverUrl: this.travelMapState.getDiaryCoverUrl(normalized) ?? this.defaultDiaryCover,
-      durationLabel: undefined,
-      stepCount: normalized.steps.length,
-      isPrivate: normalized.private,
-    };
-  }
-
-  private getDiaryDestination(diary: NormalizedDiary): string {
-    const firstStep = diary.steps[0];
-    return firstStep?.country || firstStep?.title || '';
-  }
-
-  private resetManagedUsers(): void {
-    this.managedUsers.set([]);
-    this.managedUsersLoaded = false;
-    this.managedUsersError.set(null);
-    this.managedUsersLoading.set(false);
-    this.selectedManagedUserId.set(null);
-    this.selectedManagedUser.set(null);
-    this.managedUserDetailsLoading.set(false);
-    this.managedUserDetailsError.set(null);
-    this.managedUserAction.set(null);
-  }
-
-  private setManagedUserAction(action: ManagedUserAction | null): void {
-    this.managedUserAction.set(action);
-  }
 
   private buildProfileUpdatePayload(): Partial<UserProfileDto> | null {
     const form = this.profileForm();
@@ -771,17 +723,12 @@ export class MePageComponent implements OnInit, OnDestroy {
       this.profileFormError.set('Le pseudo est obligatoire.');
       return null;
     }
-
-    const maybeTrim = (value: string | undefined) => {
-      const trimmed = value?.trim();
-      return trimmed && trimmed.length ? trimmed : undefined;
-    };
     const payload: Partial<UserProfileDto> = {
       pseudo,
-      firstName: maybeTrim(form.firstName),
-      lastName: maybeTrim(form.lastName),
-      email: maybeTrim(form.email),
     };
+
+    const email = form.email?.trim();
+    payload.email = email && email.length ? email : undefined;
 
     const password = form.password.trim();
     const confirmPassword = form.confirmPassword.trim();
@@ -809,70 +756,34 @@ export class MePageComponent implements OnInit, OnDestroy {
   }
 
   private mapArticleToItem(article: Article): ArticleItem {
-    const rawThemeId = article.themeId;
-    const themeId = rawThemeId != null ? Number(rawThemeId) : null;
-    const normalizedThemeId = themeId !== null && Number.isNaN(themeId) ? null : themeId;
-    const categoryLabel = this.resolveThemeLabel(normalizedThemeId, article.category ?? undefined);
-    const fallbackCategory = categoryLabel || this.resolveCategoryFromThemes(article.themes);
+    const category = article.category?.trim() ?? '';
     return {
       id: article.id,
       title: article.title,
       author: article.author ?? '',
-      category: fallbackCategory,
+      category,
       content: article.content,
-      themeId: normalizedThemeId,
       publishedAt: article.updatedAt,
       slug: article.slug,
-      themes: article.themes,
       userId: article.userId ?? null,
+      coverUrl: article.coverUrl ?? null,
+      medias: article.medias,
     };
   }
 
   private buildUpsertPayload(draft: ArticleDraft, userId: number): UpsertArticleDto {
-    const rawThemeId = draft.themeId;
-    const themeId = rawThemeId != null ? Number(rawThemeId) : undefined;
-    const normalizedThemeId = themeId !== undefined && Number.isNaN(themeId) ? undefined : themeId;
-    const themeIds = normalizedThemeId != null ? [normalizedThemeId] : [];
+    const coverUrl = draft.coverUrl?.trim();
+    const mediaIds = this.getArticleMediaIds();
+    const category = draft.category.trim();
 
     return {
       title: draft.title.trim(),
       content: draft.content,
       userId,
-      themeIds,
+      category: category.length ? category : undefined,
+      coverUrl: coverUrl?.length ? coverUrl : undefined,
+      mediaIds,
     };
-  }
-
-  private resolveThemeLabel(themeId: number | null | undefined, fallback?: string | null): string {
-    if (themeId != null) {
-      const theme = this.themes().find((item) => item.id === themeId);
-      if (theme) {
-        return theme.name;
-      }
-    }
-
-    return fallback?.trim() ?? '';
-  }
-
-  private resolveCategoryFromThemes(themes?: Theme[] | null): string {
-    if (!themes || !themes.length) {
-      return '';
-    }
-
-    const firstTheme = themes.find((theme) => Boolean(theme?.name?.trim()));
-    return firstTheme?.name?.trim() ?? '';
-  }
-
-  private refreshArticleCategories(): void {
-    this.articles.update((items) =>
-      items.map((article) => {
-        const resolved = this.resolveThemeLabel(article.themeId, article.category);
-        const category = resolved || this.resolveCategoryFromThemes(article.themes);
-        return {
-          ...article,
-          category,
-        };
-      })
-    );
   }
 
   /**
@@ -895,15 +806,25 @@ export class MePageComponent implements OnInit, OnDestroy {
             this.normalizeDiary(diary)
           );
           this.diaries.set(normalizedDiaries);
+          this.diariesCurrentPage.set(1);
+          this.ensureDiariesPageWithinBounds();
           this.patchProfileForm(profile);
+          if (this.isAdmin()) {
+            this.loadArticles();
+          } else {
+            this.articles.set([]);
+            this.articlesError.set(null);
+            this.articlesLoading.set(false);
+            this.articlesCurrentPage.set(1);
+            this.articleEditorView.set('list');
+            this.editingArticleId.set(null);
+            this.articleSearchTerm.set('');
+            this.resetArticleForm();
+          }
+          this.ensureAccessibleSection();
           this.isLoading.set(false);
           this.profileDeleteSubmitting.set(false);
           this.profileDeleteError.set(null);
-          if (this.isAdmin()) {
-            this.loadManagedUsers();
-          } else {
-            this.resetManagedUsers();
-          }
           console.info('profile loaded', profile);
         },
         error: (err) => {
@@ -918,8 +839,6 @@ export class MePageComponent implements OnInit, OnDestroy {
   /** Alimente le formulaire local avec les données du profil récupéré en API. */
   private patchProfileForm(profile: UserProfileDto): void {
     this.profileForm.set({
-      firstName: profile.firstName,
-      lastName: profile.lastName,
       email: profile.email ?? '',
       pseudo: profile.pseudo,
       password: '',
@@ -935,11 +854,6 @@ export class MePageComponent implements OnInit, OnDestroy {
    */
   getUserDiaryCover(diary: NormalizedDiary): string {
     return this.travelMapState.getDiaryCoverUrl(diary) || this.defaultDiaryCover;
-  }
-
-  /** Couverture utilisée pour les carnets affichés dans le panneau admin. */
-  getManagedDiaryCover(summary: ManagedDiarySummary): string {
-    return summary.coverUrl ?? this.defaultDiaryCover;
   }
 
   /** Retourne une description prête à afficher pour un carnet utilisateur. */
@@ -958,16 +872,6 @@ export class MePageComponent implements OnInit, OnDestroy {
     return diary.steps[0]?.country ?? '';
   }
 
-  /** Produit un sous-titre pour les carnets affichés dans le panneau admin. */
-  getManagedDiarySubtitle(diary: ManagedDiarySummary): string {
-    const parts = [diary.destination, diary.durationLabel];
-    if (typeof diary.stepCount === 'number') {
-      const label = `${diary.stepCount} étape${diary.stepCount > 1 ? 's' : ''}`;
-      parts.push(label);
-    }
-    return parts.filter(Boolean).join(' • ');
-  }
-
   getArticlePreview(html: string | undefined | null): string {
     if (!html) {
       return 'Aucun aperçu disponible.';
@@ -980,14 +884,58 @@ export class MePageComponent implements OnInit, OnDestroy {
     return text.length > 160 ? `${text.slice(0, 160)}…` : text;
   }
 
+  private ensureDiariesPageWithinBounds(): void {
+    const total = this.diaries().length;
+    const maxPage = Math.max(1, Math.ceil(total / this.diariesPageSize));
+    const current = this.diariesCurrentPage();
+    if (current > maxPage) {
+      this.diariesCurrentPage.set(maxPage);
+    }
+  }
+
+  private ensureArticlesPageWithinBounds(): void {
+    const total = this.filteredArticles().length;
+    const maxPage = Math.max(1, Math.ceil(total / this.articlesPageSize));
+    const current = this.articlesCurrentPage();
+    if (current > maxPage) {
+      this.articlesCurrentPage.set(maxPage);
+    }
+  }
+
+  private ensureAccessibleSection(): void {
+    const available = this.sections().map((section) => section.id);
+    if (!available.length) {
+      this.openSection.set('info');
+      return;
+    }
+
+    const current = this.openSection();
+    if (!current || !available.includes(current)) {
+      this.openSection.set(available[0]);
+    }
+  }
+
   /** Garantit que les tableaux optionnels des carnets sont toujours définis. */
   private normalizeDiary(diary: TravelDiary): NormalizedDiary {
     const steps = Array.isArray(diary.steps) ? diary.steps : [];
+    const privateValue = this.extractBooleanField(diary, 'private', 'isPrivate');
+    const publishedValue = this.extractBooleanField(diary, 'published', 'isPublished');
 
     return {
       ...diary,
+      private: privateValue,
+      published: publishedValue,
       steps,
     };
+  }
+
+  private forbidDiaryAction(message: string): boolean {
+    if (!this.userService.isCurrentUserDisabled()) {
+      return false;
+    }
+
+    this.diariesError.set(message);
+    return true;
   }
 
   private stripHtml(html: string): string {
@@ -1006,11 +954,13 @@ export class MePageComponent implements OnInit, OnDestroy {
     void this.router.navigate(['/travels', diaryId]);
   }
 
-  openManagedDiary(_userId: number, diaryId: number): void {
-    void this.router.navigate(['/travels', diaryId]);
-  }
-
   toggleDiaryPrivacy(diaryId: number): void {
+    if (
+      this.forbidDiaryAction('Votre compte est désactivé. Vous ne pouvez plus gérer vos carnets.')
+    ) {
+      return;
+    }
+
     this.diaries.update((items) =>
       items.map((diary) =>
         diary.id === diaryId
@@ -1023,27 +973,15 @@ export class MePageComponent implements OnInit, OnDestroy {
     );
   }
 
-  toggleManagedDiaryPrivacy(userId: number, diaryId: number): void {
-    this.managedUsers.update((users) =>
-      users.map((user) =>
-        user.id === userId
-          ? {
-              ...user,
-              diaries: user.diaries.map((diary) =>
-                diary.id === diaryId
-                  ? {
-                      ...diary,
-                      isPrivate: !diary.isPrivate,
-                    }
-                  : diary
-              ),
-            }
-          : user
-      )
-    );
-  }
+
 
   deleteDiary(diaryId: number): void {
+    if (
+      this.forbidDiaryAction('Votre compte est désactivé. Vous ne pouvez plus gérer vos carnets.')
+    ) {
+      return;
+    }
+
     const snapshotDiaries = this.diaries().map((diary) => ({
       ...diary,
       media: diary.media ? { ...diary.media } : null,
@@ -1053,6 +991,7 @@ export class MePageComponent implements OnInit, OnDestroy {
     this.diariesError.set(null);
 
     this.diaries.update((items) => items.filter((diary) => diary.id !== diaryId));
+    this.ensureDiariesPageWithinBounds();
 
     this.stepService
       .deleteDiary(diaryId)
@@ -1061,6 +1000,7 @@ export class MePageComponent implements OnInit, OnDestroy {
         next: () => undefined,
         error: (err) => {
           this.diaries.set(snapshotDiaries);
+          this.ensureDiariesPageWithinBounds();
           const message = err?.message ?? 'Impossible de supprimer ce carnet pour le moment.';
           this.diariesError.set(message);
           console.error('diary deletion failed', err);
@@ -1068,58 +1008,4 @@ export class MePageComponent implements OnInit, OnDestroy {
       });
   }
 
-  deleteManagedDiary(userId: number, diaryId: number): void {
-    const snapshotUsers = this.managedUsers().map((user) => ({
-      ...user,
-      diaries: user.diaries.map((diary) => ({ ...diary })),
-    }));
-    const snapshotSelected = (() => {
-      const current = this.selectedManagedUser();
-      if (!current) {
-        return null;
-      }
-      return {
-        ...current,
-        diaries: current.diaries.map((diary) => ({ ...diary })),
-      };
-    })();
-
-    this.managedUserDetailsError.set(null);
-
-    this.managedUsers.update((users) =>
-      users.map((user) =>
-        user.id === userId
-          ? {
-              ...user,
-              diaries: user.diaries.filter((diary) => diary.id !== diaryId),
-            }
-          : user
-      )
-    );
-
-    if (this.selectedManagedUserId() === userId) {
-      this.selectedManagedUser.update((selected) =>
-        selected
-          ? {
-              ...selected,
-              diaries: selected.diaries.filter((diary) => diary.id !== diaryId),
-            }
-          : selected
-      );
-    }
-
-    this.stepService
-      .deleteDiary(diaryId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => undefined,
-        error: (err) => {
-          this.managedUsers.set(snapshotUsers);
-          this.selectedManagedUser.set(snapshotSelected);
-          const message = err?.message ?? 'Impossible de supprimer ce carnet pour le moment.';
-          this.managedUserDetailsError.set(message);
-          console.error('managed diary deletion failed', err);
-        },
-      });
-  }
 }

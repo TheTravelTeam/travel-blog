@@ -5,6 +5,8 @@
     [name]="checkboxName"
     [ngClass]="['checkbox__input', isDisabled ? 'checkbox__input-disabled' : '']"
     [disabled]="isDisabled"
+    [checked]="checked"
+    (change)="onChange($event)"
   />
   <label [for]="checkboxName" class="checkbox__label">
     <span class="checkbox__icon material-symbols-outlined">{{ icon }}</span>

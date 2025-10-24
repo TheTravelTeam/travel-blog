@@ -5,6 +5,7 @@ export type SelectProps = {
   disabled?: boolean;
   withMultipleSelect?: boolean;
   maxSelectionMessage?: string;
+  selectedIds?: number[];
 };
 
 export type ItemProps = {
@@ -17,4 +18,5 @@ export const selectDefaultProps: Required<Omit<SelectProps, 'label' | 'itemsList
   placeholder: 'Sélectionnez...',
   withMultipleSelect: false,
   maxSelectionMessage: 'limite de choix atteinte.',
+  selectedIds: [],
 };

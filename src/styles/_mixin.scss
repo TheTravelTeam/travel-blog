@@ -1,0 +1,27 @@
+@mixin horizontal-carousel(
+  $min-width,
+  $max-width,
+  $gap: 1rem,
+  $padding: 1rem 0,
+  $snap-align: center
+) {
+  display: grid;
+  grid-auto-flow: column;
+  gap: $gap;
+  padding: $padding;
+  margin: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
+
+  & > * {
+    scroll-snap-align: $snap-align;
+  }
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

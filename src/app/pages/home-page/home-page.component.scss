@@ -1,5 +1,25 @@
 @use '../../../styles/utilities' as *;
+@use 'variables' as *;
+@use '../../../styles/mixin' as mixins;
 
+/* ------------------------------
+   GLOBAL / HOST
+------------------------------ */
+:host {
+  display: block;
+  max-width: 100%;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+}
+
+.article-chip {
+  text-align: center;
+  max-width: 98%;
+}
+
+/* ------------------------------
+   ICONS & IMAGES
+------------------------------ */
 .iconContainer {
   width: 150px;
   height: 150px;
@@ -9,28 +29,23 @@
     height: 100%;
     object-fit: contain;
   }
-}
 
-.iconContainer:nth-child(even) {
-  img {
+  &:nth-child(even) img {
     transform: scaleX(-1);
   }
 }
 
+/* ------------------------------
+   HEADER
+------------------------------ */
 header {
-  height: 100vh;
   position: relative;
   display: flex;
   justify-content: center;
-
-  .titleContainer {
-    color: #eaeaea;
-    width: 28rem;
-    max-width: 100%;
-    left: 5rem;
-    top: 33%;
-    align-self: flex-start;
-    position: absolute;
+  width: 100%;
+  height: 100vh;
+  &.tablet-header {
+    height: 90vh;
   }
 
   app-top-bar {
@@ -41,6 +56,7 @@ header {
   .imageContainer {
     width: 100%;
     height: 100%;
+
     img {
       width: 100%;
       height: 100%;
@@ -48,62 +64,200 @@ header {
     }
   }
 
-  .arrow {
+  .iconContainer.arrow {
     position: absolute;
     bottom: -50px;
   }
+
+  /* ---- Mobile Header ---- */
+  .mobile-header {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    text-align: center;
+    z-index: 5;
+
+    .title-with-cards {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      h2 {
+        color: #eaeaea;
+        text-shadow: -1px -1px 2px rgba(0, 0, 0, 0.6);
+        padding-inline: 0.3rem;
+      }
+
+      .tripCardsList {
+        background: rgba(7, 92, 93, 0.81);
+        width: 100%;
+        gap: 1rem;
+        padding-inline: 1rem;
+        z-index: 10;
+      }
+    }
+  }
+
+  /* ---- Title Container ---- */
+  .titleContainer {
+    color: #eaeaea;
+    position: absolute;
+    width: 28rem;
+
+    h1,
+    h2 {
+      text-shadow: -1px -1px 2px rgba(0, 0, 0, 0.6);
+
+      &:first-child {
+        font-size: 4rem;
+        font-weight: bold;
+        color: $secondaryColor;
+      }
+    }
+
+    /* Tablet */
+    &.tablet-title {
+      top: 33%;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+    }
+
+    /* Desktop */
+    &.desktop-title {
+      top: 33%;
+      left: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      padding-left: 5rem;
+      gap: 1rem;
+
+      h1 {
+        align-self: flex-start;
+      }
+
+      h2 {
+        align-self: end;
+        margin-top: 4rem;
+        padding-right: 5rem;
+      }
+    }
+
+    /* Mobile */
+    &.mobile-title {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-evenly;
+      height: 50%;
+
+      h1 {
+        font-size: 3.5rem;
+      }
+    }
+  }
 }
 
+/* ------------------------------
+   MAIN / SECTIONS
+------------------------------ */
 section {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+
   h2 {
     text-align: center;
-    margin-top: 26px;
-    padding: 58px;
+    padding: 2rem;
   }
+
+  .subtitle-card {
+    padding: 4rem 2rem 2rem;
+  }
+
+  /* ---- Odd sections ---- */
   &:nth-of-type(odd) {
     h2 {
       color: map-get($colors, primary);
     }
 
     .tripCardsList {
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
       width: 100%;
-      padding: 36px;
-      gap: 24px;
+      padding: 2.25rem 0;
+      gap: 2rem;
+
+      &.tripCardsList--grid {
+        display: flex;
+        flex-wrap: wrap;
+        max-width: min(100%, calc(4 * 280px + 3 * 2rem));
+        margin-inline: auto;
+        justify-content: center;
+        justify-items: center;
+
+        app-visual-trip-card {
+          width: 100%;
+          max-width: 260px;
+        }
+      }
     }
   }
 
+  /* ---- Even sections ---- */
   &:nth-of-type(even) {
     h2 {
       color: map-get($colors, secondary);
     }
+
     .subSection {
       width: 100%;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
       background-color: map-get($colors, primary);
       padding: 2rem;
-      gap: 1rem;
+      gap: 2rem;
+
+      &.sub-mobile {
+        padding: 2rem 0;
+        margin-bottom: 4rem;
+        app-card {
+          &:first-of-type {
+            margin-left: 2rem;
+          }
+          &:last-of-type {
+            margin-right: 2rem;
+          }
+        }
+      }
+
       .destinationsList {
-        display: grid;
-        grid-auto-flow: column;
-        grid-template-rows: repeat(2, max-content);
-        grid-template-columns: repeat(auto-fit, max-content);
-        gap: 1rem;
+        width: 100%;
+
+        &--flex {
+          display: flex;
+          flex-wrap: wrap;
+
+          gap: 1.5rem;
+          justify-content: center;
+          justify-items: center;
+        }
+
         .imageDestinationContainer {
           position: relative;
           display: flex;
           justify-content: center;
           align-items: center;
           font-size: 1.5rem;
+
           img {
             width: 100%;
             height: 100%;
@@ -113,6 +267,90 @@ section {
           app-chip {
             position: absolute;
           }
+        }
+      }
+    }
+  }
+}
+
+/* ------------------------------
+   ARROWS
+------------------------------ */
+.arrowWithIcon {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+
+  .absolute {
+    position: absolute;
+    left: 65%;
+  }
+}
+
+/* ------------------------------
+   MEDIA QUERIES
+------------------------------ */
+
+/* Desktop+ */
+@media screen and (min-width: 1024px) {
+  section {
+    &:nth-of-type(even) .subSection {
+      margin-inline: auto;
+    }
+  }
+}
+
+/* Mobile & Tablet */
+@media screen and (max-width: 1023px) {
+  header {
+    .title-with-cards .tripCardsList {
+      @include mixins.horizontal-carousel(240px, 250px);
+      padding-block: 1.5rem;
+    }
+  }
+
+  .destinationsList--carousel {
+    @include mixins.horizontal-carousel(260px, 340px);
+
+    .imageDestinationContainer {
+      min-width: clamp(260px, 75vw, 340px);
+    }
+  }
+
+  section {
+    .subtitle-card {
+      padding: 2rem;
+    }
+
+    &:nth-of-type(odd) {
+      .tripCardsList--carousel {
+        @include mixins.horizontal-carousel(240px, 250px);
+        gap: 1.25rem;
+        padding-block: 1.5rem;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 378px) {
+  header {
+    .titleContainer {
+      &.mobile-title {
+        height: 30%;
+        h1 {
+          font-size: 3rem;
+        }
+        h2 {
+          font-size: 1.4rem;
+        }
+      }
+    }
+    .mobile-header {
+      .title-with-cards {
+        h2 {
+          font-size: 1.4rem;
         }
       }
     }

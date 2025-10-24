@@ -1,7 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnChanges, ViewChild } from '@angular/core';
 import { Logo, logoDefault, LogosType } from '@model/logo.model';
 import { CommonModule } from '@angular/common';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-logo',
@@ -9,11 +8,13 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
   templateUrl: './logo.component.html',
   styleUrl: './logo.component.scss',
 })
-export class LogoComponent {
+export class LogoComponent implements AfterViewInit, OnChanges {
   @Input() src: Logo['src'] = logoDefault['src'];
   @Input() alt?: Logo['alt'] = logoDefault['alt'];
   @Input() size: Logo['size'] = logoDefault['size'];
   @Input() ariaLabel: Logo['ariaLabel'] = logoDefault['ariaLabel'];
+
+  @ViewChild('svgContainer', { static: false }) svgContainer!: ElementRef;
 
   // Gestion des SVG
   @Input() isSvg = false;
@@ -26,7 +27,7 @@ export class LogoComponent {
       url: '/tata',
     },
     linkedin: {
-      svg: `<svg xmlns="http://www.w3.org/2000/svg"viewBox="0 0 24 24"><path fill="currentColor" d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93zM6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37z"/></svg>`,
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93zM6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37z"/></svg>`,
       url: '/titi',
     },
     instagram: {
@@ -39,14 +40,36 @@ export class LogoComponent {
     },
   };
 
-  constructor(private sanitizer: DomSanitizer) {}
-
-  // Dis au DOM tqt je sais ce que je fais c'est bon tu peux injecter ce SVG
-  get svg(): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(this.logos[this.logoName].svg ?? '');
+  get svg(): string {
+    return this.logos[this.logoName].svg ?? '';
   }
 
   get logoUrl(): string {
     return this.logos[this.logoName]?.url ?? '/';
+  }
+
+  ngAfterViewInit() {
+    this.renderSvg();
+  }
+
+  ngOnChanges() {
+    this.renderSvg();
+  }
+
+  private renderSvg() {
+    if (!this.isSvg || !this.svgContainer) return;
+
+    const container = this.svgContainer.nativeElement;
+    container.innerHTML = '';
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(this.svg, 'image/svg+xml');
+    const errorNode = doc.querySelector('parsererror');
+    if (errorNode) {
+      console.warn('❌ SVG invalide :', errorNode.textContent);
+      return; // on n'affiche rien
+    }
+    const svgElem = doc.documentElement;
+    container.appendChild(svgElem);
   }
 }

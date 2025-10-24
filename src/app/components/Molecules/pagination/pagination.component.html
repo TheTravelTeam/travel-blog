@@ -1,0 +1,41 @@
+@if (totalPages() > 1) {
+  <nav class="pagination" aria-label="Pagination">
+    <button
+      type="button"
+      class="pagination__control"
+      [disabled]="!canGoPrevious()"
+      (click)="goToPrevious()"
+      aria-label="Page précédente"
+    >
+      ←
+    </button>
+
+    <ul class="pagination__pages">
+      @for (page of pages(); track page) {
+        <li>
+          <button
+            type="button"
+            class="pagination__page"
+            [ngClass]="{ 'pagination__page--active': page === currentPage }"
+            (click)="goToPage(page)"
+            [attr.aria-current]="page === currentPage ? 'page' : null"
+          >
+            {{ page }}
+          </button>
+        </li>
+      }
+    </ul>
+
+    <button
+      type="button"
+      class="pagination__control"
+      [disabled]="!canGoNext()"
+      (click)="goToNext()"
+      aria-label="Page suivante"
+    >
+      →
+    </button>
+
+    <span class="pagination__summary">Page {{ currentPage }} / {{ totalPages() }}</span>
+  </nav>
+}

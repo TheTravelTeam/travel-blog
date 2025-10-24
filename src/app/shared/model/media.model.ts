@@ -5,4 +5,8 @@ export interface Media {
   mediaType: string;
   status: string;
   updatedAt: string;
+  publicId?: string | null;
+  articleId?: number | null;
+  travelDiaryId?: number | null;
+  stepId?: number | null;
 }

@@ -1,6 +1,12 @@
+/// <reference types="jasmine" />
+
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 import { HomePageComponent } from './home-page.component';
+import { StepService } from '@service/step.service';
+import { ArticleService } from '@service/article.service';
+import { BreakpointService } from '@service/breakpoint.service';
 
 describe('HomePageComponent', () => {
   let component: HomePageComponent;
@@ -9,7 +15,32 @@ describe('HomePageComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [HomePageComponent],
-      providers: [provideRouter([])],
+      providers: [
+        provideRouter([]),
+        {
+          provide: StepService,
+          useValue: {
+            getAllDiaries: jasmine.createSpy('getAllDiaries').and.returnValue(of([])),
+          },
+        },
+        {
+          provide: ArticleService,
+          useValue: {
+            getArticles: jasmine.createSpy('getArticles').and.returnValue(of([])),
+          },
+        },
+        {
+          provide: BreakpointService,
+          useValue: {
+            isMobile: () => false,
+            isTablet: () => false,
+            isDesktop: () => true,
+            isDesktopOrTablet: () => false,
+            isMobileOrTablet: () => false,
+            isLargeScreen: () => true,
+          },
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HomePageComponent);

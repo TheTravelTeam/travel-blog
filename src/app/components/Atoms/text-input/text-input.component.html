@@ -54,29 +54,31 @@
   </div>
 
   <!-- Message d'erreur -->
-  @if (helperText || errorMessage || shouldShowCharCount) {
-    <div class="text-input__footer">
-      <div class="text-input__help">
-        @if (errorMessage) {
-          <span class="text-input__error-message">
-            {{ errorMessage }}
-          </span>
-        }
-        @if (helperText && !errorMessage) {
-          <span class="text-input__helper-text">
-            {{ helperText }}
+  <div style="height: 20px">
+    @if (helperText || errorMessage || shouldShowCharCount) {
+      <div class="text-input__footer">
+        <div class="text-input__help">
+          @if (errorMessage) {
+            <span class="text-input__error-message">
+              {{ errorMessage }}
+            </span>
+          }
+          @if (helperText && !errorMessage) {
+            <span class="text-input__helper-text">
+              {{ helperText }}
+            </span>
+          }
+        </div>
+
+        @if (shouldShowCharCount) {
+          <span
+            class="text-input__char-count"
+            [ngClass]="{ 'text-input__char-count--max': characterCount === maxLength }"
+          >
+            {{ characterCount }}/{{ maxLength }}
           </span>
         }
       </div>
-
-      @if (shouldShowCharCount) {
-        <span
-          class="text-input__char-count"
-          [ngClass]="{ 'text-input__char-count--max': characterCount === maxLength }"
-        >
-          {{ characterCount }}/{{ maxLength }}
-        </span>
-      }
-    </div>
-  }
+    }
+  </div>
 </div>

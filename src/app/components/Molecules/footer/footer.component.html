@@ -1,4 +1,4 @@
-<footer [ngClass]="{ 'footer-mobile': isTabletOrMobile(), 'footer-desktop': !isTabletOrMobile() }">
+<footer [class]="isMobile ? 'footer-mobile' : 'footer-desktop'">
   <div class="footer__sections">
     <div class="footer__column footer__left">
       <div class="footer__socials__logo">
@@ -27,7 +27,7 @@
 
     <div class="footer__column footer__section">
       <h3>Explore</h3>
-      <app-link label="Articles" route="/" [color]="colorSignal()"></app-link>
+      <app-link label="Articles" route="/articles" [color]="colorSignal()"></app-link>
       <app-link label="Nos meilleurs destinations" route="/" [color]="colorSignal()"></app-link>
       <app-link label="Découvrir un pays" route="/" [color]="colorSignal()"> </app-link>
       <app-link label="UI design" route="/" [color]="colorSignal()"> </app-link>

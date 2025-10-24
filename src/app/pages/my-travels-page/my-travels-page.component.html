@@ -1,4 +1,4 @@
-<div class="my-diaries">
+<div class="my-diaries" data-test="my-diaries-page">
   <div
     #detailPanel
     class="my-diaries__detail-panel"
@@ -33,17 +33,6 @@
             color="primary"
           ></app-divider>
         </div>
-        <div class="my-diaries__detail-panel__header--btn">
-          <app-button
-            [isActionBtn]="true"
-            size="md"
-            color="primary"
-            type="standard"
-            icon="add"
-            (btnClick)="openCreateModal()"
-          ></app-button>
-          <p>Ajouter un carnet</p>
-        </div>
       }
     </div>
 
@@ -51,38 +40,41 @@
       @if (panelError) {
         <p class="my-diaries__error-message">{{ panelError }}</p>
       }
-      @for (diary of diariesList; track $index) {
-        <app-travel-diary-card
-          [isAltBackground]="$index % 2 === 1 && !isTabletOrMobile()"
-          [ngClass]="{ 'alt-background': $index % 2 === 1 }"
-          [id]="diary.id"
-          [title]="diary.title"
-          [image]="state.getDiaryCoverUrl(diary)"
-          [description]="diary.description"
-          [showInlineActions]="isOwner()"
-          (cardClick)="onDiaryCardClick(diary)"
-          (edit)="onDiaryEdit(diary)"
-          (delete)="onDiaryDelete(diary)"
-        ></app-travel-diary-card>
+      @if (isCurrentUserDisabled() && !panelError) {
+        <p class="my-diaries__error-message">
+          Votre compte est désactivé. Vous pouvez consulter vos carnets mais plus les modifier.
+        </p>
       }
-    </div>
-    <div class="my-diaries__button-container">
-      <app-button
-        [startIcon]="true"
-        color="secondary"
-        icon="delete"
-        text="Supprimer"
-        size="auto"
-      ></app-button>
-      <app-button
-        [startIcon]="true"
-        color="primary"
-        icon="add"
-        text="Ajouter"
-        size="auto"
-        type="standard"
-        (btnClick)="openCreateModal()"
-      ></app-button>
+      @if (isOwner()) {
+        <div class="my-diaries__add-button">
+          <app-button
+            [startIcon]="true"
+            color="primary"
+            icon="add"
+            text="Ajouter"
+            size="auto"
+            type="standard"
+            (btnClick)="openCreateModal()"
+            data-test="my-diaries-add"
+          ></app-button>
+        </div>
+      }
+      @for (diary of diariesList; track $index) {
+        <div class="my-diaries__card" [attr.data-test]="'my-diary-' + diary.id">
+          <app-travel-diary-card
+            [isAltBackground]="$index % 2 === 1 && !isTabletOrMobile()"
+            [ngClass]="{ 'alt-background': $index % 2 === 1 }"
+            [id]="diary.id"
+            [title]="diary.title"
+            [image]="state.getDiaryCoverUrl(diary)"
+            [description]="diary.description"
+            [showInlineActions]="isOwner()"
+            (cardClick)="onDiaryCardClick(diary)"
+            (edit)="onDiaryEdit(diary)"
+            (delete)="onDiaryDelete(diary)"
+          ></app-travel-diary-card>
+        </div>
+      }
     </div>
   </div>
 

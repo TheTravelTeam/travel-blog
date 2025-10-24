@@ -1,3 +1,5 @@
+/// <reference types="jasmine" />
+
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -134,12 +136,12 @@ describe('MyTravelsPageComponent', () => {
         steps: [],
         user: {
           id: 1,
-          avatar: 'null',
-          biography: 'null',
+          pseudo: 'mock',
+          avatar: null,
+          biography: null,
           enabled: true,
           status: 'ACTIVE',
-          userName: 'mock',
-          username: 'mock@example.com',
+          email: 'mock@example.com',
         },
         media: null,
       },
@@ -197,9 +199,10 @@ describe('MyTravelsPageComponent', () => {
       title: diary.title ?? '',
       description: diary.description ?? '',
       coverUrl: diary.media?.fileUrl ?? null,
+      startDate: diary.startDate ?? null,
     });
     expect(component.state.currentDiaryId()).toBe(diary.id);
-    expect(component.state.currentDiary()).toBe(diary);
+    expect(component.state.currentDiary()).toEqual(jasmine.objectContaining({ id: diary.id }));
     expect(themeServiceSpy.getThemes).toHaveBeenCalled();
   });
 
@@ -213,6 +216,21 @@ describe('MyTravelsPageComponent', () => {
     expect(component.state.currentDiaryId()).toBeNull();
     expect(component.state.panelHeight()).toBe('collapsed');
     expect(component.panelError).toBeNull();
+  });
+
+  it('should treat a disabled user as a visitor', () => {
+    authServiceStub.setCurrentUser({
+      id: 1,
+      pseudo: 'mock',
+      firstName: 'Mock',
+      lastName: 'User',
+      roles: ['ROLE_USER'],
+      travelDiaries: [],
+      status: 'blocked',
+      enabled: true,
+    });
+
+    expect(component.isOwner()).toBeFalse();
   });
 
   it('should restore diaries when deletion fails', () => {
@@ -233,12 +251,10 @@ describe('MyTravelsPageComponent', () => {
     const payload: DiaryCreationPayload = {
       diary: {
         title: 'Updated title',
-        travelPeriod: null,
+        startDate: null,
         coverUrl: updatedCoverUrl,
         description: 'Updated description',
         isPrivate: true,
-        isPublished: true,
-        status: 'COMPLETED',
         canComment: true,
       },
       step: {
@@ -253,6 +269,7 @@ describe('MyTravelsPageComponent', () => {
         startDate: null,
         endDate: null,
         themeId: null,
+        themeIds: [],
       },
     };
 
@@ -288,10 +305,10 @@ describe('MyTravelsPageComponent', () => {
         title: payload.diary.title,
         description: payload.diary.description,
         isPrivate: payload.diary.isPrivate,
-        isPublished: payload.diary.isPublished,
-        status: payload.diary.status,
         canComment: payload.diary.canComment,
+        startDate: payload.diary.startDate,
       })
     );
   });
+
 });

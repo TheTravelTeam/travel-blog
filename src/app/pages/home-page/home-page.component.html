@@ -1,88 +1,146 @@
-<header>
+<header
+  [ngClass]="{
+    'tablet-header': breakpoint.isTablet(),
+    'desktop-header': breakpoint.isDesktop(),
+  }"
+>
   <div class="imageContainer">
     <img src="Images/paysage.jpg" />
   </div>
-  <div class="titleContainer">
-    <h1>Un site de voyage unique pour toutes vos aventures</h1>
-  </div>
-  <div class="iconContainer arrow">
-    <img src="Images/arrow.svg" />
+  @if (!breakpoint.isMobile()) {
+    <div class="iconContainer arrow">
+      <img src="Images/arrow_secondary.svg" />
+    </div>
+  }
+  <div [ngClass]="{ 'mobile-header': breakpoint.isMobile() }">
+    <div
+      class="titleContainer"
+      [ngClass]="{
+        'desktop-title': breakpoint.isDesktopOrTablet(),
+        'mobile-title': breakpoint.isMobile(),
+      }"
+    >
+      <h1>Travelblog</h1>
+      @if (!breakpoint.isMobile()) {
+        <h1>Un site de voyage unique pour toutes vos aventures</h1>
+      }
+      <h2>Vivez et revivez vos plus beaux voyages...</h2>
+    </div>
+    @if (breakpoint.isMobile()) {
+      <div class="title-with-cards">
+        <h2>Découvrez votre future destination</h2>
+        <div class="tripCardsList">
+          @for (card of heroDiaryCards(); track card.id) {
+            <app-visual-trip-card
+              [id]="card.id"
+              [title]="card.title"
+              [description]="card.description"
+              [image]="card.image"
+              [author]="card.author"
+              [dateCreation]="card.dateCreation"
+              [routeCommands]="['/travels', card.id]"
+            ></app-visual-trip-card>
+          }
+        </div>
+      </div>
+    }
   </div>
 </header>
 <main>
   <section>
-    <h2>Découvrez votre future destination</h2>
-    <div class=".arrowWithIcon">
-      <div class="iconContainer">
-        <img src="Images/arrow.svg" />
+    @if (breakpoint.isDesktopOrTablet()) {
+      <h2 class="subtitle-card">Découvrez votre future destination</h2>
+      <div class="arrowWithIcon">
+        <div class="iconContainer">
+          <img src="Images/arrow_secondary.svg" />
+        </div>
+        <app-icon class="absolute" name="travel" color="secondary" size="xl"></app-icon>
       </div>
-      <app-icon name="travel" color="secondary"></app-icon>
-    </div>
-    <div class="tripCardsList">
+    }
+    @if (breakpoint.isMobile()) {
+      <h2 class="subtitle-card">Découvrez plus de destinations</h2>
+      <div class="arrowWithIcon mobile">
+        <div class="iconContainer">
+          <img src="Images/arrow_secondary_short.svg" />
+        </div>
+        <app-icon class="absolute" name="travel" color="secondary" size="xl"></app-icon>
+      </div>
       <app-visual-trip-card
-        [id]="1"
-        title="Thailande"
-        description="Circuit à Kho Tao"
-        image="Images/paysage.jpg"
-        author="autor"
-        dateCreation="22/03/2025"
+        [id]="0"
+        title="Mappemonde"
+        description="Accédez à tous les carnets"
+        image="Images/svg/mappemonde-filigrane.svg"
+        author=""
+        dateCreation=""
+        [routeCommands]="['/travels']"
       ></app-visual-trip-card>
-      <app-visual-trip-card
-        [id]="1"
-        title="Thailande"
-        description="Circuit à Kho Tao"
-        image="Images/paysage.jpg"
-        author="autor"
-        dateCreation="22/03/2025"
-      ></app-visual-trip-card>
-      <app-visual-trip-card
-        [id]="1"
-        title="Thailande"
-        description="Circuit à Kho Tao"
-        image="Images/paysage.jpg"
-        author="autor"
-        dateCreation="22/03/2025"
-      ></app-visual-trip-card>
-      <app-visual-trip-card
-        [id]="1"
-        title="Thailande"
-        description="Circuit à Kho Tao"
-        image="Images/paysage.jpg"
-        author="autor"
-        dateCreation="22/03/2025"
-      ></app-visual-trip-card>
-    </div>
+    }
+    @if (breakpoint.isDesktopOrTablet()) {
+      <div class="tripCardsList tripCardsList--grid">
+        @for (card of gridDiaryCards(); track card.id) {
+          <app-visual-trip-card
+            [id]="card.id"
+            [title]="card.title"
+            [description]="card.description"
+            [image]="card.image"
+            [author]="card.author"
+            [dateCreation]="card.dateCreation"
+            [routeCommands]="['/travels', card.id]"
+          ></app-visual-trip-card>
+        }
+        <app-visual-trip-card
+          [id]="0"
+          title="Mappemonde"
+          description="Accédez à tous les carnets"
+          image="Images/svg/mappemonde-filigrane.svg"
+          author=""
+          dateCreation=""
+          [routeCommands]="['/travels']"
+        ></app-visual-trip-card>
+      </div>
+    }
   </section>
   <section>
     <h2>Lieux à explorer</h2>
-    <div class="subSection">
-      <div class="destinationsList">
-        <app-card class="imageDestinationContainer" width="312px" height="220px" radius="lg">
-          <img src="Images/paysage.jpg" />
-          <app-chip children="Thailand" backgroundColor="whiteOpacity" padding="xs"></app-chip>
-        </app-card>
-        <app-card class="imageDestinationContainer" width="312px" height="220px" radius="lg">
-          <img src="Images/paysage.jpg" />
-          <app-chip children="Thailand" backgroundColor="whiteOpacity" padding="xs"></app-chip>
-        </app-card>
-        <app-card class="imageDestinationContainer" width="312px" height="220px" radius="lg">
-          <img src="Images/paysage.jpg" />
-          <app-chip children="Thailand" backgroundColor="whiteOpacity" padding="xs"></app-chip>
-        </app-card>
-        <app-card class="imageDestinationContainer" width="312px" height="220px" radius="lg">
-          <img src="Images/paysage.jpg" />
-          <app-chip children="Thailand" backgroundColor="whiteOpacity" padding="xs"></app-chip>
-        </app-card>
-        <app-card class="imageDestinationContainer" width="312px" height="220px" radius="lg">
-          <img src="Images/paysage.jpg" />
-          <app-chip children="Thailand" backgroundColor="whiteOpacity" padding="xs"></app-chip>
-        </app-card>
-        <app-card class="imageDestinationContainer" width="312px" height="220px" radius="lg">
-          <img src="Images/paysage.jpg" />
-          <app-chip children="Thailand" backgroundColor="whiteOpacity" padding="xs"></app-chip>
-        </app-card>
+    <div class="arrowWithIcon">
+      <div class="iconContainer">
+        <img src="Images/arrow_primary.svg" />
       </div>
-      <app-button text="Découvrez nos articles" color="secondary" size="lg"></app-button>
+      <app-icon class="absolute" name="explore" color="primary" size="xl"></app-icon>
+    </div>
+    <div class="subSection" [ngClass]="{ 'sub-mobile': breakpoint.isMobile() }">
+      <div
+        [class]="[
+          'destinationsList',
+          'destinationsList' + (breakpoint.isDesktopOrTablet() ? '--flex' : '--carousel'),
+        ]"
+      >
+        @for (article of gridArticlePreviews(); track article.id) {
+          <app-card
+            borderColor="text-secondary"
+            class="imageDestinationContainer"
+            width="312px"
+            height="220px"
+            radius="lg"
+            [isClickable]="true"
+            (cardClick)="openArticle(article.id)"
+          >
+            <img [src]="article.image" />
+            <app-chip
+              customClass="article-chip"
+              [children]="article.title"
+              backgroundColor="whiteOpacity"
+              padding="xs"
+            ></app-chip>
+          </app-card>
+        }
+      </div>
+      <app-button
+        text="Découvrez nos articles"
+        color="secondary"
+        size="lg"
+        (btnClick)="openArticlesListing()"
+      ></app-button>
     </div>
   </section>
 </main>

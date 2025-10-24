@@ -1,3 +1,5 @@
+/// <reference types="jasmine" />
+
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MapComponent } from './map.component';
 import { provideHttpClient } from '@angular/common/http';
@@ -12,7 +14,14 @@ describe('MapComponent', () => {
       imports: [MapComponent],
       providers: [
         provideHttpClient(),
-        { provide: UserService, useValue: { currentUserId: () => 1 } },
+        {
+          provide: UserService,
+          useValue: {
+            currentUserId: () => 1,
+            isCurrentUserDisabled: () => false,
+            isCurrentUserAdmin: () => false,
+          },
+        },
       ],
     }).compileComponents();
 

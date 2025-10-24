@@ -1,12 +1,21 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { ButtonComponent } from 'components/Atoms/Button/button.component';
 import { IconComponent } from 'components/Atoms/Icon/icon.component';
 import { TextInputComponent } from 'components/Atoms/text-input/text-input.component';
 import { EditorComponent } from 'shared/editor/editor.component';
 import { SelectComponent } from 'components/Atoms/select/select.component';
 import { ItemProps } from '@model/select.model';
+import { normalizeThemeSelection } from '@utils/theme-selection.util';
 import {
   LocationPickerModalComponent,
   LocationPickerResult,
@@ -24,12 +33,10 @@ export type CreationModalStage = 'diary' | 'step';
 
 export interface DiaryFormPayload {
   title: string;
-  travelPeriod: string | null;
+  startDate: string | null;
   coverUrl: string | null;
   description: string;
   isPrivate?: boolean | null;
-  isPublished?: boolean | null;
-  status?: 'IN_PROGRESS' | 'COMPLETED' | null;
   canComment?: boolean | null;
 }
 
@@ -46,6 +53,7 @@ export interface StepFormPayload {
   startDate: string | null;
   endDate: string | null;
   themeId: number | null;
+  themeIds: number[];
 }
 
 export interface DiaryCreationPayload {
@@ -80,7 +88,7 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
   @Input() errorMessage: string | null = null;
   @Input() availableThemes: ItemProps[] = [];
   @Input() mode: 'create' | 'edit' = 'create';
-  @Input() initialDiary: { title: string; description: string; coverUrl: string | null } | null =
+  @Input() initialDiary: { title: string; description: string; coverUrl: string | null, startDate: string | null } | null =
     null;
 
   // eslint-disable-next-line @angular-eslint/no-output-native
@@ -105,6 +113,24 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
   private readonly coverUploadFolder = 'travel-diaries/covers';
   stepMediaItems: MediaItem[] = [];
   isStepMediaUploading = false;
+
+  /** Validator shared by diary and step date controls to ensure proper formatting. */
+  private readonly dateFormatValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value;
+    if (value == null || value === '') {
+      return null;
+    }
+
+    const raw = value.toString().trim();
+    if (!raw) {
+      return null;
+    }
+
+    const isIso = /^\d{4}-\d{2}-\d{2}$/.test(raw);
+    const isFrench = /^\d{2}\/\d{2}\/\d{4}$/.test(raw);
+
+    return isIso || isFrench ? null : { invalidDate: true };
+  };
 
   constructor(
     private readonly fb: FormBuilder,
@@ -153,12 +179,10 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
   private buildDiaryForm(): FormGroup {
     return this.fb.group({
       title: this.fb.control('', [Validators.required, Validators.maxLength(150)]),
-      period: this.fb.control(''),
+      startDate: this.fb.control('', [Validators.required, this.dateFormatValidator]),
       coverUrl: this.fb.control(''),
       description: this.fb.control('', [Validators.required, Validators.minLength(10)]),
       isPrivate: this.fb.control(false),
-      isPublished: this.fb.control(true),
-      status: this.fb.control<'IN_PROGRESS' | 'COMPLETED'>('IN_PROGRESS'),
       canComment: this.fb.control(true),
     });
   }
@@ -171,14 +195,16 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
     title: string;
     description: string;
     coverUrl: string | null;
+    startDate: string | null;
   }): void {
     this.diaryEditorContent = data.description ?? '';
     this.diaryForm.patchValue(
       {
         title: data.title ?? '',
+        startDate: data.startDate ?? '',
         description: data.description ?? '',
         coverUrl: data.coverUrl ?? '',
-        // Conserver les valeurs par défaut pour visibilité/statut si non fournis
+        // Conserver les valeurs par défaut pour visibilité/commentaires si non fournis
       },
       { emitEvent: false }
     );
@@ -189,7 +215,7 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
    */
   /** Build the FormGroup that stores the first-step section. */
   private buildStepForm(): FormGroup {
-    return this.fb.group({
+    const form = this.fb.group({
       title: this.fb.control('', [Validators.required, Validators.maxLength(150)]),
       city: this.fb.control('', [
         Validators.required,
@@ -210,13 +236,24 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
       longitude: this.fb.control('', [Validators.required]),
       description: this.fb.control('', [Validators.required, Validators.minLength(10)]),
       mediaUrl: this.fb.control(''),
-      startDate: this.fb.control(''),
-      endDate: this.fb.control(''),
+      startDate: this.fb.control('', [Validators.required, this.dateFormatValidator]),
+      endDate: this.fb.control('', [Validators.required, this.dateFormatValidator]),
       themeId: this.fb.control<number | null>(null),
+      themeIds: this.fb.control<number[]>([]),
     });
+
+    form.get('city')?.disable({ emitEvent: false });
+    form.get('country')?.disable({ emitEvent: false });
+    form.get('continent')?.disable({ emitEvent: false });
+
+    return form;
   }
 
   /** Keep the diary rich-text editor synchronous with the form control. */
+  /**
+   * Syncs the diary editor content with the form control.
+   * @param content HTML payload emitted by the editor.
+   */
   onDiaryEditorChange(content: string): void {
     this.diaryEditorContent = content;
     this.diaryForm.patchValue({ description: content ?? '' }, { emitEvent: false });
@@ -224,13 +261,17 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
   }
 
   /** Keep the step rich-text editor synchronous with the form control. */
+  /**
+   * Syncs the step editor content with the step form control.
+   * @param content HTML payload emitted by the editor.
+   */
   onStepEditorChange(content: string): void {
     this.stepEditorContent = content;
     this.stepForm.patchValue({ description: content ?? '' }, { emitEvent: false });
     this.stepForm.get('description')?.markAsDirty();
   }
 
-  /** Handle submission of the diary stage; switches to the step stage in create mode. */
+  /** Handles submission of the diary stage and switches to the step stage. */
   handleDiarySubmit(): void {
     /**
      * Soumission de l'étape 'carnet'.
@@ -248,12 +289,10 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
       const diaryRaw = this.diaryForm.getRawValue();
       const diaryPayload: DiaryFormPayload = {
         title: (diaryRaw.title ?? '').trim(),
-        travelPeriod: diaryRaw.period?.toString().trim() || null,
+        startDate: this.normalizeDateInput(diaryRaw.startDate),
         coverUrl: diaryRaw.coverUrl?.toString().trim() || null,
         description: diaryRaw.description ?? '',
         isPrivate: !!diaryRaw.isPrivate,
-        isPublished: !!diaryRaw.isPublished,
-        status: diaryRaw.status ?? 'IN_PROGRESS',
         canComment: !!diaryRaw.canComment,
       };
 
@@ -274,6 +313,7 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
           startDate: null,
           endDate: null,
           themeId: null,
+          themeIds: [],
         },
       });
       return;
@@ -285,7 +325,7 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
     this.stage = 'step';
   }
 
-  /** Final submission of the wizard combining both diary and step payloads. */
+  /** Final submission handler that emits the diary + step payload upstream. */
   handleStepSubmit(): void {
     /**
      * Soumission de l'étape 'step' (création uniquement).
@@ -311,14 +351,14 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
 
     const diaryPayload: DiaryFormPayload = {
       title: (diaryRaw.title ?? '').trim(),
-      travelPeriod: diaryRaw.period?.toString().trim() || null,
+      startDate: this.normalizeDateInput(diaryRaw.startDate),
       coverUrl: diaryRaw.coverUrl?.toString().trim() || null,
       description: diaryRaw.description ?? '',
       isPrivate: !!diaryRaw.isPrivate,
-      isPublished: !!diaryRaw.isPublished,
-      status: diaryRaw.status ?? 'IN_PROGRESS',
       canComment: !!diaryRaw.canComment,
     };
+
+    const { themeIds, primaryThemeId } = normalizeThemeSelection(raw.themeId, raw.themeIds);
 
     const stepPayload: StepFormPayload = {
       title: (raw.title ?? '').trim(),
@@ -335,7 +375,8 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
       })),
       startDate: this.normalizeDateInput(raw.startDate),
       endDate: this.normalizeDateInput(raw.endDate),
-      themeId: raw.themeId ?? null,
+      themeId: primaryThemeId,
+      themeIds,
     };
     this.submitDiary.emit({ diary: diaryPayload, step: stepPayload });
   }
@@ -349,6 +390,10 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
     this.resetForms();
   }
 
+  /**
+   * Handles cover file selection and forwards it to Cloudinary.
+   * @param event Native input event carrying the file.
+   */
   onCoverFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -389,6 +434,10 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
    * Return a translated validation message for the embedded step form.
    * Mirrors the behaviour of the standalone component for consistency.
    */
+  /**
+   * Return a translated validation message for the embedded step form.
+   * @param controlName Step form control name.
+   */
   getStepControlError(controlName: string): string | undefined {
     const control = this.stepForm.get(controlName);
     if (!control || !control.invalid || (!control.touched && !control.dirty)) {
@@ -396,6 +445,12 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
     }
 
     if (control.errors?.['required']) {
+      if (controlName === 'startDate') {
+        return 'Sélectionnez une date de départ';
+      }
+      if (controlName === 'endDate') {
+        return 'Sélectionnez une date de fin';
+      }
       return 'Champ obligatoire';
     }
 
@@ -409,9 +464,13 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
       return `Maximum ${maxLength} caractères autorisés`;
     }
 
+    if (control.errors?.['invalidDate']) {
+      return 'Format de date invalide. Utilisez jj/mm/aaaa.';
+    }
+
     if (control.errors?.['invalid']) {
       if (controlName === 'latitude' || controlName === 'longitude') {
-        return 'Valeur numérique invalide';
+        return 'Coordonées GPS invalide';
       }
       return 'Valeur invalide';
     }
@@ -419,13 +478,59 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
     return undefined;
   }
 
-  onThemeChange(selection: ItemProps | ItemProps[]): void {
-    const item = Array.isArray(selection) ? selection[0] : selection;
-    const parsed = item ? Number(item.id) : null;
-    const themeId = typeof parsed === 'number' && Number.isFinite(parsed) ? parsed : null;
-    this.stepForm.patchValue({ themeId });
+  /**
+   * Return a translated validation message for controls in the diary form.
+   * @param controlName Diary form control name.
+   */
+  getDiaryControlError(controlName: string): string | undefined {
+    const control = this.diaryForm.get(controlName);
+    if (!control || !control.invalid || (!control.touched && !control.dirty)) {
+      return undefined;
+    }
+
+    if (control.errors?.['required']) {
+      if (controlName === 'startDate') {
+        return 'Sélectionnez une date de départ';
+      }
+      if (controlName === 'endDate') {
+        return 'Sélectionnez une date de fin';
+      }
+      return 'Champ obligatoire';
+    }
+
+    if (control.errors?.['minlength']) {
+      const requiredLength = control.errors['minlength'].requiredLength;
+      return `Saisissez au moins ${requiredLength} caractères`;
+    }
+
+    if (control.errors?.['maxlength']) {
+      const maxLength = control.errors['maxlength'].requiredLength;
+      return `Maximum ${maxLength} caractères autorisés`;
+    }
+
+    if (control.errors?.['invalidDate']) {
+      return 'Format de date invalide. Utilisez jj/mm/aaaa.';
+    }
+
+    return undefined;
   }
 
+  /**
+   * Keeps the step theme controls in sync with the multi-select widget.
+   * @param selection Selected items emitted by the select component.
+   */
+  onThemeChange(selection: ItemProps | ItemProps[]): void {
+    const items = Array.isArray(selection) ? selection : selection ? [selection] : [];
+    const themeIds = items.map((item) => Number(item?.id)).filter((id) => Number.isFinite(id));
+
+    const primaryThemeId = themeIds.length ? themeIds[0] : null;
+
+    this.stepForm.patchValue({ themeId: primaryThemeId, themeIds });
+    this.stepForm.get('themeId')?.markAsDirty();
+    this.stepForm.get('themeIds')?.markAsDirty();
+  }
+
+  /** Navigate back to the diary stage (create mode only). */
   /** Navigate back to the diary stage (create mode only). */
   goBackToDiaryStage(): void {
     if (this.isSubmitting) {
@@ -440,11 +545,13 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
   }
 
   /** Open the shared location picker modal for the step section. */
+  /** Open the shared location picker modal for the step section. */
   openStepLocationModal(): void {
     this.stepGeocodingError = null;
     this.isStepLocationModalOpen = true;
   }
 
+  /** Close the step location picker modal. */
   /** Close the step location picker modal. */
   closeStepLocationModal(): void {
     this.isStepLocationModalOpen = false;
@@ -537,6 +644,9 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
 
     if (Object.keys(payload).length > 0) {
       this.stepForm.patchValue(payload);
+      this.stepForm.get('city')?.disable({ emitEvent: false });
+      this.stepForm.get('country')?.disable({ emitEvent: false });
+      this.stepForm.get('continent')?.disable({ emitEvent: false });
     }
   }
 
@@ -575,7 +685,7 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
   private resetDiaryForm(): void {
     this.diaryForm.reset({
       title: '',
-      period: '',
+      startDate: '',
       coverUrl: '',
       description: '',
     });
@@ -597,7 +707,11 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
       startDate: '',
       endDate: '',
       themeId: null,
+      themeIds: [],
     });
+    this.stepForm.get('city')?.disable({ emitEvent: false });
+    this.stepForm.get('country')?.disable({ emitEvent: false });
+    this.stepForm.get('continent')?.disable({ emitEvent: false });
     this.stepMediaItems = [];
     this.isStepMediaUploading = false;
     this.stepGeocodingError = null;
@@ -621,6 +735,11 @@ export class CreateDiaryModalComponent implements OnDestroy, OnChanges {
 
     if (/^\d{4}-\d{2}-\d{2}T/.test(raw)) {
       return raw.slice(0, 10);
+    }
+
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(raw)) {
+      const [day, month, year] = raw.split('/');
+      return `${year}-${month}-${day}`;
     }
 
     return raw;

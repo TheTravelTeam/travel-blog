@@ -7,11 +7,17 @@
       </p>
     </div>
 
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form__form">
+    <form
+      [formGroup]="registerForm"
+      (ngSubmit)="onSubmit()"
+      class="register-form__form"
+      data-test="register-form"
+    >
       <div class="register-form__fields">
         <app-text-input
           label="Pseudo"
           placeholder="Choisissez un pseudo"
+          [maxLength]="50"
           type="text"
           size="large"
           variant="outlined"
@@ -19,12 +25,14 @@
           [isRequired]="true"
           (inputBlur)="registerForm.get('pseudo')?.markAsTouched()"
           [errorMessage]="getErrorMessage('pseudo')"
+          data-test="register-pseudo"
         >
         </app-text-input>
 
         <app-text-input
           label="Email"
           placeholder="Entrez votre email"
+          [maxLength]="101"
           type="email"
           size="large"
           variant="outlined"
@@ -32,12 +40,14 @@
           [isRequired]="true"
           (inputBlur)="registerForm.get('email')?.markAsTouched()"
           [errorMessage]="getErrorMessage('email')"
+          data-test="register-email"
         >
         </app-text-input>
 
         <app-text-input
           label="Mot de passe"
           placeholder="Créer un mot de passe"
+          [maxLength]="65"
           type="password"
           size="large"
           variant="outlined"
@@ -46,6 +56,7 @@
           iconPosition="right"
           (inputBlur)="registerForm.get('password')?.markAsTouched()"
           [errorMessage]="getErrorMessage('password')"
+          data-test="register-password"
         >
         </app-text-input>
 
@@ -60,9 +71,16 @@
           iconPosition="right"
           (inputBlur)="registerForm.get('confirmPassword')?.markAsTouched()"
           [errorMessage]="getErrorMessage('confirmPassword')"
+          data-test="register-confirm-password"
         >
         </app-text-input>
       </div>
+
+      @if (submissionError) {
+        <p class="register-form__error" data-test="register-error">
+          {{ submissionError }}
+        </p>
+      }
 
       <div class="register-form__actions">
         <app-button
@@ -72,6 +90,7 @@
           text="Créer un compte"
           [isDisabled]="isSubmitting"
           type="standard"
+          data-test="register-submit"
         >
         </app-button>
       </div>
@@ -79,7 +98,12 @@
       <div class="register-form__footer">
         <p class="register-form__link-text">
           Déjà inscrit ?
-          <button type="button" class="register-form__link" (click)="navigateToLogin()">
+          <button
+            type="button"
+            class="register-form__link"
+            (click)="navigateToLogin()"
+            data-test="register-go-to-login"
+          >
             Se connecter
           </button>
         </p>

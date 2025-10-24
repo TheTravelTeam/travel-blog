@@ -36,6 +36,8 @@ jobs:
               --label traefik.http.routers.travelblogwww.tls.certresolver=letsencrypt \
               --label traefik.http.routers.travelblogwww.service=travelblog \
               --label traefik.http.services.travelblog.loadbalancer.server.port=80 \
+              --label traefik.docker.network=traefik \
               --network traefik \
+              --restart unless-stopped \
               ${{ secrets.DOCKER_USERNAME }}/travel-blog-front:latest
           "

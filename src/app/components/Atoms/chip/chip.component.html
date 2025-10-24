@@ -1,14 +1,16 @@
-@if (startIcon) {
-  <app-icon [name]="startIcon" [color]="startIconColor"></app-icon>
-}
-@if (children) {
-  <span>{{ children }}</span>
-}
-@if (endIcon) {
-  <app-icon [name]="endIcon" [color]="endIconColor"></app-icon>
-}
-@if (closeButton) {
-  <button (click)="Onclose($event)" aria-label="Fermer">
-    <app-icon name="close"></app-icon>
-  </button>
-}
+<div [ngClass]="customClass()">
+  @if (startIcon) {
+    <app-icon [name]="startIcon" [color]="startIconColor"></app-icon>
+  }
+  @if (children) {
+    <span>{{ children }}</span>
+  }
+  @if (endIcon) {
+    <app-icon [name]="endIcon" [color]="endIconColor"></app-icon>
+  }
+  @if (closeButton) {
+    <button (click)="Onclose($event)" aria-label="Fermer">
+      <app-icon name="close"></app-icon>
+    </button>
+  }
+</div>
