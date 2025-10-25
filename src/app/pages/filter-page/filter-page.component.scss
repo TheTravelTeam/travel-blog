@@ -158,7 +158,9 @@ app-accordion {
           padding: 0.75rem 1rem;
           background-color: white;
           cursor: pointer;
-          transition: border-color 0.15s ease, box-shadow 0.15s ease;
+          transition:
+            border-color 0.15s ease,
+            box-shadow 0.15s ease;
 
           &:hover,
           &:focus-visible {
@@ -252,7 +254,9 @@ app-accordion {
         padding: 0.75rem 1rem;
         background-color: white;
         cursor: pointer;
-        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        transition:
+          border-color 0.15s ease,
+          box-shadow 0.15s ease;
 
         &:hover,
         &:focus-visible {
@@ -458,7 +462,7 @@ app-accordion {
   &__detail-panel {
     flex: none;
     width: 100%;
-    position: absolute;
+    position: fixed;
     bottom: 0;
     left: 0;
     z-index: 10;

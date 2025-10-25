@@ -35,7 +35,6 @@
       &--title {
         font-size: 1.2rem;
       }
-
     }
 
     &__body {
@@ -74,7 +73,7 @@
   &__detail-panel {
     flex: none;
     width: 100%;
-    position: absolute;
+    position: fixed;
     bottom: 0;
     left: 0;
     z-index: 10;
