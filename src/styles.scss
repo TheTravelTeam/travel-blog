@@ -11,6 +11,11 @@
     --top-bar-height: 64px;
   }
 }
+@media screen and (max-width: 431px) {
+  :root {
+    --top-bar-height: 4.5rem;
+  }
+}
 
 * {
   box-sizing: border-box;
