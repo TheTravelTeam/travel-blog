@@ -12,10 +12,9 @@
   margin: 0;
   overflow-x: auto;
   overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
-  touch-action: pan-x;
-  -webkit-overflow-scrolling: touch;
 
   & > * {
     scroll-snap-align: $snap-align;

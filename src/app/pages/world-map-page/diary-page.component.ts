@@ -1688,7 +1688,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
   /** URL de couverture pour le panneau latéral (alias pratique pour le template). */
   getDiaryCover(): string {
     const diary = this.state.currentDiary();
-    return diary ? this.state.getDiaryCoverUrl(diary) : '';
+    return diary ? this.state.getDiaryCoverUrl(diary) : 'Images/paysage.jpg';
   }
 
   /** Renvoie les médias d'une étape via le service partagé. */
