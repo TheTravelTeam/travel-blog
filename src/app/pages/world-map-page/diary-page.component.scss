@@ -382,7 +382,10 @@ app-accordion {
   font-size: 0.85rem;
   padding: 0.25rem 0.75rem;
   border-radius: 0.5rem;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
 
   &:hover:not(:disabled) {
     border-color: rgba($primaryColor, 0.4);
@@ -526,7 +529,10 @@ app-accordion {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
   flex-shrink: 0;
 
   &:hover {
@@ -565,7 +571,9 @@ app-accordion {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 
   &:hover {
     background: rgba(0, 0, 0, 0.75);
@@ -624,7 +632,7 @@ app-accordion {
   &__detail-panel {
     flex: none;
     width: 100%;
-    position: absolute;
+    position: fixed;
     bottom: 0;
     left: 0;
     z-index: 10;
@@ -633,10 +641,13 @@ app-accordion {
     background: white;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
     transition: height 0.3s ease;
-    // overflow-y: auto;
     display: flex;
     align-items: center;
     padding: 0 0.5rem 0.5rem 0.5rem;
+
+    &__body {
+      padding-bottom: 1rem;
+    }
 
     &.collapsed {
       height: 10vh;
@@ -702,7 +713,6 @@ app-accordion {
     flex-direction: row;
     height: calc(100vh - var(--top-bar-height, 68px));
     height: calc(100dvh - var(--top-bar-height, 68px));
-
   }
 
   .progress-bar--sticky {
