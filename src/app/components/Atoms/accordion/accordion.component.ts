@@ -12,10 +12,11 @@ import { verticalSlide } from '../../../animations/vertical-slide.animation';
 import { accordionDefaultProps, AccordionProps } from '@model/accordion.model';
 import { IconComponent } from '../Icon/icon.component';
 import { ClickOutsideDirective } from 'shared/directives/click-outside.directive';
+import { SafeHtmlPipe } from 'shared/pipes/safe-html.pipe';
 
 @Component({
   selector: 'app-accordion',
-  imports: [CommonModule, IconComponent, ClickOutsideDirective],
+  imports: [CommonModule, IconComponent, ClickOutsideDirective, SafeHtmlPipe],
   templateUrl: './accordion.component.html',
   styleUrl: './accordion.component.scss',
   animations: [verticalSlide],

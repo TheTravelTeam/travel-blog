@@ -5,10 +5,11 @@ import { CardComponent } from 'components/Atoms/Card/card.component';
 import { IconComponent } from 'components/Atoms/Icon/icon.component';
 import { BreakpointService } from '@service/breakpoint.service';
 import { CommonModule } from '@angular/common';
+import { SafeHtmlPipe } from 'shared/pipes/safe-html.pipe';
 
 @Component({
   selector: 'app-travel-diary-card',
-  imports: [CardComponent, CardBodyComponent, IconComponent, CommonModule],
+  imports: [CardComponent, CardBodyComponent, IconComponent, CommonModule, SafeHtmlPipe],
   templateUrl: './travel-diary-card.component.html',
   styleUrl: './travel-diary-card.component.scss',
 })
