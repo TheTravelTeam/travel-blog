@@ -13,7 +13,7 @@
     'background-image': 'url(' + image + ')',
     'background-size': 'cover',
     'background-position': 'center',
-    'background-repeat': 'no-repeat'
+    'background-repeat': 'no-repeat',
   }"
 >
   <div class="travel-diary-card__overlay"></div>
@@ -47,9 +47,7 @@
           </div>
         }
       </div>
-      <div class="travel-diary-card__description">
-        {{ description }}
-      </div>
+      <div class="travel-diary-card__description" [innerHTML]="description | safeHtml"></div>
     </div>
   </app-card-body>
 </app-card>

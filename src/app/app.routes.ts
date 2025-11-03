@@ -19,11 +19,19 @@ import { NotFoundPageComponent } from './pages/not-found-page/not-found-page.com
 export const routes: Routes = [
   { path: 'login', component: LoginFormComponent, canActivate: [visitorOnlyGuard] },
   { path: 'register', component: RegisterFormComponent, canActivate: [visitorOnlyGuard] },
-  { path: 'forgot-password', component: ForgotPasswordFormComponent, canActivate: [visitorOnlyGuard] },
-  { path: 'reset-password', component: ResetPasswordPageComponent, canActivate: [visitorOnlyGuard] },
+  {
+    path: 'forgot-password',
+    component: ForgotPasswordFormComponent,
+    canActivate: [visitorOnlyGuard],
+  },
+  {
+    path: 'reset-password',
+    component: ResetPasswordPageComponent,
+    canActivate: [visitorOnlyGuard],
+  },
   { path: '', component: HomePageComponent, pathMatch: 'full' },
   { path: 'articles', component: ArticlesPageComponent },
-  { path: 'articles/:articleId', component: ArticleDetailPageComponent },
+  { path: 'articles/:slug', component: ArticleDetailPageComponent },
   {
     path: 'travels',
     component: TravelMapLayoutPageComponent,

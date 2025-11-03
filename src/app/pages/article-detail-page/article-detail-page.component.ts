@@ -12,11 +12,12 @@ import { BreadcrumbItem } from '@model/breadcrumb.model';
 import { BreadcrumbComponent } from 'components/Atoms/breadcrumb/breadcrumb.component';
 import { IconComponent } from 'components/Atoms/Icon/icon.component';
 import { SafeHtmlPipe } from 'shared/pipes/safe-html.pipe';
+import { ImageFallbackDirective } from 'shared/directives/image-fallback.directive';
 
 @Component({
   selector: 'app-article-detail-page',
   standalone: true,
-  imports: [CommonModule, BreadcrumbComponent, IconComponent, SafeHtmlPipe],
+  imports: [CommonModule, BreadcrumbComponent, IconComponent, SafeHtmlPipe, ImageFallbackDirective],
   templateUrl: './article-detail-page.component.html',
   styleUrl: './article-detail-page.component.scss',
 })
@@ -35,7 +36,7 @@ export class ArticleDetailPageComponent implements OnInit {
   readonly heroImage = computed(() => {
     const current = this.article();
     if (!current) {
-      return 'image 3.svg';
+      return 'image-3.svg';
     }
     return this.getArticleCover(current);
   });
@@ -99,27 +100,19 @@ export class ArticleDetailPageComponent implements OnInit {
     this.route.paramMap
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        map((params) => params.get('articleId')),
-        switchMap((rawId) => {
-          if (!rawId) {
+        map((params) => params.get('slug')),
+        switchMap((slug) => {
+          if (!slug) {
             this.article.set(null);
             this.isLoading.set(false);
             this.error.set("Identifiant d'article manquant.");
             return EMPTY;
           }
 
-          const articleId = Number(rawId);
-          if (Number.isNaN(articleId) || articleId <= 0) {
-            this.article.set(null);
-            this.isLoading.set(false);
-            this.error.set("Identifiant d'article invalide.");
-            return EMPTY;
-          }
-
           this.isLoading.set(true);
           this.error.set(null);
 
-          return this.articleService.getArticleById(articleId);
+          return this.articleService.getArticleBySlug(slug);
         })
       )
       .subscribe({
@@ -157,7 +150,7 @@ export class ArticleDetailPageComponent implements OnInit {
     }
 
     const firstMedia = article.medias?.find((media) => this.normalizeUrl(media.fileUrl));
-    return this.normalizeUrl(firstMedia?.fileUrl) ?? 'image 3.svg';
+    return this.normalizeUrl(firstMedia?.fileUrl) ?? 'image-3.svg';
   }
 
   updateBreadcrumb(article: Article): void {

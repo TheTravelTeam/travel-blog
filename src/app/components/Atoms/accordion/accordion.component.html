@@ -5,7 +5,7 @@
 >
   <div class="accordion__header">
     <div class="accordion__header__title" (click)="onToggleOpen()" (click)="onStepClick()">
-      <h3>{{ title }}</h3>
+      <h3 [innerHTML]="title | safeHtml"></h3>
       @if (role !== 'reader' && !isFilter) {
         <div class="accordion__header__title--actions">
           @if (!isEditing) {

@@ -22,7 +22,7 @@
         <ul class="articles-page__grid">
           @for (article of articles(); track trackByArticleId($index, article)) {
             <li class="articles-page__item">
-              <a class="articles-page__card" [routerLink]="['/articles', article.id]">
+              <a class="articles-page__card" [routerLink]="['/articles', article.slug]">
                 <div class="articles-page__media">
                   <img [src]="getArticleCover(article)" [alt]="article.title" />
                 </div>

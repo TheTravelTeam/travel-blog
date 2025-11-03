@@ -19,6 +19,7 @@ type ArticlePreview = {
   id: number;
   title: string;
   image: string;
+  slug: string;
 };
 
 @Component({
@@ -129,6 +130,7 @@ export class HomePageComponent implements OnInit {
       id: article.id,
       title: article.title,
       image: article.thumbnailUrl || article.coverUrl || this.articlePlaceholder,
+      slug: article.slug,
     };
   }
 
@@ -191,8 +193,8 @@ export class HomePageComponent implements OnInit {
   }
 
   /** Ouvre la page de détail de l'article sélectionné. */
-  openArticle(articleId: number): void {
-    void this.router.navigate(['/articles', articleId]);
+  openArticle(slug: string): void {
+    void this.router.navigate(['/articles', slug]);
   }
 
   /** Redirige vers la liste complète des articles. */
