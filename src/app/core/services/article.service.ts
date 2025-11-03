@@ -29,6 +29,10 @@ export class ArticleService {
       .pipe(map((dto) => this.mapArticle(dto)));
   }
 
+  getArticleBySlug(slug: string): Observable<Article> {
+    return this.http.get<Article>(`${this.apiUrl}/articles/slug/${slug}`);
+  }
+
   /**
    * Persists a new article then converts the DTO response into the domain model.
    */

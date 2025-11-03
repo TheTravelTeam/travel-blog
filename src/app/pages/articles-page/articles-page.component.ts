@@ -1,11 +1,4 @@
-import {
-  Component,
-  DestroyRef,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -39,7 +32,7 @@ export class ArticlesPageComponent implements OnInit {
   readonly heroImage = computed(() => {
     const firstArticle = this.articles()[0];
     if (!firstArticle) {
-      return 'image 3.svg';
+      return 'image-3.svg';
     }
     return this.getArticleCover(firstArticle);
   });
@@ -80,7 +73,7 @@ export class ArticlesPageComponent implements OnInit {
   }
 
   getArticleCover(article: Article): string {
-    return article.coverUrl?.trim() || article.thumbnailUrl?.trim() || 'image 3.svg';
+    return article.coverUrl?.trim() || article.thumbnailUrl?.trim() || 'image-3.svg';
   }
 
   private buildPreview(html: string | undefined | null): string {
