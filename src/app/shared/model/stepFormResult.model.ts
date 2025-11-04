@@ -11,7 +11,6 @@ export interface StepFormResult {
   startDate: string | null;
   endDate: string | null;
   themeId: number | null;
-  themeIds: number[];
 }
 
 export interface MediaPayload {

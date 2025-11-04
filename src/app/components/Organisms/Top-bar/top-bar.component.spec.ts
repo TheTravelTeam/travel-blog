@@ -12,10 +12,12 @@ import { AuthService } from '@service/auth.service';
 import { SearchService } from '@service/search.service';
 
 const breakpointServiceStub: Partial<BreakpointService> = {
-  isMobile: signal(false),
-  isTablet: signal(false),
-  isMobileOrTablet: signal(false),
-  isDesktop: signal(true),
+  isMobile: signal(false).asReadonly(),
+  isTablet: signal(false).asReadonly(),
+  isDesktop: signal(true).asReadonly(),
+  isMobileOrTablet: signal(false).asReadonly(),
+  isDesktopOrTablet: signal(true).asReadonly(),
+  isLargeScreen: signal(true).asReadonly(),
 };
 
 const authServiceStub: Partial<AuthService> = {

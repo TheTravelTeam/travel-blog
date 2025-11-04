@@ -14,7 +14,6 @@ import {
   OnChanges,
   SimpleChanges,
 } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 
 // Import Leaflet
 import * as L from 'leaflet';
@@ -23,15 +22,12 @@ import * as L from 'leaflet';
 import { StepService } from '@service/step.service';
 
 // Types
-import { NominatimResponse } from '@model/nominatim-reponse.model';
 import { CommonModule } from '@angular/common';
 import { MapConfig, mapConfigDefault } from '@model/map.model';
 import { TravelDiary } from '@model/travel-diary.model';
 import { Step } from '@model/step.model';
 import { User } from '@model/user.model';
-import { CreateDiaryDto } from '@dto/create-diary.dto';
 import { Media } from '@model/media.model';
-import { CreateStepDto } from '@dto/create-step.dto';
 import { AvatarComponent } from 'components/Atoms/avatar/avatar.component';
 import { BreakpointService } from '@service/breakpoint.service';
 import { Router } from '@angular/router';
@@ -65,7 +61,7 @@ export interface MapInitializedEvent {
 export class MapComponent implements AfterViewInit, OnChanges {
   @ViewChild('markerContainer', { read: ViewContainerRef }) markerContainer!: ViewContainerRef;
 
-  constructor(private injector: EnvironmentInjector) {
+  constructor() {
     effect(() => {
       const diaryId = this.state.currentDiaryId();
       if (diaryId && this.map) {
@@ -83,25 +79,20 @@ export class MapComponent implements AfterViewInit, OnChanges {
     });
   }
 
-  private http = inject(HttpClient);
-  private stepService = inject(StepService);
-  private breakpointService = inject(BreakpointService);
-  private router = inject(Router);
+  private readonly stepService = inject(StepService);
+  private readonly breakpointService = inject(BreakpointService);
+  private readonly router = inject(Router);
   private readonly location = inject(Location);
-  public state = inject(TravelMapStateService);
+  readonly state = inject(TravelMapStateService);
   private readonly authService = inject(AuthService);
   private readonly userService = inject(UserService);
+  private readonly environmentInjector = inject(EnvironmentInjector);
 
   private map!: L.Map;
   private diaryMarkersLayer: L.LayerGroup | null = null;
-  public currentDiaryId: number | null = null;
-  public currentUser: User | null = null;
-  public userLoc: L.LatLng | null = null;
-  public isFirstCall = true;
+  private currentDiaryId: number | null = null;
 
   @Input() viewMode: MapConfig['modeView'] = mapConfigDefault['modeView'];
-  @Input() isDiary: MapConfig['isDiary'] = mapConfigDefault['isDiary'];
-  @Input() isStep: MapConfig['isStep'] = mapConfigDefault['isStep'];
   @Input() zoomLevel: MapConfig['zoomLevel'] = mapConfigDefault['zoomLevel'];
   @Input() centerLat: MapConfig['centerLat'] = mapConfigDefault['centerLat'];
   @Input() centerLng: MapConfig['centerLng'] = mapConfigDefault['centerLng'];
@@ -113,11 +104,10 @@ export class MapComponent implements AfterViewInit, OnChanges {
   @Output() stepSelected = new EventEmitter<MapStepSelectedEvent>();
   @Output() renitializedDiaries = new EventEmitter();
 
-  private lastPoint: L.LatLng | null = null;
-  isTabletOrMobile = this.breakpointService.isMobileOrTablet;
-  isMobile = this.breakpointService.isMobile;
+  readonly isTabletOrMobile = this.breakpointService.isMobileOrTablet;
+  readonly isMobile = this.breakpointService.isMobile;
 
-  public currentUserId = computed(() => this.authService.currentUser()?.id ?? null);
+  readonly currentUserId = computed(() => this.authService.currentUser()?.id ?? null);
 
   ngAfterViewInit(): void {
     this.initMap();
@@ -183,125 +173,56 @@ export class MapComponent implements AfterViewInit, OnChanges {
 
     this.diaryMarkersLayer = L.layerGroup().addTo(this.map);
 
-    this.getGeolocalisation();
-    this.map.on('click', (e: L.LeafletMouseEvent) => this.handleCreateOnMapClick(e));
+    this.tryLocateUser();
   }
 
   /**
-   * Gère la géolocalisation
+   * Tente de centrer la carte sur la position de l'utilisateur.
+   * L'échec est silencieux pour éviter d'interrompre l'expérience.
    */
-  private getGeolocalisation() {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          this.userLoc = L.latLng(pos.coords.latitude, pos.coords.longitude);
-
-          const customIcon = L.divIcon({
-            html: `<div class="white-circle"></div>`,
-            className: '',
-            iconSize: [30, 30],
-            iconAnchor: [15, 15],
-          });
-
-          L.marker(this.userLoc, { icon: customIcon })
-            .addTo(this.map)
-            .bindPopup('Vous êtes ici')
-            .openPopup();
-
-          if (this.isFirstCall && !this.currentDiaryId) {
-            this.map.setView(this.userLoc, 10);
-            this.isFirstCall = !this.isFirstCall;
-          }
-        },
-        (error) => console.warn('Géolocalisation refusée', error)
-      );
-    }
-  }
-
-  /**
-   * Gérer les clics sur la carte
-   */
-  private handleCreateOnMapClick(e: L.LeafletMouseEvent): void {
-    const { lat, lng } = e.latlng;
-    const coordStr = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-    const currentUserId = this.currentUserId();
-
-    // Affiche les coordonnées dans un popup
-    L.popup({ closeOnClick: true, autoClose: true })
-      .setLatLng([lat, lng])
-      .setContent(`<b>GPS</b><br>${coordStr}`)
-      .openOn(this.map);
-
-    if (this.viewMode) return;
-
-    if (this.userService.isCurrentUserDisabled()) {
-      console.warn('Création de contenu bloquée : utilisateur désactivé.');
+  private tryLocateUser(): void {
+    if (!navigator.geolocation || !this.map) {
       return;
     }
 
-    if (this.isDiary) {
-      const newDiary: CreateDiaryDto = {
-        title: `Diary ${Date.now()}`,
-        description: 'Diary ajouté depuis la carte',
-        latitude: lat,
-        longitude: lng,
-        media: {
-          fileUrl:
-            'https://www.echosciences-grenoble.fr/uploads/article/image/attachment/1005418938/xl_lens-1209823_1920.jpg',
-          mediaType: 'PHOTO',
-        },
-        user: currentUserId,
-        isPrivate: false,
-        isPublished: true,
-        status: 'DRAFT',
-        canComment: true,
-        steps: [],
-      };
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const userLocation = L.latLng(pos.coords.latitude, pos.coords.longitude);
+        const icon = L.divIcon({
+          html: '<div class="white-circle"></div>',
+          className: '',
+          iconSize: [30, 30],
+          iconAnchor: [15, 15],
+        });
 
-      this.stepService.addDiary(newDiary).subscribe((diary) => {
-        L.marker([lat, lng]).addTo(this.map).bindPopup(diary.title).openPopup();
-        this.currentDiaryId = diary.id;
-        this.loadStepsForCurrentDiary();
-        this.isStep = true;
-        this.isDiary = false;
-      });
-    }
-
-    if (this.isStep && this.currentDiaryId) {
-      if (this.lastPoint) {
-        const newLatLng = L.latLng(lat, lng);
-        L.polyline([this.lastPoint, newLatLng], {
-          color: 'white',
-          weight: 2,
-          dashArray: '6,10',
-          opacity: 0.9,
-        }).addTo(this.map);
-        this.lastPoint = newLatLng;
-      } else {
-        this.lastPoint = L.latLng(lat, lng);
+        L.marker(userLocation, { icon }).addTo(this.map!).bindPopup('Vous êtes ici');
+        this.map!.flyTo(userLocation, 10, { animate: true, duration: 1.5 });
+      },
+      () => {
+        /* ignore permission refusals */
       }
-
-      this.addMarker(lat, lng);
-      this.fetchAddress(lat, lng);
-      this.saveStep(lat, lng);
-    }
+    );
   }
 
   /**
    * Charger tous les diaries avec leurs marker
    */
   private loadAllDiaries(): void {
-    this.stepService.getAllDiaries().subscribe((diaries) => {
-      const source = Array.isArray(diaries) ? diaries : [];
-      const accessibleDiaries = source.filter((diary) =>
-        this.state.isDiaryAccessible(diary, {
-          viewerId: this.currentUserId(),
-          viewerIsAdmin: this.userService.isCurrentUserAdmin(),
-        })
-      );
+    this.stepService.getAllDiaries().pipe(take(1)).subscribe({
+      next: (diaries) => {
+        const accessibleDiaries = (diaries ?? []).filter((diary) =>
+          this.state.isDiaryAccessible(diary, {
+            viewerId: this.currentUserId(),
+            viewerIsAdmin: this.userService.isCurrentUserAdmin(),
+          })
+        );
 
-      this.state.setAllDiaries(accessibleDiaries);
-      this.mapInitialized.emit({ diaries: accessibleDiaries });
+        this.state.setAllDiaries(accessibleDiaries);
+        this.state.setVisibleDiaries(accessibleDiaries);
+        this.renderDiaryMarkers(accessibleDiaries);
+        this.mapInitialized.emit({ diaries: accessibleDiaries });
+      },
+      error: () => this.handleDiaryLoadFailure(),
     });
   }
 
@@ -337,13 +258,8 @@ export class MapComponent implements AfterViewInit, OnChanges {
       marker.on('click', () => {
         this.currentDiaryId = diary.id;
         this.state.setCurrentDiaryId(diary.id);
-        layer.clearLayers();
-        this.map.eachLayer((layer) => {
-          if (layer instanceof L.Polyline || layer instanceof L.Marker) {
-            this.map.removeLayer(layer);
-          }
-        });
         this.router.navigate(['/travels', diary.id]).catch(() => undefined);
+        this.loadStepsForCurrentDiary();
       });
     });
   }
@@ -368,16 +284,16 @@ export class MapComponent implements AfterViewInit, OnChanges {
               viewerIsAdmin: this.userService.isCurrentUserAdmin(),
             })
           ) {
-            console.warn('Diary access denied: diary or owner disabled.', diaryId);
+
             this.handleDiaryAccessDenied();
             return;
           }
 
+          this.diaryMarkersLayer?.clearLayers();
           this.clearMapLayers();
 
           const steps: Step[] = Array.isArray(diary.steps) ? diary.steps : [];
-          const currentUser = this.resolveDiaryOwner(diary);
-          const authorLabel = this.resolveDiaryAuthorName(diary, currentUser);
+          const authorLabel = this.getDiaryAuthorLabel(diary);
 
           this.diarySelected.emit({ diary, steps });
 
@@ -387,7 +303,6 @@ export class MapComponent implements AfterViewInit, OnChanges {
               step.latitude,
               step.longitude,
               medias,
-              currentUser,
               authorLabel,
               step,
               index
@@ -400,20 +315,9 @@ export class MapComponent implements AfterViewInit, OnChanges {
 
           const latlngs = steps.map((s) => L.latLng(s.latitude, s.longitude));
 
-          if (this.isTabletOrMobile()) {
-            const zoom = this.map.getZoom();
-            const point = this.map.project([steps[0].latitude, steps[0].longitude], zoom);
-
-            // Décalage vers le haut (en pixels). 150px est un bon point de départ
-            const offsetPoint = L.point(point.x, point.y + 250);
-            const offsetLatLng = this.map.unproject(offsetPoint, zoom);
-
-            this.map.flyTo(offsetLatLng, zoom, {
-              animate: true,
-              duration: 1.5,
-            });
-          } else {
-            this.map.flyTo([steps[0].latitude, steps[0].longitude], 10, {
+          const [firstStep] = steps;
+          if (firstStep && this.map) {
+            this.map.flyTo([firstStep.latitude, firstStep.longitude], 10, {
               animate: true,
               duration: 1.5,
             });
@@ -424,21 +328,11 @@ export class MapComponent implements AfterViewInit, OnChanges {
             weight: 4,
             opacity: 0.8,
           }).addTo(this.map);
-
-          this.lastPoint = latlngs[latlngs.length - 1];
         },
-        error: (error) => {
-          console.error('Failed to load diary, returning to overview.', error);
+        error: () => {
           this.handleDiaryLoadFailure();
         },
       });
-  }
-
-  /**
-   * Ajouter marker -- fonction par défaut
-   */
-  private addMarker(lat: number, lng: number): void {
-    L.marker([lat, lng]).addTo(this.map);
   }
 
   /**
@@ -448,7 +342,6 @@ export class MapComponent implements AfterViewInit, OnChanges {
     lat: number,
     lng: number,
     medias: Media[],
-    _owner: User | null,
     authorLabel: string,
     step?: Step,
     stepIndex?: number
@@ -459,7 +352,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
     const compRef: ComponentRef<AvatarComponent> = this.markerContainer.createComponent(
       AvatarComponent,
       {
-        environmentInjector: this.injector,
+        environmentInjector: this.environmentInjector,
       }
     );
 
@@ -494,7 +387,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
   }
 
   /** Retourne l'objet utilisateur lorsqu'il est présent dans la payload du carnet. */
-  private resolveDiaryOwner(diary: TravelDiary): User | null {
+  private getDiaryOwner(diary: TravelDiary): User | null {
     const owner = diary.user;
     if (typeof owner === 'object' && owner !== null) {
       return owner;
@@ -507,7 +400,8 @@ export class MapComponent implements AfterViewInit, OnChanges {
    * Cherche d'abord le pseudo de l'objet utilisateur, puis un champ `author` embarqué,
    * et finit sur un libellé générique.
    */
-  private resolveDiaryAuthorName(diary: TravelDiary, owner: User | null): string {
+  private getDiaryAuthorLabel(diary: TravelDiary): string {
+    const owner = this.getDiaryOwner(diary);
     const pseudo = owner?.pseudo?.trim();
     if (pseudo) {
       return pseudo;
@@ -522,64 +416,37 @@ export class MapComponent implements AfterViewInit, OnChanges {
   }
 
   /**
-   * Chercher adresse et retourne l'adresse du clique
-   */
-  private fetchAddress(lat: number, lng: number): void {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`;
-    this.http.get<NominatimResponse>(url).subscribe((data) => {
-      const address = data.display_name || 'Adresse non trouvée';
-      L.popup().setLatLng([lat, lng]).setContent(address).openOn(this.map);
-    });
-  }
-
-  /**
-   * Sauver step
-   */
-  /**
-   * Persists a quick step generated from the map directly.
-   * @param lat Latitude clicked by the user.
-   * @param lng Longitude clicked by the user.
-   */
-  private saveStep(lat: number, lng: number): void {
-    if (this.userService.isCurrentUserDisabled()) {
-      console.warn('Création de contenu bloquée : utilisateur désactivé.');
-      return;
-    }
-
-    const newStep: CreateStepDto = {
-      title: `Step ${Date.now()}`,
-      description: 'Ajouté depuis carte',
-      latitude: lat,
-      longitude: lng,
-      travelDiaryId: this.currentDiaryId!,
-      status: 'IN_PROGRESS',
-      themeIds: [],
-    };
-
-    this.stepService.addStepToTravel(this.currentDiaryId!, newStep).subscribe({
-      next: (createdStep) => {
-        console.info('✅ Step sauvegardé', createdStep);
-        this.loadStepsForCurrentDiary();
-      },
-      error: (err) => {
-        console.error('❌ Impossible de sauvegarder le step', err);
-      },
-    });
-  }
-
-  /**
-   * Retour sur les journaux
+   * Retourne sur la vue générale des carnets.
+   * Les options sont conservées pour compatibilité avec les appels existants.
    */
   public backToDiaries(options?: {
     skipNavigation?: boolean;
     skipStateReset?: boolean;
     skipGlobalReload?: boolean;
   }): void {
+    if (!this.map) {
+      return;
+    }
+
     const skipNavigation = options?.skipNavigation ?? false;
     const skipStateReset = options?.skipStateReset ?? false;
     const skipGlobalReload = options?.skipGlobalReload ?? false;
 
-    this.resetMapToDiaryOverview({ skipGlobalReload });
+    this.currentDiaryId = null;
+    this.viewMode = true;
+
+    this.diaryMarkersLayer?.clearLayers();
+    this.clearMapLayers();
+
+    const visibleDiaries = this.state.visibleDiaries();
+    if (visibleDiaries.length) {
+      this.renderDiaryMarkers(visibleDiaries);
+      this.mapInitialized.emit({ diaries: visibleDiaries });
+    } else if (!skipGlobalReload) {
+      this.loadAllDiaries();
+    }
+
+    this.tryLocateUser();
 
     if (!skipStateReset) {
       this.renitializedDiaries.emit();
@@ -602,70 +469,22 @@ export class MapComponent implements AfterViewInit, OnChanges {
    * Clean tous les marqueurs et tous les tracés
    */
   private clearMapLayers(): void {
+    if (!this.map) {
+      return;
+    }
+
     this.map.eachLayer((layer) => {
       if (layer instanceof L.Marker || layer instanceof L.Polyline) {
         this.map.removeLayer(layer);
       }
     });
-
-    L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      { attribution: 'Tiles © Esri' }
-    ).addTo(this.map);
   }
 
-  private resetMapToDiaryOverview(options?: { skipGlobalReload?: boolean }): void {
-    const skipGlobalReload = options?.skipGlobalReload ?? false;
-
-    if (!this.map) {
-      return;
-    }
-
-    this.diaryMarkersLayer?.clearLayers();
-    this.clearMapLayers();
-    this.viewMode = true;
-    this.currentDiaryId = null;
-    this.lastPoint = null;
-
-    const diaries = this.state.visibleDiaries();
-    if (Array.isArray(diaries) && diaries.length) {
-      this.renderDiaryMarkers(diaries);
-      this.mapInitialized.emit({ diaries });
-    } else if (!skipGlobalReload) {
-      this.loadAllDiaries();
-    }
-
-    if (navigator.geolocation) {
-      this.getGeolocalisation();
-      if (this.userLoc) {
-        this.map.flyTo(this.userLoc, 10, {
-          animate: true,
-          duration: 1.5,
-        });
-      }
-    } else {
-      this.map.flyTo([48.86, 2.333], 10, {
-        animate: true,
-        duration: 1.5,
-      });
-    }
-  }
-
-  /** Navigates back to the overview when a diary cannot be displayed. */
   private handleDiaryAccessDenied(): void {
-    this.navigateBackToDiaryOverview();
+    this.backToDiaries({ skipNavigation: true, skipStateReset: true });
   }
 
-  /** Resets the view after an unexpected diary loading failure. */
   private handleDiaryLoadFailure(): void {
-    this.navigateBackToDiaryOverview();
-  }
-
-  /** Clears the current diary context and navigates back to the map overview. */
-  private navigateBackToDiaryOverview(): void {
-    this.state.clearCurrentDiarySelection({ preserveVisibleDiaries: true });
-    this.state.panelHeight.set('collapsed');
-    this.currentDiaryId = null;
-    this.backToDiaries({ skipStateReset: true, skipGlobalReload: true });
+    this.backToDiaries({ skipNavigation: true, skipStateReset: true });
   }
 }

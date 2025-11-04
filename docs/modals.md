@@ -1,6 +1,7 @@
 # Modale de création / édition de carnet
 
 Composant: `src/app/components/Organisms/create-diary-modal/create-diary-modal.component.*`
+Types partagés: `src/app/components/Organisms/create-diary-modal/create-diary-modal.types.ts`
 
 ## Inputs
 - `isMobile: boolean`
@@ -32,4 +33,3 @@ Composant: `src/app/components/Organisms/create-diary-modal/create-diary-modal.c
 - `title`, `city`, `country`, `continent`.
 - `startDate`, `endDate`.
 - `themeId`, `latitude`, `longitude`, `mediaUrl`.
-

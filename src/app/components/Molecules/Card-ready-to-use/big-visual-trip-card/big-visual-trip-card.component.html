@@ -13,9 +13,9 @@
     </div>
   </app-card-header>
   <app-card-body>
-    <app-card [customClass]="'margin'" width="100%" height="350px" radius="lg"
-      ><img [src]="image"
-    /></app-card>
+    <app-card [customClass]="'margin'" width="100%" height="350px" radius="lg">
+      <img [src]="image" [alt]="title || 'Illustration de destination'" />
+    </app-card>
     <p>{{ description }}</p>
   </app-card-body>
   <app-card-footer><a>Lire la suite</a></app-card-footer>
