@@ -4,40 +4,40 @@
       <div class="footer__socials__logo">
         <app-logo src="/icon/logo.svg" alt="logo" size="xl"></app-logo>
         <div class="footer__socials">
-          <app-logo logoName="x" [color]="colorSignal()" [isSvg]="true" size="sm"></app-logo>
+          <app-logo logoName="x" [color]="linkColor" [isSvg]="true" size="sm"></app-logo>
           <app-logo
             logoName="instagram"
-            [color]="colorSignal()"
+            [color]="linkColor"
             [isSvg]="true"
             size="sm"
           ></app-logo>
-          <app-logo logoName="youtube" [color]="colorSignal()" [isSvg]="true" size="sm"></app-logo>
-          <app-logo logoName="linkedin" [color]="colorSignal()" [isSvg]="true" size="sm"></app-logo>
+          <app-logo logoName="youtube" [color]="linkColor" [isSvg]="true" size="sm"></app-logo>
+          <app-logo logoName="linkedin" [color]="linkColor" [isSvg]="true" size="sm"></app-logo>
         </div>
       </div>
     </div>
 
     <div class="footer__column footer__section">
       <h3>Travel</h3>
-      <app-link label="MappeMonde" route="/" [color]="colorSignal()"></app-link>
-      <app-link label="Vos carnets de voyages" route="/" [color]="colorSignal()"></app-link>
-      <app-link label="UI design" route="/" icon="none" [color]="colorSignal()"></app-link>
-      <app-link label="UI design" route="/" [color]="colorSignal()"></app-link>
+      <app-link label="MappeMonde" route="/" [color]="linkColor"></app-link>
+      <app-link label="Vos carnets de voyages" route="/" [color]="linkColor"></app-link>
+      <app-link label="UI design" route="/" icon="none" [color]="linkColor"></app-link>
+      <app-link label="UI design" route="/" [color]="linkColor"></app-link>
     </div>
 
     <div class="footer__column footer__section">
       <h3>Explore</h3>
-      <app-link label="Articles" route="/articles" [color]="colorSignal()"></app-link>
-      <app-link label="Nos meilleurs destinations" route="/" [color]="colorSignal()"></app-link>
-      <app-link label="Découvrir un pays" route="/" [color]="colorSignal()"> </app-link>
-      <app-link label="UI design" route="/" [color]="colorSignal()"> </app-link>
+      <app-link label="Articles" route="/articles" [color]="linkColor"></app-link>
+      <app-link label="Nos meilleurs destinations" route="/" [color]="linkColor"></app-link>
+      <app-link label="Découvrir un pays" route="/" [color]="linkColor"> </app-link>
+      <app-link label="UI design" route="/" [color]="linkColor"> </app-link>
     </div>
 
     <div class="footer__column footer__section">
       <h3>Resources</h3>
-      <app-link label="Nous contacter" route="/" [color]="colorSignal()"></app-link>
-      <app-link label="Votre compte" route="/" [color]="colorSignal()"> </app-link>
-      <app-link label="Support" route="/" [color]="colorSignal()"></app-link>
+      <app-link label="Nous contacter" route="/" [color]="linkColor"></app-link>
+      <app-link label="Votre compte" route="/" [color]="linkColor"> </app-link>
+      <app-link label="Support" route="/" [color]="linkColor"></app-link>
     </div>
   </div>
 </footer>

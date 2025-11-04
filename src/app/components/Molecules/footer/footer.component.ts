@@ -1,5 +1,5 @@
 import { BreakpointService } from '@service/breakpoint.service';
-import { Component, computed, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { LogoComponent } from 'components/Atoms/logo/logo.component';
 import { LinkComponent } from 'components/Atoms/Link/link/link.component';
 import { CommonModule } from '@angular/common';
@@ -13,7 +13,11 @@ import { CommonModule } from '@angular/common';
 export class FooterComponent {
   private breakpointService = inject(BreakpointService);
 
-  public isMobile = this.breakpointService.isMobile();
+  get isMobile(): boolean {
+    return this.breakpointService.isMobile();
+  }
 
-  colorSignal = computed(() => (this.breakpointService.isMobile() ? 'white' : 'primary'));
+  get linkColor(): 'white' | 'primary' {
+    return this.breakpointService.isMobile() ? 'white' : 'primary';
+  }
 }

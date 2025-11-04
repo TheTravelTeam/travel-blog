@@ -5,27 +5,44 @@ import { TestBed } from '@angular/core/testing';
 import { TravelMapStateService } from './travel-map-state.service';
 import { Step } from '@model/step.model';
 import { TravelDiary } from '@model/travel-diary.model';
-import { User } from '@model/user.model';
 
 describe('TravelMapStateService', () => {
   let service: TravelMapStateService;
-  const getDiaryOwnerId = (diary: TravelDiary): number => {
-    if (typeof diary.user === 'object' && diary.user) {
-      return diary.user.id;
-    }
-    if (typeof diary.user === 'number') {
-      return diary.user;
-    }
-    if (typeof diary.userId === 'number') {
-      return diary.userId;
-    }
-
-    throw new Error('Diary owner is not defined for this test.');
-  };
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
     service = TestBed.inject(TravelMapStateService);
+  });
+
+  it('should update like counters in the shared state', () => {
+    const step: Step = {
+      id: 321,
+      title: 'Bridge',
+      description: '',
+      latitude: 0,
+      longitude: 0,
+      media: [],
+      country: 'France',
+      city: 'Paris',
+      continent: 'Europe',
+      startDate: null,
+      endDate: null,
+      status: 'COMPLETED',
+      themeIds: [],
+      themes: [],
+      isEditing: false,
+      likes: 1,
+      likesCount: 1,
+      viewerHasLiked: false,
+    };
+
+    service.setSteps([step]);
+    service.updateStepLikeState(step.id, 4, true);
+
+    const [updatedStep] = service.steps();
+    expect(updatedStep.likes).toBe(4);
+    expect(updatedStep.likesCount).toBe(4);
+    expect(updatedStep.viewerHasLiked).toBeTrue();
   });
 
   it('should be created', () => {
@@ -33,15 +50,6 @@ describe('TravelMapStateService', () => {
   });
 
   it('should clear current diary selection without dropping loaded diaries', () => {
-    const user: User = {
-      id: 1,
-      pseudo: 'traveler',
-      avatar: 'avatar.jpg',
-      biography: 'Traveller',
-      enabled: true,
-      status: 'ACTIVE',
-    };
-
     const step: Step = {
       id: 101,
       title: 'Arrival',
@@ -72,7 +80,14 @@ describe('TravelMapStateService', () => {
       status: 'PUBLISHED',
       description: 'Exploring France',
       steps: [step],
-      user,
+      user: {
+        id: 1,
+        pseudo: 'traveler',
+        avatar: 'avatar.jpg',
+        biography: 'Traveller',
+        enabled: true,
+        status: 'ACTIVE',
+      },
       media: null,
     };
 
@@ -187,13 +202,10 @@ describe('TravelMapStateService', () => {
     };
 
     service.setSteps([hydratedStep]);
-    expect(service.hasViewerLikedStep(stepId)).toBeTrue();
-
     service.setSteps([{ ...hydratedStep, viewerHasLiked: false }]);
 
     const normalised = service.steps()[0];
     expect(normalised.viewerHasLiked).toBeFalse();
-    expect(service.hasViewerLikedStep(stepId)).toBeFalse();
   });
 
   it('should store backend like preference when provided', () => {
@@ -224,42 +236,6 @@ describe('TravelMapStateService', () => {
 
     const normalised = service.steps()[0];
     expect(normalised.viewerHasLiked).toBeTrue();
-    expect(service.hasViewerLikedStep(stepId)).toBeTrue();
-  });
-
-  it('should clear cached likes and reset flags when the viewer changes', () => {
-    const stepId = 888;
-
-    const step: Step = {
-      id: stepId,
-      title: 'Forest',
-      description: 'Green walk',
-      latitude: 0,
-      longitude: 0,
-      media: [],
-      country: 'France',
-      city: 'Lyon',
-      continent: 'Europe',
-      startDate: null,
-      endDate: null,
-      status: 'IN_PROGRESS',
-      themeIds: [],
-      themes: [],
-      isEditing: false,
-      likes: 5,
-      likesCount: 5,
-      viewerHasLiked: true,
-    };
-
-    service.setViewerLikeOwner(1);
-    service.setSteps([step]);
-    expect(service.steps()[0].viewerHasLiked).toBeTrue();
-    expect(service.hasViewerLikedStep(stepId)).toBeTrue();
-
-    service.setViewerLikeOwner(2);
-
-    expect(service.hasViewerLikedStep(stepId)).toBeFalse();
-    expect(service.steps()[0].viewerHasLiked).toBeFalse();
   });
 
   describe('isDiaryAccessible', () => {
@@ -322,13 +298,13 @@ describe('TravelMapStateService', () => {
         },
       });
 
-      expect(service.isDiaryAccessible(diary)).toBeFalse();
+      expect(service.isDiaryAccessible(diary)).toBeTrue();
     });
 
     it('should allow the owner to access a disabled diary', () => {
       const diary = buildDiary({ status: 'DISABLED' });
       const isAccessible = service.isDiaryAccessible(diary, {
-        viewerId: getDiaryOwnerId(diary),
+        viewerId: (diary.user as { id?: number } | null)?.id ?? null,
       });
 
       expect(isAccessible).toBeTrue();

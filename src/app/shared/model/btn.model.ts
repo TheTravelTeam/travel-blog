@@ -13,6 +13,7 @@ export const btnDefault: Btn = {
   isActionBtn: false,
   icon: 'add',
   htmlType: 'submit',
+  ariaLabel: '',
 };
 
 export interface Btn {
@@ -27,4 +28,5 @@ export interface Btn {
   isActionBtn: boolean;
   icon: IconName;
   htmlType?: 'button' | 'submit' | 'reset';
+  ariaLabel?: string;
 }

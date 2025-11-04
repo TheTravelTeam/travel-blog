@@ -5,11 +5,13 @@ import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 
 import { authInterceptor } from './auth.interceptor';
+import { environment } from '../../../environments/environment';
 
 describe('authInterceptor', () => {
   let next: jasmine.Spy;
 
   beforeEach(() => {
+    environment.useCredentials = true;
     next = jasmine.createSpy('next').and.callFake((request: HttpRequest<unknown>) => of(request));
   });
 
@@ -30,7 +32,7 @@ describe('authInterceptor', () => {
   });
 
   it('should enable credentials for application API calls', () => {
-    const request = new HttpRequest('GET', '/api/protected');
+    const request = new HttpRequest('GET', `${environment.apiUrl}/protected`);
 
     TestBed.runInInjectionContext(() => {
       authInterceptor(request, next).subscribe();

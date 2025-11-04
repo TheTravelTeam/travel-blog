@@ -214,18 +214,25 @@
                                   [isActionBtn]="true"
                                   icon="edit"
                                   color="secondary"
+                                  [ariaLabel]="'Ouvrir le carnet ' + (diary.title ?? '')"
                                   (btnClick)="openDiary(diary.id)"
                                 ></app-button>
                                 <app-button
                                   [isActionBtn]="true"
                                   [icon]="diary.private ? 'visibility' : 'visibility_off'"
                                   color="danger"
+                                  [ariaLabel]="
+                                    diary.private
+                                      ? 'Rendre le carnet public ' + (diary.title ?? '')
+                                      : 'Rendre le carnet privé ' + (diary.title ?? '')
+                                  "
                                   (btnClick)="toggleDiaryPrivacy(diary.id)"
                                 ></app-button>
                                 <app-button
                                   [isActionBtn]="true"
                                   icon="delete"
                                   color="danger"
+                                  [ariaLabel]="'Supprimer le carnet ' + (diary.title ?? '')"
                                   (btnClick)="deleteDiary(diary.id)"
                                 ></app-button>
                               } @else {

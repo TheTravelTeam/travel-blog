@@ -25,7 +25,7 @@
         <app-icon name="search" color="primary" size="xl"></app-icon>
         <h1 class="worldMap__detail-panel__header--title">Lieux à explorer</h1>
         <div class="iconContainer arrow">
-          <img src="icon/arrow_down.svg" />
+          <img src="icon/arrow_down.svg" alt="Flèche indiquant l'ouverture du panneau" />
         </div>
       </div>
     }
@@ -139,7 +139,7 @@
               @for (option of countryOptions(); track option.value) {
                 <app-checkbox
                   [checkboxName]="buildCheckboxId('countries', option.value)"
-                  [label]="formatFilterLabel(option)"
+                  [label]="option.count ? option.label + ' (' + option.count + ')' : option.label"
                   [checked]="isFilterSelected('countries', option.value)"
                   (checkedChange)="onFilterChecked('countries', option.value, $event)"
                 ></app-checkbox>
@@ -155,7 +155,7 @@
               @for (option of continentOptions(); track option.value) {
                 <app-checkbox
                   [checkboxName]="buildCheckboxId('continents', option.value)"
-                  [label]="formatFilterLabel(option)"
+                  [label]="option.count ? option.label + ' (' + option.count + ')' : option.label"
                   [checked]="isFilterSelected('continents', option.value)"
                   (checkedChange)="onFilterChecked('continents', option.value, $event)"
                 ></app-checkbox>
@@ -171,7 +171,7 @@
               @for (option of durationOptions(); track option.value) {
                 <app-checkbox
                   [checkboxName]="buildCheckboxId('durations', option.value)"
-                  [label]="formatFilterLabel(option)"
+                  [label]="option.count ? option.label + ' (' + option.count + ')' : option.label"
                   [checked]="isFilterSelected('durations', option.value)"
                   (checkedChange)="onFilterChecked('durations', option.value, $event)"
                 ></app-checkbox>
@@ -181,13 +181,13 @@
             }
           </div>
         </app-accordion>
-        <app-accordion [isFilter]="true" title="Themes">
+        <app-accordion [isFilter]="true" title="Thèmes">
           <div class="filter__container">
             @if (themeOptions().length) {
               @for (option of themeOptions(); track option.value) {
                 <app-checkbox
                   [checkboxName]="buildCheckboxId('themes', option.value)"
-                  [label]="formatFilterLabel(option)"
+                  [label]="option.count ? option.label + ' (' + option.count + ')' : option.label"
                   [checked]="isFilterSelected('themes', option.value)"
                   (checkedChange)="onFilterChecked('themes', option.value, $event)"
                 ></app-checkbox>
