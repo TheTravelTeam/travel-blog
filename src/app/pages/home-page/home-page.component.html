@@ -5,11 +5,11 @@
   }"
 >
   <div class="imageContainer">
-    <img src="Images/paysage.jpg" />
+    <img src="Images/paysage.jpg" alt="Paysage illustrant les carnets de voyage Travelblog" />
   </div>
   @if (!breakpoint.isMobile()) {
     <div class="iconContainer arrow">
-      <img src="Images/arrow_secondary.svg" />
+      <img src="Images/arrow_secondary.svg" alt="Flèche décorative pointant vers le contenu" />
     </div>
   }
   <div [ngClass]="{ 'mobile-header': breakpoint.isMobile() }">
@@ -52,7 +52,10 @@
       <h2 class="subtitle-card">Découvrez votre future destination</h2>
       <div class="arrowWithIcon">
         <div class="iconContainer">
-          <img src="Images/arrow_secondary.svg" />
+          <img
+            src="Images/arrow_secondary.svg"
+            alt="Flèche décorative soulignant la section destinations"
+          />
         </div>
         <app-icon class="absolute" name="travel" color="secondary" size="xl"></app-icon>
       </div>
@@ -61,7 +64,10 @@
       <h2 class="subtitle-card">Découvrez plus de destinations</h2>
       <div class="arrowWithIcon mobile">
         <div class="iconContainer">
-          <img src="Images/arrow_secondary_short.svg" />
+          <img
+            src="Images/arrow_secondary_short.svg"
+            alt="Flèche décorative pour la navigation mobile"
+          />
         </div>
         <app-icon class="absolute" name="travel" color="secondary" size="xl"></app-icon>
       </div>
@@ -104,7 +110,7 @@
     <h2>Lieux à explorer</h2>
     <div class="arrowWithIcon">
       <div class="iconContainer">
-        <img src="Images/arrow_primary.svg" />
+        <img src="Images/arrow_primary.svg" alt="Flèche indiquant la sélection de lieux à explorer" />
       </div>
       <app-icon class="absolute" name="explore" color="primary" size="xl"></app-icon>
     </div>
@@ -125,7 +131,7 @@
             [isClickable]="true"
             (cardClick)="openArticle(article.slug)"
           >
-            <img [src]="article.image" />
+            <img [src]="article.image" [alt]="article.title" />
             <app-chip
               customClass="article-chip"
               [children]="article.title"

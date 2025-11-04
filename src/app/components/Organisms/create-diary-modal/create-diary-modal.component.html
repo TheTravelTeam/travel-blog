@@ -1,17 +1,29 @@
-<div class="create-diary-modal" [class.create-diary-modal--mobile]="isMobile" data-test="create-diary-modal">
+<div
+  class="create-diary-modal"
+  [class.create-diary-modal--mobile]="isMobile"
+  data-test="create-diary-modal"
+>
   <div class="create-diary-modal__panel">
     <div class="create-diary-modal__header">
       <div>
         <h2>
           @if (stage === 'diary') {
-            Créer un carnet
+            @if (mode === 'edit') {
+              Modifier le carnet
+            } @else {
+              Créer un carnet
+            }
           } @else {
             Ajouter votre première étape
           }
         </h2>
         <p>
           @if (stage === 'diary') {
-            Saisissez les informations principales de votre voyage.
+            @if (mode === 'edit') {
+              Mettez à jour les informations principales de votre voyage.
+            } @else {
+              Saisissez les informations principales de votre voyage.
+            }
           } @else {
             @let diaryTitle = diaryForm.get('title')?.value;
             @if (diaryTitle) {
@@ -81,26 +93,20 @@
             ></app-text-input>
 
             <div class="create-diary-modal__upload">
-              <input
-                #coverFileInput
-                type="file"
-                accept="image/*"
-                (change)="onCoverFileSelected($event)"
-                hidden
-              />
-              <app-button
-                text="Importer une image"
-                color="secondary"
-                size="auto"
-                radius="border_lg"
-                htmlType="button"
-                [isDisabled]="isCoverUploading || isSubmitting"
-                (btnClick)="coverFileInput.click()"
-                data-test="create-diary-cover-upload"
-              ></app-button>
+              <app-media-grid-uploader
+                #coverUploader
+                class="create-diary-modal__cover-uploader"
+                [items]="coverItems"
+                [folder]="coverUploadFolder"
+                [maxItems]="1"
+                [autoUpload]="false"
+                (itemsChange)="onCoverItemsChange($event)"
+                (primaryChange)="onCoverPrimaryChange($event)"
+                (uploadingChange)="onCoverUploadStateChange($event)"
+                data-test="create-diary-cover-uploader"
+              ></app-media-grid-uploader>
               <p class="create-diary-modal__upload-hint">
-                Choisissez un fichier pour téléverser via Cloudinary. L'URL est mise à jour
-                automatiquement.
+                Ajoutez une image (JPEG/PNG). Elle sera téléversée lors de la validation finale.
               </p>
               @if (isCoverUploading) {
                 <p class="create-diary-modal__upload-status">Téléversement en cours…</p>
@@ -122,14 +128,19 @@
                   Carnet {{ diaryForm.get('isPrivate')?.value ? 'privé' : 'public' }}
                 </span>
                 <span class="create-diary-modal__option-hint">
-                  Appuyez pour {{ diaryForm.get('isPrivate')?.value ? 'le rendre public' : 'le rendre privé' }}.
+                  Appuyez pour
+                  {{ diaryForm.get('isPrivate')?.value ? 'le rendre public' : 'le rendre privé' }}.
                 </span>
               </span>
             </label>
             <label class="create-diary-modal__option" data-test="create-diary-comments">
               <input type="checkbox" formControlName="canComment" />
               <span class="create-diary-modal__option-icon">
-                <app-icon [name]="diaryForm.get('canComment')?.value ? 'chat_bubble' : 'chat_bubble_outline'"></app-icon>
+                <app-icon
+                  [name]="
+                    diaryForm.get('canComment')?.value ? 'chat_bubble' : 'chat_bubble_outline'
+                  "
+                ></app-icon>
               </span>
               <span class="create-diary-modal__option-content">
                 <span class="create-diary-modal__option-title">
@@ -188,209 +199,14 @@
     }
 
     @if (stage === 'step' && mode !== 'edit') {
-      <form
-        class="create-diary-modal__form"
-        [formGroup]="stepForm"
-        (ngSubmit)="handleStepSubmit()"
+      <app-create-step-form
+        [availableThemes]="availableThemes"
+        [isSubmitting]="isSubmitting"
+        [errorMessage]="errorMessage"
+        (submitStep)="handleStepFormSubmit($event)"
+        (cancel)="handleStepFormCancel()"
         data-test="create-first-step-form"
-      >
-        <section class="create-diary-modal__section">
-          <h3>Première étape</h3>
-          <div class="create-diary-modal__grid create-diary-modal__grid--step-primary">
-            <app-text-input
-              formControlName="title"
-              label="Nom de l'étape"
-              placeholder="Nom de l'étape"
-              [isRequired]="true"
-              [errorMessage]="getStepControlError('title')"
-              data-test="create-step-title"
-            ></app-text-input>
-
-            <app-text-input
-              formControlName="startDate"
-              label="Début de l'étape"
-              placeholder="Date et heure"
-              type="date"
-              [isRequired]="true"
-              [errorMessage]="getStepControlError('startDate')"
-              data-test="create-step-start"
-            ></app-text-input>
-
-            <app-text-input
-              formControlName="endDate"
-              label="Fin de l'étape"
-              placeholder="Date et heure"
-              type="date"
-              [isRequired]="true"
-              [errorMessage]="getStepControlError('endDate')"
-              data-test="create-step-end"
-            ></app-text-input>
-          </div>
-
-          <div class="create-diary-modal__grid create-diary-modal__grid--step-location">
-            <app-text-input
-              formControlName="city"
-              label="Ville"
-              placeholder="Ville"
-              [isDisabled]="true"
-              data-test="create-step-city"
-            ></app-text-input>
-            <app-text-input
-              formControlName="country"
-              label="Pays"
-              placeholder="Pays"
-              [isDisabled]="true"
-              data-test="create-step-country"
-            ></app-text-input>
-            <app-text-input
-              formControlName="continent"
-              label="Continent"
-              placeholder="Continent"
-              [isDisabled]="true"
-              data-test="create-step-continent"
-            ></app-text-input>
-          </div>
-
-          <div class="create-diary-modal__grid create-diary-modal__grid--step-meta">
-            <div class="create-diary-modal__card create-diary-modal__card--inline create-diary-modal__card--location">
-              <div class="create-diary-modal__card-header">
-                <app-icon name="location_on"></app-icon>
-                <div>
-                  <p class="create-diary-modal__card-title">Localisation</p>
-                  <p class="create-diary-modal__card-subtitle">
-                    Sélectionnez le lieu de cette étape directement sur la carte.
-                  </p>
-                </div>
-              </div>
-
-            <div class="create-diary-modal__location-actions">
-              <app-button
-                text="Choisir sur la carte"
-                color="secondary"
-                  size="auto"
-                  radius="border_lg"
-                  htmlType="button"
-                  (btnClick)="openStepLocationModal()"
-                  data-test="create-step-location"
-                ></app-button>
-                <span class="create-diary-modal__location-summary">{{
-                  stepLocationSummary || stepSelectedCoordinatesSummary
-                }}</span>
-              </div>
-              @if (isStepGeocoding) {
-                <p class="create-diary-modal__location-status">Recherche de l'adresse…</p>
-              }
-              @if (stepGeocodingError) {
-                <p class="create-diary-modal__location-error">{{ stepGeocodingError }}</p>
-              }
-              @if (stepShowLocationRequiredMessage) {
-                <p class="create-diary-modal__location-error">
-                  Sélectionnez un point sur la carte pour continuer.
-                </p>
-              }
-              <input type="hidden" formControlName="latitude" />
-              <input type="hidden" formControlName="longitude" />
-            </div>
-
-            <div class="create-diary-modal__card create-diary-modal__card--inline create-diary-modal__card--theme">
-              <div class="create-diary-modal__card-header">
-                <app-icon name="style"></app-icon>
-                <div>
-                  <p class="create-diary-modal__card-title">Thèmes</p>
-                  <p class="create-diary-modal__card-subtitle">
-                    Associez une ambiance à cette escale.
-                  </p>
-                </div>
-              </div>
-              <app-select
-                class="create-diary-modal__theme-select"
-                [itemsList]="availableThemes"
-                label=""
-                placeholder="Choisissez un thème"
-                [withMutipleSelect]="true"
-                [selectedIds]="stepForm.get('themeIds')?.value ?? []"
-                [disabled]="availableThemes.length === 0"
-                (selectOnChange)="onThemeChange($event)"
-                data-test="create-step-themes"
-              ></app-select>
-            </div>
-          </div>
-
-          <div class="create-diary-modal__card create-diary-modal__card--media">
-            <div class="create-diary-modal__card-header">
-              <app-icon name="photo_library"></app-icon>
-              <div>
-                <p class="create-diary-modal__card-title">Galerie de l'étape</p>
-                <p class="create-diary-modal__card-subtitle">
-                  Importez vos souvenirs pour les afficher côte à côte.
-                </p>
-              </div>
-            </div>
-            <app-media-grid-uploader
-              class="create-diary-modal__media-uploader"
-              [items]="stepMediaItems"
-              [folder]="'travel-diaries/steps'"
-              (itemsChange)="onStepMediaItemsChange($event)"
-              (primaryChange)="onStepPrimaryMediaChange($event)"
-              (uploadingChange)="onStepMediaUploadChange($event)"
-              data-test="create-step-media"
-            ></app-media-grid-uploader>
-          </div>
-          <input type="hidden" formControlName="mediaUrl" />
-
-          <div class="create-diary-modal__editor">
-            <app-editor
-              [label]="'Décrivez cette étape'"
-              [content]="stepEditorContent"
-              (contentChange)="onStepEditorChange($event)"
-            ></app-editor>
-          </div>
-        </section>
-
-        @if (errorMessage) {
-          <p class="create-diary-modal__error">{{ errorMessage }}</p>
-        }
-
-        <div class="create-diary-modal__footer">
-          <app-button
-            text="Retour"
-            color="secondary"
-            size="auto"
-            radius="border_lg"
-            htmlType="button"
-            [isDisabled]="isSubmitting"
-            (btnClick)="goBackToDiaryStage()"
-            data-test="create-step-back"
-          ></app-button>
-          <app-button
-            text="Annuler"
-            color="secondary"
-            size="auto"
-            radius="border_lg"
-            htmlType="button"
-            [isDisabled]="isSubmitting"
-            (btnClick)="handleCancel()"
-            data-test="create-step-cancel"
-          ></app-button>
-          <app-button
-            text="Enregistrer les changements"
-            color="primary"
-            size="auto"
-            radius="border_lg"
-            htmlType="submit"
-            [isDisabled]="stepForm.invalid || isSubmitting || isStepMediaUploading"
-            data-test="create-step-submit"
-          ></app-button>
-        </div>
-      </form>
+      ></app-create-step-form>
     }
   </div>
 </div>
-
-@if (isStepLocationModalOpen) {
-  <app-location-picker-modal
-    [initialCoordinates]="stepLocationInitialCoordinates"
-    (cancel)="closeStepLocationModal()"
-    (confirm)="handleStepLocationConfirm($event)"
-  ></app-location-picker-modal>
-}

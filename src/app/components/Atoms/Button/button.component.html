@@ -12,6 +12,8 @@
   ]"
   [disabled]="isDisabled"
   (click)="onClick()"
+  [attr.aria-label]="ariaLabel || (isActionBtn ? text : null)"
+  [attr.title]="ariaLabel || (isActionBtn ? text : null)"
 >
   @if (isActionBtn) {
     <app-icon class="btn__icon" [name]="icon"></app-icon>

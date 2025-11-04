@@ -26,6 +26,7 @@
           [isSubmitting]="isStepSubmitting()"
           [errorMessage]="stepFormError()"
           [availableThemes]="stepThemes()"
+          [mode]="isEditingStep() ? 'edit' : 'create'"
           (cancel)="onStepFormCancel()"
           (submitStep)="onStepFormSubmit($event)"
         ></app-create-step-form>
@@ -82,7 +83,7 @@
         @let viewerIsOwner = isDiaryOwner();
         @if (viewerIsOwner) {
           <div class="diary__actions">
-            <app-button
+           <!-- <app-button
               text="Terminer le carnet"
               color="secondary"
               size="auto"
@@ -90,7 +91,7 @@
               [isDisabled]="isFinishDiaryDisabled()"
               (btnClick)="onFinishDiary()"
               data-test="diary-finish"
-            ></app-button>
+            ></app-button> -->
             <app-button
               text="Créer une étape"
               color="primary"
@@ -143,7 +144,7 @@
                         sizes="100vw"
                         loading="lazy"
                         decoding="async"
-                        alt=""
+                        [alt]="getStepMediaAlt(step, media, $index)"
                       />
                     </button>
                   }
@@ -342,7 +343,7 @@
             [src]="getStepMediaUrl(viewer.media)"
             loading="lazy"
             decoding="async"
-            alt=""
+            [alt]="getActiveMediaAlt()"
           />
         </div>
 

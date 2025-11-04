@@ -209,9 +209,7 @@ export class MePageComponent implements OnInit, OnDestroy {
    * La création se fait toujours sur `/travels/users/{userId}`.
    */
   openMyTravelsForCreation(): void {
-    if (
-      this.forbidDiaryAction('Votre compte est désactivé. Vous ne pouvez plus créer de carnet.')
-    ) {
+    if (this.forbidDiaryAction('Votre compte est désactivé. Vous ne pouvez plus créer de carnet.')) {
       return;
     }
 
@@ -258,6 +256,7 @@ export class MePageComponent implements OnInit, OnDestroy {
   onArticlesPageChange(page: number): void {
     this.articlesCurrentPage.set(page);
   }
+
 
   /** Gestion du terme de recherche côté articles. */
   onArticleSearch(term: string): void {
@@ -455,10 +454,7 @@ export class MePageComponent implements OnInit, OnDestroy {
     this.incrementArticleMediaRequests();
     this.mediaService
       .createMedia(payload)
-      .pipe(
-        takeUntil(this.destroy$),
-        finalize(() => this.decrementArticleMediaRequests())
-      )
+      .pipe(takeUntil(this.destroy$), finalize(() => this.decrementArticleMediaRequests()))
       .subscribe({
         next: (media) => {
           if (media?.id == null) {
@@ -468,7 +464,7 @@ export class MePageComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('article media creation failed', err);
-          this.articleFormError.set('Impossible de préparer certains médias. Veuillez réessayer.');
+          this.articleFormError.set("Impossible de préparer certains médias. Veuillez réessayer.");
           this.articleGalleryItems.update((items) =>
             items.filter((mediaItem) => mediaItem.secureUrl !== fileUrl)
           );
@@ -663,12 +659,9 @@ export class MePageComponent implements OnInit, OnDestroy {
 
   /** Nettoie les informations d'authentification avant redirection éventuelle. */
   logout(): void {
-    setTimeout(() => {
-      this.authService.logout().subscribe(() => {
-        console.info('User logged out');
-        this.router.navigate(['/']);
-      });
-    }, 1000);
+    this.authService.logout().subscribe(() => {
+      console.info('User logged out');
+    });
   }
 
   private loadArticles(): void {
@@ -715,6 +708,7 @@ export class MePageComponent implements OnInit, OnDestroy {
     const fromApi = fallbackSource[fallback];
     return typeof fromApi === 'boolean' ? (fromApi as boolean) : false;
   }
+
 
   private buildProfileUpdatePayload(): Partial<UserProfileDto> | null {
     const form = this.profileForm();
@@ -979,6 +973,8 @@ export class MePageComponent implements OnInit, OnDestroy {
     );
   }
 
+
+
   deleteDiary(diaryId: number): void {
     if (
       this.forbidDiaryAction('Votre compte est désactivé. Vous ne pouvez plus gérer vos carnets.')
@@ -1011,4 +1007,5 @@ export class MePageComponent implements OnInit, OnDestroy {
         },
       });
   }
+
 }

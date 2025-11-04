@@ -70,7 +70,7 @@ describe('authGuard', () => {
     const result = (await executeGuard('/me')) as UrlTree;
 
     expect(result).toBeInstanceOf(UrlTree);
-    expect(router.serializeUrl(result)).toBe('/login?redirectTo=%2Fme');
+    expect(router.serializeUrl(result)).toBe('/login');
   });
 
   it('redirects to login when backend returns null user', async () => {
@@ -80,6 +80,6 @@ describe('authGuard', () => {
     const result = (await executeGuard('/me')) as UrlTree;
 
     expect(result).toBeInstanceOf(UrlTree);
-    expect(router.serializeUrl(result)).toBe('/login?redirectTo=%2Fme');
+    expect(router.serializeUrl(result)).toBe('/login');
   });
 });

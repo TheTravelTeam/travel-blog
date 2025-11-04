@@ -1,14 +1,4 @@
-import {
-  Component,
-  DestroyRef,
-  ElementRef,
-  OnInit,
-  ViewChild,
-  computed,
-  effect,
-  inject,
-  signal,
-} from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { AccordionComponent } from '../../components/Atoms/accordion/accordion.component';
 import { CheckboxComponent } from 'components/Atoms/Checkbox/checkbox.component';
 import { IconComponent } from 'components/Atoms/Icon/icon.component';
@@ -32,7 +22,6 @@ import { SearchService } from '@service/search.service';
 import { SearchResultItem } from '@model/search-result.model';
 import { TravelDiary } from '@model/travel-diary.model';
 import { Step } from '@model/step.model';
-import { ThemeService } from '@service/theme.service';
 import { SearchBarComponent } from 'components/Molecules/search-bar/search-bar.component';
 import { Observable, of } from 'rxjs';
 
@@ -94,12 +83,8 @@ export class FilterPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly searchService = inject(SearchService);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly themeService = inject(ThemeService);
-
   private breakpointService = inject(BreakpointService);
   isTabletOrMobile = this.breakpointService.isMobileOrTablet;
-
-  @ViewChild('detailPanel') detailPanelRef!: ElementRef<HTMLDivElement>;
 
   readonly activeSearchQuery = signal('');
   readonly searchResults = signal<SearchResultItem[]>([]);
@@ -107,69 +92,22 @@ export class FilterPageComponent implements OnInit {
   readonly searchError = signal<string | null>(null);
   readonly searchControl = new FormControl('', { nonNullable: true });
 
-  readonly hasActiveSearch = computed(() => this.activeSearchQuery().length > 0);
-  readonly noSearchResults = computed(
-    () =>
-      this.hasActiveSearch() &&
-      !this.isSearchLoading() &&
-      !this.searchError() &&
-      this.searchResults().length === 0
-  );
-
-  readonly diaryResults = computed(() =>
-    this.searchResults()
-      .filter((item) => item.type === 'diary')
-      .sort((a, b) => a.label.localeCompare(b.label, 'fr'))
-  );
-
-  readonly stepResults = computed(() =>
-    this.searchResults()
-      .filter((item) => item.type === 'step')
-      .sort((a, b) => a.label.localeCompare(b.label, 'fr'))
-  );
-
+  /** Sélection des filtres actifs (pays, continents, thèmes, durées). */
   readonly selectedFilters = signal<FilterSelection>(this.createEmptySelection());
 
-  private readonly themeLookup = signal<Map<number, string>>(new Map());
+  /** Métadonnées normalisées pour chaque carnet. */
+  readonly diaryMetaList = computed(() =>
+    (this.state.allDiaries() ?? []).map((diary) => this.buildDiaryMeta(diary))
+  );
 
-  readonly hasActiveFilters = computed(() => {
-    const selection = this.selectedFilters();
-    return (
-      selection.countries.size > 0 ||
-      selection.continents.size > 0 ||
-      selection.themes.size > 0 ||
-      selection.durations.size > 0
-    );
-  });
-
-  readonly diaryMetaList = computed(() => {
-    const diaries = this.state.allDiaries();
-    if (!Array.isArray(diaries)) {
-      return [] as DiaryMeta[];
-    }
-
-    return diaries.map((diary) => this.buildDiaryMeta(diary));
-  });
-
+  /** Accès rapide aux métadonnées d'un carnet donné. */
   readonly diaryMetaMap = computed(() => {
     const map = new Map<number, DiaryMeta>();
-    for (const meta of this.diaryMetaList()) {
-      map.set(meta.diary.id, meta);
-    }
+    this.diaryMetaList().forEach((meta) => map.set(meta.diary.id, meta));
     return map;
   });
 
-  readonly countryOptions = computed(() =>
-    this.buildFilterOptions(this.diaryMetaList(), 'countries')
-  );
-  readonly continentOptions = computed(() =>
-    this.buildFilterOptions(this.diaryMetaList(), 'continents')
-  );
-  readonly themeOptions = computed(() => this.buildFilterOptions(this.diaryMetaList(), 'themes'));
-  readonly durationOptions = computed(() =>
-    this.buildFilterOptions(this.diaryMetaList(), 'durations')
-  );
-
+  /** Liste des carnets filtrée selon la sélection en cours. */
   readonly filteredDiaryMeta = computed(() => {
     const metaList = this.diaryMetaList();
     const selection = this.selectedFilters();
@@ -192,6 +130,45 @@ export class FilterPageComponent implements OnInit {
       .slice()
       .sort((a, b) => a.title.localeCompare(b.title, 'fr', { sensitivity: 'base' }))
   );
+
+  /** Options disponibles pour chacun des filtres. */
+  readonly countryOptions = computed(() => this.buildFilterOptions('countries'));
+  readonly continentOptions = computed(() => this.buildFilterOptions('continents'));
+  readonly themeOptions = computed(() => this.buildFilterOptions('themes'));
+  readonly durationOptions = computed(() => this.buildFilterOptions('durations'));
+
+  /** Résultats de recherche (carnets) triés par libellé. */
+  readonly diaryResults = computed(() =>
+    this.sortResultsByLabel(this.searchResults().filter((item) => item.type === 'diary'))
+  );
+
+  /** Résultats de recherche (étapes) triés par libellé. */
+  readonly stepResults = computed(() =>
+    this.sortResultsByLabel(this.searchResults().filter((item) => item.type === 'step'))
+  );
+
+  /** Indique si un texte de recherche est saisi. */
+  readonly hasActiveSearch = computed(() => this.activeSearchQuery().length > 0);
+
+  /** Indique que la recherche est active mais ne retourne aucun résultat. */
+  readonly noSearchResults = computed(
+    () =>
+      this.hasActiveSearch() &&
+      !this.isSearchLoading() &&
+      !this.searchError() &&
+      this.searchResults().length === 0
+  );
+
+  /** Indique qu'au moins un filtre est coché. */
+  readonly hasActiveFilters = computed(() => {
+    const selection = this.selectedFilters();
+    return (
+      selection.countries.size > 0 ||
+      selection.continents.size > 0 ||
+      selection.themes.size > 0 ||
+      selection.durations.size > 0
+    );
+  });
 
   /**
    * Initialise les effets et synchronise l'état applicatif.
@@ -217,24 +194,20 @@ export class FilterPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.initSearchControlSync();
-    this.initThemes();
     this.search()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe();
   }
 
+  /** Renvoie true si la valeur donnée figure dans les filtres sélectionnés. */
   isFilterSelected(type: FilterType, value: string): boolean {
     return this.selectedFilters()[type].has(value);
   }
 
+  /** Met à jour le filtre correspondant lorsqu'une case est cochée/décochée. */
   onFilterChecked(type: FilterType, value: string, checked: boolean): void {
     this.selectedFilters.update((current) => {
-      const next: FilterSelection = {
-        countries: new Set(current.countries),
-        continents: new Set(current.continents),
-        themes: new Set(current.themes),
-        durations: new Set(current.durations),
-      };
+      const next = this.cloneSelection(current);
 
       const bucket = next[type];
       if (checked) {
@@ -247,14 +220,12 @@ export class FilterPageComponent implements OnInit {
     });
   }
 
+  /** Réinitialise la sélection des filtres. */
   resetFilters(): void {
     this.selectedFilters.set(this.createEmptySelection());
   }
 
-  formatFilterLabel(option: FilterOption): string {
-    return option.count > 0 ? `${option.label} (${option.count})` : option.label;
-  }
-
+  /** Génère un identifiant HTML stable pour les cases à cocher. */
   buildCheckboxId(type: FilterType, value: string): string {
     const sanitized = value
       .normalize('NFD')
@@ -266,14 +237,17 @@ export class FilterPageComponent implements OnInit {
     return `${type}-${sanitized || 'option'}`;
   }
 
+  /** Ouvre le carnet sélectionné dans la carte. */
   onFilteredDiaryClick(diaryId: number): void {
     void this.router.navigate(['/travels', diaryId]);
   }
 
+  /** Retourne les métadonnées associées à un carnet. */
   getDiaryMeta(diaryId: number): DiaryMeta | undefined {
     return this.diaryMetaMap().get(diaryId);
   }
 
+  /** Retourne le libellé à afficher pour une tranche de durée. */
   getDurationLabel(durationId: DurationFilterId | null): string | null {
     if (!durationId) {
       return null;
@@ -282,6 +256,7 @@ export class FilterPageComponent implements OnInit {
     return DURATION_LABEL_LOOKUP.get(durationId) ?? null;
   }
 
+  /** Crée un objet de sélection vide (utilisé pour l'initialisation et la remise à zéro). */
   private createEmptySelection(): FilterSelection {
     return {
       countries: new Set<string>(),
@@ -291,132 +266,85 @@ export class FilterPageComponent implements OnInit {
     };
   }
 
-  private buildFilterOptions(metaList: DiaryMeta[], type: FilterType): FilterOption[] {
+  /** Construit la liste des options pour un type de filtre donné. */
+  private buildFilterOptions(type: FilterType): FilterOption[] {
     const counts = new Map<string, number>();
 
-    for (const meta of metaList) {
-      const values = this.extractValues(meta, type);
-      if (!values.length) {
-        continue;
+    for (const meta of this.diaryMetaList()) {
+      let values: string[] = [];
+
+      switch (type) {
+        case 'countries':
+          values = meta.countries;
+          break;
+        case 'continents':
+          values = meta.continents;
+          break;
+        case 'themes':
+          values = meta.themes;
+          break;
+        case 'durations':
+          values = meta.durationId ? [meta.durationId] : [];
+          break;
       }
 
-      const uniqueValues = new Set(values);
-      for (const value of uniqueValues) {
+      for (const value of values) {
         counts.set(value, (counts.get(value) ?? 0) + 1);
       }
     }
 
-    const options: FilterOption[] = Array.from(counts.entries()).map(([value, count]) => ({
-      value,
-      count,
-      label:
-        type === 'durations'
-          ? (DURATION_LABEL_LOOKUP.get(value as DurationFilterId) ?? value)
-          : value,
-    }));
-
-    return options.sort((a, b) => a.label.localeCompare(b.label, 'fr', { sensitivity: 'base' }));
+    return Array.from(counts.entries())
+      .map(([value, count]) => ({
+        value,
+        count,
+        label:
+          type === 'durations'
+            ? (DURATION_LABEL_LOOKUP.get(value as DurationFilterId) ?? value)
+            : value,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label, 'fr', { sensitivity: 'base' }));
   }
 
-  private extractValues(meta: DiaryMeta, type: FilterType): string[] {
-    switch (type) {
-      case 'countries':
-        return meta.countries;
-      case 'continents':
-        return meta.continents;
-      case 'themes':
-        return meta.themes;
-      case 'durations':
-        return meta.durationId ? [meta.durationId] : [];
-      default:
-        return [];
-    }
+  /** Crée une copie profonde de la sélection (chaque filtre est un Set distinct). */
+  private cloneSelection(selection: FilterSelection): FilterSelection {
+    return {
+      countries: new Set(selection.countries),
+      continents: new Set(selection.continents),
+      themes: new Set(selection.themes),
+      durations: new Set(selection.durations),
+    };
   }
 
+  /** Trie une liste de résultats de recherche par libellé. */
+  private sortResultsByLabel(items: SearchResultItem[]): SearchResultItem[] {
+    return items
+      .slice()
+      .sort((a, b) => (a.label ?? '').localeCompare(b.label ?? '', 'fr', { sensitivity: 'base' }));
+  }
+
+  /** Prépare les métadonnées (pays, continents, thèmes, durée) d'un carnet. */
   private buildDiaryMeta(diary: TravelDiary): DiaryMeta {
     const countries = new Set<string>();
     const continents = new Set<string>();
     const themes = new Set<string>();
 
-    const steps = Array.isArray(diary.steps) ? diary.steps : [];
+    const steps = diary.steps ?? [];
 
     for (const step of steps) {
-      const country = this.normaliseValue(step?.country);
+      const country = (step?.country ?? '').trim();
       if (country) {
         countries.add(country);
       }
 
-      const continent = this.normaliseValue(step?.continent);
+      const continent = (step?.continent ?? '').trim();
       if (continent) {
         continents.add(continent);
       }
 
-      if (Array.isArray(step?.themeIds)) {
-        for (const themeId of step.themeIds) {
-          const resolved = this.resolveThemeFromId(themeId);
-          if (resolved) {
-            themes.add(resolved);
-          }
-        }
-      }
-
-      if (Array.isArray(step?.themes)) {
-        for (const theme of step.themes) {
-          const themeName = this.extractThemeName(theme);
-          if (themeName) {
-            themes.add(themeName);
-          }
-
-          const resolvedFromTheme = this.resolveThemeFromId(this.extractThemeId(theme));
-          if (resolvedFromTheme) {
-            themes.add(resolvedFromTheme);
-          }
-        }
-      }
-
-      if (Array.isArray(step?.stepThemes)) {
-        for (const themeRef of step.stepThemes) {
-          const themeName = this.extractThemeName(themeRef);
-          if (themeName) {
-            themes.add(themeName);
-          }
-
-          const themeIdFromRef = this.extractThemeId(themeRef);
-          const resolvedFromRef = this.resolveThemeFromId(themeIdFromRef);
-          if (resolvedFromRef) {
-            themes.add(resolvedFromRef);
-          }
-        }
-      }
-
-      const legacyThemes = (step as { themes?: unknown }).themes;
-      if (Array.isArray(legacyThemes)) {
-        for (const legacy of legacyThemes) {
-          const legacyName = this.extractThemeName(legacy);
-          if (legacyName) {
-            themes.add(legacyName);
-          }
-        }
-      }
-
-      const resolvedFromStep = this.resolveThemeFromId(step?.themeId ?? null);
-      if (resolvedFromStep) {
-        themes.add(resolvedFromStep);
-      }
-    }
-
-    const diaryThemes = (diary as { themes?: unknown }).themes;
-    if (Array.isArray(diaryThemes)) {
-      for (const diaryTheme of diaryThemes) {
-        const diaryThemeName = this.extractThemeName(diaryTheme);
-        if (diaryThemeName) {
-          themes.add(diaryThemeName);
-        }
-
-        const diaryThemeId = this.extractThemeId(diaryTheme);
-        const resolvedFromDiaryTheme = this.resolveThemeFromId(diaryThemeId);
-        if (resolvedFromDiaryTheme) {
-          themes.add(resolvedFromDiaryTheme);
+      for (const theme of step?.themes ?? []) {
+        const name = (theme?.name ?? '').trim();
+        if (name) {
+          themes.add(name);
         }
       }
     }
@@ -433,6 +361,7 @@ export class FilterPageComponent implements OnInit {
     };
   }
 
+  /** Vérifie si un carnet correspond à la sélection courante. */
   private matchesSelection(meta: DiaryMeta, selection: FilterSelection): boolean {
     if (
       selection.countries.size > 0 &&
@@ -461,91 +390,22 @@ export class FilterPageComponent implements OnInit {
     return true;
   }
 
-  private normaliseValue(value: unknown): string | null {
-    if (value == null) {
-      return null;
-    }
-
-    const text = String(value).trim();
-    return text ? text : null;
-  }
-
-  private extractThemeName(themeRef: unknown): string | null {
-    if (typeof themeRef === 'string') {
-      return this.normaliseValue(themeRef);
-    }
-
-    if (!themeRef || typeof themeRef !== 'object') {
-      return null;
-    }
-
-    // support shapes: { theme: { name } }, { name }, { themeName }
-    const possible =
-      (themeRef as { theme?: { name?: unknown } }).theme?.name ??
-      (themeRef as { name?: unknown }).name ??
-      (themeRef as { themeName?: unknown }).themeName ??
-      null;
-
-    return this.normaliseValue(possible);
-  }
-
-  private extractThemeId(themeRef: unknown): number | null {
-    if (typeof themeRef === 'number' || typeof themeRef === 'string') {
-      return this.coerceThemeId(themeRef);
-    }
-
-    if (!themeRef || typeof themeRef !== 'object') {
-      return null;
-    }
-
-    const candidate =
-      (themeRef as { themeId?: unknown }).themeId ??
-      (themeRef as { theme?: { id?: unknown } }).theme?.id ??
-      (themeRef as { id?: unknown }).id ??
-      null;
-
-    return this.coerceThemeId(candidate);
-  }
-
-  private resolveThemeFromId(id: unknown): string | null {
-    const coerced = this.coerceThemeId(id);
-    if (coerced === null) {
-      return null;
-    }
-
-    const name = this.themeLookup().get(coerced);
-    return this.normaliseValue(name ?? null);
-  }
-
-  private coerceThemeId(value: unknown): number | null {
-    if (typeof value === 'number' && Number.isFinite(value)) {
-      return value;
-    }
-
-    if (typeof value === 'string' && value.trim()) {
-      const parsed = Number(value.trim());
-      return Number.isFinite(parsed) ? parsed : null;
-    }
-
-    return null;
-  }
-
+  /** Retourne la durée globale d'un carnet (en jours) à partir des dates d'étapes. */
   private computeDiaryDurationInDays(steps: Step[]): number | null {
     let minTime: number | null = null;
     let maxTime: number | null = null;
 
     for (const step of steps) {
-      const start = this.coerceDate(step?.startDate);
-      const end = this.coerceDate(step?.endDate);
-
-      if (start) {
-        const time = start.getTime();
+      const startDate = step?.startDate ? new Date(step.startDate) : null;
+      if (startDate) {
+        const time = startDate.getTime();
         minTime = minTime === null || time < minTime ? time : minTime;
         maxTime = maxTime === null || time > maxTime ? time : maxTime;
       }
 
-      if (end) {
-        const time = end.getTime();
+      const endDate = step?.endDate ? new Date(step.endDate) : null;
+      if (endDate) {
+        const time = endDate.getTime();
         minTime = minTime === null || time < minTime ? time : minTime;
         maxTime = maxTime === null || time > maxTime ? time : maxTime;
       }
@@ -559,6 +419,7 @@ export class FilterPageComponent implements OnInit {
     return Math.max(1, Math.ceil(diff / DAY_IN_MS));
   }
 
+  /** Transforme une durée (en jours) en tranche lisible pour l'interface. */
   private resolveDurationBucket(days: number): DurationFilterId | null {
     for (const bucket of DURATION_BUCKETS) {
       const meetsMin = days >= bucket.min;
@@ -571,45 +432,31 @@ export class FilterPageComponent implements OnInit {
     return DURATION_BUCKETS[DURATION_BUCKETS.length - 1]?.id ?? null;
   }
 
-  private coerceDate(value: string | Date | null | undefined): Date | null {
-    if (!value) {
-      return null;
-    }
+  /** Gère l'ouverture/fermeture du panneau latéral selon le contexte. */
+  togglePanel(): void {
+    const hasDiary = Boolean(this.state.currentDiary());
+    const isTravelsRoot = this.router.url === '/travels';
 
-    if (value instanceof Date && !Number.isNaN(value.getTime())) {
-      return value;
-    }
-
-    const parsed = new Date(value);
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
-  }
-
-  togglePanel() {
-    if (!this.state.currentDiary() || this.router.url === '/travels') {
-      // Si pas de diary, toggle simple entre collapsed/expanded
-      this.state.panelHeight.set(
-        this.state.panelHeight() === 'collapsed' ? 'expanded' : 'collapsed'
-      );
+    if (!hasDiary || isTravelsRoot) {
+      const next = this.state.panelHeight() === 'collapsed' ? 'expanded' : 'collapsed';
+      this.state.panelHeight.set(next);
       return;
     }
 
-    // Si diary présent, logique spéciale à 3 états
-    switch (this.state.panelHeight()) {
-      case 'collapsed':
-        this.state.panelHeight.set('expanded');
-        break;
-      case 'expanded':
-        this.state.panelHeight.set('collapsedDiary');
-        break;
-      case 'collapsedDiary':
-        this.state.panelHeight.set('expanded');
-        break;
-      default:
-        this.state.panelHeight.set('collapsed');
-        break;
-    }
+    const transitions: Record<
+      'collapsed' | 'expanded' | 'collapsedDiary',
+      'collapsed' | 'expanded' | 'collapsedDiary'
+    > = {
+      collapsed: 'expanded',
+      expanded: 'collapsedDiary',
+      collapsedDiary: 'expanded',
+    };
+
+    const current = this.state.panelHeight();
+    this.state.panelHeight.set(transitions[current as keyof typeof transitions] ?? 'collapsed');
   }
 
+  /** Navigation depuis un résultat de recherche vers un carnet ou une étape. */
   onSearchResultClick(result: SearchResultItem): void {
     if (result.type === 'step' && result.diaryId != null) {
       void this.router.navigate(['/travels', result.diaryId], {
@@ -621,6 +468,7 @@ export class FilterPageComponent implements OnInit {
     void this.router.navigate(['/travels', result.diaryId ?? result.id]);
   }
 
+  /** Déclenche la recherche quand l'utilisateur soumet le formulaire. */
   onSearchSubmit(rawQuery: string): void {
     const query = rawQuery.trim();
 
@@ -637,10 +485,12 @@ export class FilterPageComponent implements OnInit {
     });
   }
 
+  /** Handler pour le bouton "Effacer" de la recherche. */
   onClearSearchClick(): void {
     this.clearSearchQuery();
   }
 
+  /** Réinitialise l'état de la recherche et nettoie les query params. */
   clearSearchQuery(): void {
     this.activeSearchQuery.set('');
     this.searchResults.set([]);
@@ -659,15 +509,13 @@ export class FilterPageComponent implements OnInit {
    */
   private search(): Observable<SearchResultItem[]> {
     return this.route.queryParamMap.pipe(
-      map((params) => (params.get('q') ?? '').trim()), // Trim : nettoie la valeur issue de l'URL avant traitement.
+      map((params) => (params.get('q') ?? '').trim()),
       distinctUntilChanged(),
       tap((query) => {
-        // Synchronisation : reflète immédiatement la requête dans le formulaire sans réémettre.
         this.activeSearchQuery.set(query);
         this.searchControl.setValue(query, { emitEvent: false });
       }),
       switchMap((query) => {
-        // Filtre : interprète une requête vide comme un reset et évite d'interroger l'API.
         if (!query.length) {
           this.searchResults.set([]);
           this.searchError.set(null);
@@ -675,44 +523,24 @@ export class FilterPageComponent implements OnInit {
           return of([] as SearchResultItem[]);
         }
 
-        // SwitchMap : relance la recherche quand les query params changent et annule la précédente.
         this.isSearchLoading.set(true);
         return this.searchService.search(query).pipe(
           tap((results) => {
             this.searchResults.set(results);
             this.searchError.set(null);
-          }), // Tap : stocke les résultats réussis et efface les erreurs avant diffusion.
+          }),
           catchError(() => {
             this.searchResults.set([]);
             this.searchError.set('Impossible de lancer la recherche pour le moment.');
-            return of([] as SearchResultItem[]); // Gestion erreur : retourne un tableau vide pour respecter la signature.
-          }), // CatchError : capture l'échec, réinitialise l'état et reconduit un tableau vide.
-          finalize(() => this.isSearchLoading.set(false)) // Finalize : stoppe l'indicateur de chargement quelle que soit l'issue.
+            return of([] as SearchResultItem[]);
+          }),
+          finalize(() => this.isSearchLoading.set(false))
         );
       })
     );
   }
 
-  private initThemes(): void {
-    this.themeService
-      .getThemes()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (themes) => {
-          // Récupère les thèmes disponibles pour alimenter les filtres.
-          const lookup = new Map<number, string>();
-          themes.forEach((theme) => {
-            lookup.set(theme.id, theme.name);
-          });
-          this.themeLookup.set(lookup);
-        },
-        error: () => {
-          // Défaut : en cas d'erreur API on réinitialise la table pour éviter les valeurs obsolètes.
-          this.themeLookup.set(new Map());
-        },
-      });
-  }
-
+  /** Synchronise la valeur du champ de recherche avec les query params. */
   private initSearchControlSync(): void {
     this.searchControl.valueChanges
       .pipe(
