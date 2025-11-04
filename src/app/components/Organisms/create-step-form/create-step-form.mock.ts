@@ -1,4 +1,5 @@
 import { Step } from '@model/step.model';
+import { Media } from '@model/media.model';
 
 export const createStepFormBaseValues = {
   title: 'Nouvelle étape test',
@@ -12,12 +13,11 @@ export const createStepFormBaseValues = {
   startDate: '2024-07-14',
   endDate: '2024-07-20',
   themeId: null,
-  themeIds: [] as number[],
 };
 
 export const createStepFormFrenchDateValues = {
-  startDate: '14/07/2024',
-  endDate: '20/07/2024',
+  startDate: '2024-07-14',
+  endDate: '2024-07-20',
   latitude: '48.8566',
   longitude: '2.3522',
 };
@@ -27,13 +27,25 @@ export const invalidCoordinateValues = {
   longitude: 'east',
 };
 
+const sampleMedia: Media = {
+  id: 1,
+  fileUrl: 'https://example.com/pic.jpg',
+  mediaType: 'PHOTO',
+  status: 'VISIBLE',
+  createdAt: '2024-01-01T00:00:00Z',
+  updatedAt: '2024-01-01T00:00:00Z',
+  publicId: null,
+  travelDiaryId: 5,
+  stepId: 12,
+};
+
 export const existingStepFixture: Step = {
   id: 12,
   title: 'Titre existant',
   description: 'Description existante',
   latitude: 12.34,
   longitude: 56.78,
-  media: [{ id: 1, fileUrl: 'https://example.com/pic.jpg', mediaType: 'PHOTO' } as any],
+  media: [sampleMedia],
   country: 'France',
   city: 'Paris',
   continent: 'Europe',

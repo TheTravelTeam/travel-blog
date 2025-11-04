@@ -21,13 +21,10 @@ import { StepService } from '@service/step.service';
 import { forkJoin, Observable, Subject, of } from 'rxjs';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { map, switchMap, takeUntil } from 'rxjs/operators';
-import {
-  CreateDiaryModalComponent,
-  DiaryCreationPayload,
-} from 'components/Organisms/create-diary-modal/create-diary-modal.component';
+import { CreateDiaryModalComponent } from 'components/Organisms/create-diary-modal/create-diary-modal.component';
+import { DiaryCreationPayload } from 'components/Organisms/create-diary-modal/create-diary-modal.types';
 import { CreateDiaryDto } from '@dto/create-diary.dto';
 import { CreateStepDto } from '@dto/create-step.dto';
-import { normalizeThemeIds } from '@utils/theme-selection.util';
 import { ThemeService } from '@service/theme.service';
 import { ItemProps } from '@model/select.model';
 import { MediaService } from '@service/media.service';
@@ -363,6 +360,7 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
       .addDiary(diaryPayload)
       .pipe(
         switchMap((createdDiary) => {
+          const themeId = this.normalizeThemeId(payload.step.themeId);
           const stepPayload: CreateStepDto = {
             title: payload.step.title,
             description: payload.step.description ?? null,
@@ -377,7 +375,7 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
             city: payload.step.city ?? null,
             country: payload.step.country ?? null,
             continent: payload.step.continent ?? null,
-            themeIds: normalizeThemeIds(payload.step.themeId, payload.step.themeIds),
+            themeIds: themeId != null ? [themeId] : [],
           };
 
           return this.stepService.addStepToTravel(createdDiary.id, stepPayload).pipe(
@@ -525,7 +523,7 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
     const requests = sanitized.map((item) =>
       this.mediaService.createStepMedia({
         fileUrl: item.fileUrl,
-        publicId: item.publicId,
+        publicId: item.publicId ?? undefined,
         mediaType: 'PHOTO',
         stepId,
         isVisible: true,
@@ -544,6 +542,15 @@ export class MyTravelsPageComponent implements OnInit, OnDestroy {
     };
 
     return payload;
+  }
+
+  private normalizeThemeId(value: unknown): number | null {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+      return null;
+    }
+    const rounded = Math.trunc(parsed);
+    return rounded > 0 ? rounded : null;
   }
 
   onDiaryModalSubmit(payload: DiaryCreationPayload): void {

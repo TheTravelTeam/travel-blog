@@ -1,11 +1,17 @@
 <div class="location-picker-modal" role="dialog" aria-modal="true" data-test="location-picker-modal">
-  <div class="location-picker-modal__backdrop" (click)="onCancel()"></div>
+  <div class="location-picker-modal__backdrop" (click)="onCancel()" aria-hidden="true"></div>
   <div class="location-picker-modal__panel" role="document" (click)="$event.stopPropagation()">
     <header class="location-picker-modal__header">
       <h3>{{ title }}</h3>
       <p>{{ description }}</p>
     </header>
-    <div class="location-picker-modal__map" #mapContainer data-test="location-picker-map"></div>
+    <div
+      class="location-picker-modal__map"
+      #mapContainer
+      role="region"
+      aria-label="Carte de sélection d'emplacement"
+      data-test="location-picker-map"
+    ></div>
     @if (isLocating) {
       <p class="location-picker-modal__status">Recherche de votre position…</p>
     }

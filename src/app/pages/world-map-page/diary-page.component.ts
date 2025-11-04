@@ -35,7 +35,6 @@ import { ItemProps } from '@model/select.model';
 import { ThemeService } from '@service/theme.service';
 import { TravelDiary } from '@model/travel-diary.model';
 import { Theme } from '@model/theme.model';
-import { normalizeThemeSelection } from '@utils/theme-selection.util';
 import { IconComponent } from 'components/Atoms/Icon/icon.component';
 import { MediaPayload, StepFormResult } from '@model/stepFormResult.model';
 import { MediaService } from '@service/media.service';
@@ -105,16 +104,16 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
   readonly stepFormError = signal<string | null>(null);
   readonly stepThemes = signal<ItemProps[]>([]);
   readonly activeEditingStep = signal<Step | null>(null);
-  readonly commentDrafts = signal<Record<number, string>>({});
-  readonly commentErrors = signal<Record<number, string | null>>({});
-  readonly commentSubmitting = signal<Record<number, boolean>>({});
-  readonly commentDeleting = signal<Record<number, boolean>>({});
-  readonly commentEditDrafts = signal<Record<number, string>>({});
-  readonly commentEditErrors = signal<Record<number, string | null>>({});
-  readonly commentUpdating = signal<Record<number, boolean>>({});
-  readonly editingCommentId = signal<number | null>(null);
-  readonly stepLikePending = signal<Record<number, boolean>>({});
-  readonly stepLikeErrors = signal<Record<number, string | null>>({});
+  commentDrafts: Record<number, string> = {};
+  commentErrors: Record<number, string | null> = {};
+  commentSubmitting: Record<number, boolean> = {};
+  commentDeleting: Record<number, boolean> = {};
+  commentEditDrafts: Record<number, string> = {};
+  commentEditErrors: Record<number, string | null> = {};
+  commentUpdating: Record<number, boolean> = {};
+  editingCommentId: number | null = null;
+  stepLikePending: Record<number, boolean> = {};
+  stepLikeErrors: Record<number, string | null> = {};
   readonly finishDiaryError = signal<string | null>(null);
   readonly isFinishingDiary = signal(false);
 
@@ -193,9 +192,6 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
       }
     });
 
-    effect(() => {
-      this.state.setViewerLikeOwner(this.currentViewerId());
-    });
   }
 
   readonly diaryOwnerInfo = computed<DiaryOwnerInfo | null>(() => this.diaryOwner());
@@ -355,10 +351,8 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
 
     const editingStep = this.activeEditingStep();
 
-    const { themeIds: themeIdsPayload } = normalizeThemeSelection(
-      formValue.themeId,
-      formValue.themeIds
-    );
+    const themeId = this.normalizeThemeId(formValue.themeId);
+    const themeIdsPayload = themeId != null ? [themeId] : [];
 
     const payload: CreateStepDto = {
       title: formValue.title,
@@ -391,7 +385,8 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
               .pipe(map((diary) => ({ diary, targetStepId: editingStep.id })))
           )
         )
-      : this.stepService.addStepToTravel(diaryId, payload).pipe(
+      :
+      this.stepService.addStepToTravel(diaryId, payload).pipe(
           switchMap((createdStep) =>
             this.syncStepMedia(createdStep.id, createdStep.media ?? [], desiredMedia).pipe(
               map(() => createdStep)
@@ -624,12 +619,23 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     return rawSteps.map((step) => ({
       ...step,
       themeIds: Array.isArray(step?.themeIds)
-        ? step.themeIds.filter((value): value is number => Number.isFinite(value as number))
+        ? step.themeIds
+            .map((value) => Number(value))
+            .filter((id): id is number => Number.isFinite(id) && Math.trunc(id) > 0)
         : [],
       themes: Array.isArray(step?.themes) ? (step.themes as Theme[]) : [],
       comments: this.normalizeComments(step?.comments),
       isEditing: typeof step?.isEditing === 'boolean' ? step.isEditing : false,
     })) as Step[];
+  }
+
+  private normalizeThemeId(value: unknown): number | null {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+      return null;
+    }
+    const rounded = Math.trunc(parsed);
+    return rounded > 0 ? rounded : null;
   }
 
   /** Normalises comment collections coming from heterogeneous backend payloads. */
@@ -657,9 +663,11 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
       return null;
     }
 
+    const decodedContent = this.decodeHtmlEntities(content);
+
     return {
       id: typeof raw.id === 'number' ? raw.id : -1,
-      content,
+      content: decodedContent,
       status: typeof raw.status === 'string' ? raw.status : 'PENDING',
       createdAt: typeof raw.createdAt === 'string' ? raw.createdAt : now,
       updatedAt: typeof raw.updatedAt === 'string' ? raw.updatedAt : now,
@@ -721,6 +729,17 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     }
 
     return fallback;
+  }
+
+  /** Converts HTML entities (&#39;, &amp;, …) into their literal characters. */
+  private decodeHtmlEntities(value: string): string {
+    if (!value || !value.includes('&')) {
+      return value;
+    }
+
+    const textarea = this.document.createElement('textarea');
+    textarea.innerHTML = value;
+    return textarea.value;
   }
 
   /** Subscribes to the route params to keep the state in sync. */
@@ -1092,7 +1111,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
    * @param stepId Target step identifier.
    */
   getCommentDraft(stepId: number): string {
-    return this.commentDrafts()[stepId] ?? '';
+    return this.commentDrafts[stepId] ?? '';
   }
 
   /**
@@ -1101,7 +1120,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
    * @param value Raw content typed by the user.
    */
   onCommentDraftChange(stepId: number, value: string): void {
-    this.commentDrafts.update((drafts) => ({ ...drafts, [stepId]: value }));
+    this.commentDrafts = { ...this.commentDrafts, [stepId]: value };
   }
 
   /**
@@ -1109,7 +1128,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
    * @param stepId Target step identifier.
    */
   getCommentError(stepId: number): string | null {
-    return this.commentErrors()[stepId] ?? null;
+    return this.commentErrors[stepId] ?? null;
   }
 
   /**
@@ -1117,37 +1136,37 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
    * @param stepId Target step identifier.
    */
   isCommentSubmitting(stepId: number): boolean {
-    return this.commentSubmitting()[stepId] ?? false;
+    return this.commentSubmitting[stepId] ?? false;
   }
 
   /** Indicates whether a specific comment is in the process of being deleted. */
   isCommentDeleting(commentId: number): boolean {
-    return this.commentDeleting()[commentId] ?? false;
+    return this.commentDeleting[commentId] ?? false;
   }
 
   /** Indicates whether the provided comment is currently being edited. */
   isCommentEditing(commentId: number): boolean {
-    return this.editingCommentId() === commentId;
+    return this.editingCommentId === commentId;
   }
 
   /** Retrieves the edit draft for a comment currently being edited. */
   getCommentEditDraft(commentId: number): string {
-    return this.commentEditDrafts()[commentId] ?? '';
+    return this.commentEditDrafts[commentId] ?? '';
   }
 
   /** Updates the draft stored for a comment being edited. */
   onCommentEditDraftChange(commentId: number, value: string): void {
-    this.commentEditDrafts.update((drafts) => ({ ...drafts, [commentId]: value }));
+    this.commentEditDrafts = { ...this.commentEditDrafts, [commentId]: value };
   }
 
   /** Returns the edit error assigned to a specific comment. */
   getCommentEditError(commentId: number): string | null {
-    return this.commentEditErrors()[commentId] ?? null;
+    return this.commentEditErrors[commentId] ?? null;
   }
 
   /** Tells whether a comment is currently waiting for an update response. */
   isCommentUpdating(commentId: number): boolean {
-    return this.commentUpdating()[commentId] ?? false;
+    return this.commentUpdating[commentId] ?? false;
   }
 
   /**
@@ -1307,30 +1326,27 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.editingCommentId.set(commentId);
-    this.commentEditDrafts.update((drafts) => ({
-      ...drafts,
+    this.editingCommentId = commentId;
+    this.commentEditDrafts = {
+      ...this.commentEditDrafts,
       [commentId]: comment.content ?? '',
-    }));
-    this.commentEditErrors.update((errors) => ({ ...errors, [commentId]: null }));
+    };
+    this.commentEditErrors = { ...this.commentEditErrors, [commentId]: null };
   }
 
   /** Cancels the edition of the current comment. */
   onCancelCommentEdit(): void {
-    const editingId = this.editingCommentId();
+    const editingId = this.editingCommentId;
     if (editingId !== null) {
       this.commentUpdateSubs.get(editingId)?.unsubscribe();
       this.commentUpdateSubs.delete(editingId);
-      this.commentEditDrafts.update((drafts) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { [editingId]: _removed, ...rest } = drafts;
-        return rest;
-      });
-      this.commentEditErrors.update((errors) => ({ ...errors, [editingId]: null }));
-      this.commentUpdating.update((state) => ({ ...state, [editingId]: false }));
+      const { [editingId]: _removedDraft, ...remainingDrafts } = this.commentEditDrafts;
+      this.commentEditDrafts = remainingDrafts;
+      this.commentEditErrors = { ...this.commentEditErrors, [editingId]: null };
+      this.commentUpdating = { ...this.commentUpdating, [editingId]: false };
     }
 
-    this.editingCommentId.set(null);
+    this.editingCommentId = null;
   }
 
   /** Persists the edited comment content. */
@@ -1364,13 +1380,10 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
         next: (updated) => {
           this.updateCommentInCollections(stepId, updated);
           this.setCommentUpdating(commentId, false);
-          this.commentEditDrafts.update((drafts) => {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { [commentId]: _removed, ...rest } = drafts;
-            return rest;
-          });
-          this.commentEditErrors.update((errors) => ({ ...errors, [commentId]: null }));
-          this.editingCommentId.set(null);
+          const { [commentId]: _removedDraft, ...remainingDrafts } = this.commentEditDrafts;
+          this.commentEditDrafts = remainingDrafts;
+          this.commentEditErrors = { ...this.commentEditErrors, [commentId]: null };
+          this.editingCommentId = null;
           this.commentUpdateSubs.delete(commentId);
         },
         error: () => {
@@ -1403,7 +1416,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
 
   /** Indicates whether a like request is currently pending for the provided step. */
   isStepLikePending(stepId: number): boolean {
-    return !!this.stepLikePending()[stepId];
+    return !!this.stepLikePending[stepId];
   }
 
   /**
@@ -1438,10 +1451,7 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     this.setStepLikeError(stepId, null);
 
     const currentLikes = Number.isFinite(step?.likes) ? step.likes : 0;
-    const hasLiked =
-      typeof step?.viewerHasLiked === 'boolean'
-        ? step.viewerHasLiked
-        : this.state.hasViewerLikedStep(stepId);
+    const hasLiked = Boolean(step?.viewerHasLiked);
     const increment = !hasLiked;
     const delta = increment ? 1 : -1;
     const optimisticLikes = Math.max(0, currentLikes + delta);
@@ -1472,17 +1482,17 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
    * @returns Error message or null when nothing is blocking the action.
    */
   getStepLikeError(stepId: number): string | null {
-    return this.stepLikeErrors()[stepId] ?? null;
+    return this.stepLikeErrors[stepId] ?? null;
   }
 
   /** Tracks the pending status of a like update for the provided step. */
   private setStepLikePending(stepId: number, isPending: boolean): void {
-    this.stepLikePending.update((state) => ({ ...state, [stepId]: isPending }));
+    this.stepLikePending = { ...this.stepLikePending, [stepId]: isPending };
   }
 
   /** Stores a like-related validation or permission error for the provided step. */
   private setStepLikeError(stepId: number, message: string | null): void {
-    this.stepLikeErrors.update((errors) => ({ ...errors, [stepId]: message }));
+    this.stepLikeErrors = { ...this.stepLikeErrors, [stepId]: message };
   }
 
   /**
@@ -1507,32 +1517,32 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
 
   /** Clears the tracked error message for the provided step. */
   private setCommentError(stepId: number, message: string | null): void {
-    this.commentErrors.update((errors) => ({ ...errors, [stepId]: message }));
+    this.commentErrors = { ...this.commentErrors, [stepId]: message };
   }
 
   /** Updates the submitting state for the comment form of the provided step. */
   private setCommentSubmitting(stepId: number, isSubmitting: boolean): void {
-    this.commentSubmitting.update((state) => ({ ...state, [stepId]: isSubmitting }));
+    this.commentSubmitting = { ...this.commentSubmitting, [stepId]: isSubmitting };
   }
 
   /** Updates the deleting state for the provided comment identifier. */
   private setCommentDeleting(commentId: number, isDeleting: boolean): void {
-    this.commentDeleting.update((state) => ({ ...state, [commentId]: isDeleting }));
+    this.commentDeleting = { ...this.commentDeleting, [commentId]: isDeleting };
   }
 
   /** Registers an error for a specific comment edition. */
   private setCommentEditError(commentId: number, message: string | null): void {
-    this.commentEditErrors.update((errors) => ({ ...errors, [commentId]: message }));
+    this.commentEditErrors = { ...this.commentEditErrors, [commentId]: message };
   }
 
   /** Updates the loading state associated with a comment update. */
   private setCommentUpdating(commentId: number, isUpdating: boolean): void {
-    this.commentUpdating.update((state) => ({ ...state, [commentId]: isUpdating }));
+    this.commentUpdating = { ...this.commentUpdating, [commentId]: isUpdating };
   }
 
   /** Overrides the comment draft value for a given step. */
   private setCommentDraft(stepId: number, value: string): void {
-    this.commentDrafts.update((drafts) => ({ ...drafts, [stepId]: value }));
+    this.commentDrafts = { ...this.commentDrafts, [stepId]: value };
   }
 
   /**
@@ -1560,12 +1570,12 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     };
 
     const updatedSteps = this.state.steps().map(mapStep);
-    this.state.setSteps(updatedSteps);
+    const currentDiary = this.state.currentDiary();
 
-    const diary = this.state.currentDiary();
-    if (diary) {
-      const updatedDiarySteps = diary.steps.map(mapStep);
-      this.state.setCurrentDiary({ ...diary, steps: updatedDiarySteps });
+    if (currentDiary) {
+      this.state.setCurrentDiary({ ...currentDiary, steps: updatedSteps });
+    } else {
+      this.state.setSteps(updatedSteps);
     }
   }
 
@@ -1589,12 +1599,12 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     };
 
     const updatedSteps = this.state.steps().map(mapStep);
-    this.state.setSteps(updatedSteps);
+    const currentDiary = this.state.currentDiary();
 
-    const diary = this.state.currentDiary();
-    if (diary) {
-      const updatedDiarySteps = diary.steps.map(mapStep);
-      this.state.setCurrentDiary({ ...diary, steps: updatedDiarySteps });
+    if (currentDiary) {
+      this.state.setCurrentDiary({ ...currentDiary, steps: updatedSteps });
+    } else {
+      this.state.setSteps(updatedSteps);
     }
   }
 
@@ -1613,12 +1623,12 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
     };
 
     const updatedSteps = this.state.steps().map(mapStep);
-    this.state.setSteps(updatedSteps);
+    const currentDiary = this.state.currentDiary();
 
-    const diary = this.state.currentDiary();
-    if (diary) {
-      const updatedDiarySteps = diary.steps.map(mapStep);
-      this.state.setCurrentDiary({ ...diary, steps: updatedDiarySteps });
+    if (currentDiary) {
+      this.state.setCurrentDiary({ ...currentDiary, steps: updatedSteps });
+    } else {
+      this.state.setSteps(updatedSteps);
     }
   }
 
@@ -1694,6 +1704,42 @@ export class DiaryPageComponent implements OnInit, OnDestroy {
   /** Renvoie les médias d'une étape via le service partagé. */
   getStepMedias(step: Step): Media[] {
     return this.state.getStepMediaList(step);
+  }
+
+  /** Renvoie un texte alternatif descriptif pour un média d'étape. */
+  getStepMediaAlt(step: Step, media: Media | null | undefined, index: number): string {
+    const order = Number.isFinite(index) ? Math.max(1, index + 1) : 1;
+    const mediaType = typeof media?.mediaType === 'string' ? media.mediaType.toUpperCase() : '';
+    const typeLabel = mediaType === 'VIDEO' ? 'Vidéo' : 'Photo';
+
+    const stepTitle = typeof step?.title === 'string' ? step.title.trim() : '';
+    if (stepTitle) {
+      return `${typeLabel} ${order} de l'étape ${stepTitle}`;
+    }
+
+    const diaryTitle = this.state.currentDiary()?.title?.trim() ?? '';
+    if (diaryTitle) {
+      return `${typeLabel} ${order} du carnet ${diaryTitle}`;
+    }
+
+    return `${typeLabel} ${order} du voyage`;
+  }
+
+  /** Texte alternatif pour le média actuellement affiché en plein écran. */
+  getActiveMediaAlt(): string {
+    const selection = this.activeMediaViewer();
+    if (!selection) {
+      return 'Photo du voyage';
+    }
+
+    const step = this.state.steps().find((item) => item.id === selection.stepId);
+    if (!step) {
+      return 'Photo du voyage';
+    }
+
+    const medias = this.getStepMedias(step);
+    const media = medias[selection.index] ?? null;
+    return this.getStepMediaAlt(step, media, selection.index);
   }
 
   getStepMediaUrl(media: Media | null | undefined): string {

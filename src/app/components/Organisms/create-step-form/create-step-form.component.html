@@ -5,7 +5,7 @@
   data-test="create-step-form"
 >
   <section class="create-step__section">
-    <h3>Nouvelle étape</h3>
+    <h3>{{ headingLabel }}</h3>
     <div class="create-step__grid create-step__grid--primary">
       <app-text-input
         formControlName="title"
@@ -113,8 +113,7 @@
           [itemsList]="availableThemes"
           label=""
           placeholder="Choisissez un thème"
-          [withMutipleSelect]="true"
-          [selectedIds]="stepForm.get('themeIds')?.value ?? []"
+          [selectedId]="stepForm.get('themeId')?.value ?? null"
           [disabled]="availableThemes.length === 0"
           (selectOnChange)="onThemeChange($event)"
           data-test="step-form-themes"
@@ -136,6 +135,7 @@
         class="create-step__media-uploader"
         [items]="mediaItems"
         [folder]="'travel-diaries/steps'"
+        [autoUpload]="false"
         (itemsChange)="onMediaItemsChange($event)"
         (primaryChange)="onPrimaryMediaChange($event)"
         (uploadingChange)="onMediaUploadStateChange($event)"

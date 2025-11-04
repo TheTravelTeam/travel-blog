@@ -15,16 +15,15 @@ import { ReactiveFormsModule } from '@angular/forms';
 
 import { MyTravelsPageComponent } from './my-travels-page.component';
 import { TravelDiary } from '@model/travel-diary.model';
-import {
-  CreateDiaryModalComponent,
-  DiaryCreationPayload,
-} from 'components/Organisms/create-diary-modal/create-diary-modal.component';
+import { CreateDiaryModalComponent } from 'components/Organisms/create-diary-modal/create-diary-modal.component';
+import { DiaryCreationPayload } from 'components/Organisms/create-diary-modal/create-diary-modal.types';
 import { StepService } from '@service/step.service';
 import { ThemeService } from '@service/theme.service';
 import { MediaService } from '@service/media.service';
 import { AuthService } from '@service/auth.service';
 import { UserProfileDto } from '@dto/user-profile.dto';
 import { environment } from '../../../environments/environment';
+import { CloudinaryService } from '@service/cloudinary.service';
 
 class AuthServiceStub {
   currentUser = signal<UserProfileDto | null>(null);
@@ -43,6 +42,7 @@ describe('MyTravelsPageComponent', () => {
   let themeServiceSpy: jasmine.SpyObj<ThemeService>;
   let mediaServiceSpy: jasmine.SpyObj<MediaService>;
   let authServiceStub: AuthServiceStub;
+  let cloudinaryServiceStub: jasmine.SpyObj<CloudinaryService>;
 
   const paramMap$ = new BehaviorSubject(convertToParamMap({ id: '1' }));
 
@@ -85,6 +85,13 @@ describe('MyTravelsPageComponent', () => {
     );
     mediaServiceSpy.createStepMedia.and.returnValue(of({} as any));
 
+    cloudinaryServiceStub = jasmine.createSpyObj<CloudinaryService>('CloudinaryService', [
+      'uploadImage',
+    ]);
+    cloudinaryServiceStub.uploadImage.and.returnValue(
+      of({ publicId: 'mock', secureUrl: 'https://example.com/mock-cover.png' })
+    );
+
     TestBed.overrideComponent(CreateDiaryModalComponent, {
       set: {
         template: '',
@@ -109,6 +116,7 @@ describe('MyTravelsPageComponent', () => {
         { provide: ThemeService, useValue: themeServiceSpy },
         { provide: MediaService, useValue: mediaServiceSpy },
         { provide: AuthService, useValue: authServiceStub },
+        { provide: CloudinaryService, useValue: cloudinaryServiceStub },
       ],
     }).compileComponents();
 
@@ -269,7 +277,6 @@ describe('MyTravelsPageComponent', () => {
         startDate: null,
         endDate: null,
         themeId: null,
-        themeIds: [],
       },
     };
 

@@ -31,23 +31,22 @@ describe('CreateStepFormComponent', () => {
     const { includeDates = true } = options;
     const baseValues = {
       ...createStepFormBaseValues,
-      themeIds: [...createStepFormBaseValues.themeIds],
       startDate: includeDates ? createStepFormBaseValues.startDate : '',
       endDate: includeDates ? createStepFormBaseValues.endDate : '',
     };
     component.stepForm.patchValue(baseValues);
   }
 
-  it('TC-STEP-FRM-01 should normalise dates and emit numeric coordinates on submit', () => {
+  it('TC-STEP-FRM-01 should normalise dates and emit numeric coordinates on submit', async () => {
     setValidBaseFormValues();
     component.stepForm.patchValue(createStepFormFrenchDateValues);
 
     const emitSpy = spyOn(component.submitStep, 'emit');
 
-    component.handleSubmit();
+    await component.handleSubmit();
 
     expect(emitSpy).toHaveBeenCalledTimes(1);
-    const payload = emitSpy.calls.mostRecent().args[0] as any;
+    const payload = emitSpy.calls.mostRecent()?.args?.[0] as any;
     expect(payload).toBeDefined();
     if (!payload) {
       fail('Expected emitted payload');
@@ -95,7 +94,6 @@ describe('CreateStepFormComponent', () => {
         startDate: '2024-07-14',
         endDate: '2024-07-20',
         themeId: 3,
-        themeIds: [3],
       })
     );
     expect(component.stepEditorContent).toBe('Description existante');
