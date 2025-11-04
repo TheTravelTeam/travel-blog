@@ -20,6 +20,7 @@ export class ButtonComponent {
   @Input() type: Btn['type'] = btnDefault['type'];
   @Input() icon: Btn['icon'] = btnDefault['icon'];
   @Input() htmlType: NonNullable<Btn['htmlType']> = btnDefault['htmlType']!;
+  @Input() ariaLabel: NonNullable<Btn['ariaLabel']> = btnDefault['ariaLabel']!;
 
   @Output() btnClick = new EventEmitter<string>();
 

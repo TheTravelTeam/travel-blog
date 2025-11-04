@@ -1,4 +1,12 @@
-import { Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  OnDestroy,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -128,13 +136,12 @@ export class TopBarComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     if (!this.authService.currentUser()) {
       // Charge l'utilisateur courant lors d'un rafraîchissement avec session déjà active
-      this.authService
-        .loadCurrentUser()
-        .pipe(catchError(() => of(null)))
-        .subscribe();
+      this.authService.loadCurrentUser().subscribe({ error: () => undefined });
     }
 
-    this.search().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+    this.search()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe();
   }
 
   /**

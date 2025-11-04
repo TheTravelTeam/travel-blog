@@ -67,7 +67,6 @@ describe('StepService', () => {
     req.flush(mockStep);
 
     expect(response).toEqual(mockStep);
-    expect(response?.likes).toBe(mockStep.likesCount);
   });
 
   it('TC-STEP-SVC-02 addStepToTravel should surface backend validation errors', () => {
@@ -208,7 +207,7 @@ describe('StepService', () => {
 
     const req = httpMock.expectOne(`${baseUrl}/steps/42/likes`);
     expect(req.request.method).toBe('PATCH');
-    expect(req.request.body).toEqual({ increment: true, delta: 1 });
+    expect(req.request.body).toEqual({ increment: true });
     expect(req.request.withCredentials).toBe(environment.useCredentials);
 
     const mockBackendStep = {
@@ -225,13 +224,14 @@ describe('StepService', () => {
       isEditing: false,
       comments: [],
       likesCount: 11,
+      likes: 11,
       themeIds: [],
       themes: [],
     } satisfies Partial<Step> & { likesCount: number };
 
     req.flush(mockBackendStep);
 
-    expect(response).toEqual({ ...mockBackendStep, likes: 11, likesCount: 11 });
+    expect(response).toEqual(mockBackendStep);
   });
 
   it('should PATCH step like decrement and normalise the response', () => {
@@ -243,7 +243,7 @@ describe('StepService', () => {
 
     const req = httpMock.expectOne(`${baseUrl}/steps/42/likes`);
     expect(req.request.method).toBe('PATCH');
-    expect(req.request.body).toEqual({ increment: false, delta: -1 });
+    expect(req.request.body).toEqual({ increment: false });
     expect(req.request.withCredentials).toBe(environment.useCredentials);
 
     const mockBackendStep = {
@@ -260,30 +260,14 @@ describe('StepService', () => {
       isEditing: false,
       comments: [],
       likesCount: 4,
+      likes: 4,
       themeIds: [],
       themes: [],
     } satisfies Partial<Step> & { likesCount: number };
 
     req.flush(mockBackendStep);
 
-    expect(response).toEqual({ ...mockBackendStep, likes: 4, likesCount: 4 });
-  });
-
-  it('should coerce string like counters returned by the backend', () => {
-    let response: Step | undefined;
-
-    service.updateStepLikes(9, true).subscribe((step) => {
-      response = step;
-    });
-
-    const req = httpMock.expectOne(`${baseUrl}/steps/9/likes`);
-    req.flush({
-      id: 9,
-      likesCount: '3',
-    } as unknown as Step);
-
-    expect(response?.likes).toBe(3);
-    expect(response?.likesCount).toBe(3);
+    expect(response).toEqual(mockBackendStep);
   });
 
   it('TC-STEP-SVC-07 deleteStep should resolve void on success', () => {

@@ -1,29 +1,24 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable } from 'rxjs';
 import { CreateStepDto } from '@dto/create-step.dto';
 import { TravelDiary } from '@model/travel-diary.model';
 import { CreateDiaryDto } from '@dto/create-diary.dto';
 import { environment } from '../../../environments/environment';
 import { Step } from '@model/step.model';
-import { normalizeThemeIds } from '@utils/theme-selection.util';
 
 @Injectable({ providedIn: 'root' })
 export class StepService {
-  private baseUrl = environment.apiUrl;
+  private readonly baseUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   /**
    * Retrieves a diary by id and returns the full structure including steps.
    * @param travelId Identifier of the travel diary to fetch.
    */
   getDiaryWithSteps(travelId: number): Observable<TravelDiary> {
-    return this.http.get<TravelDiary>(`${this.baseUrl}/travel-diaries/${travelId}`).pipe(
-      map((travels) => {
-        return travels;
-      })
-    );
+    return this.http.get<TravelDiary>(`${this.baseUrl}/travel-diaries/${travelId}`);
   }
 
   /**
@@ -31,11 +26,7 @@ export class StepService {
    * @param userId Target user identifier.
    */
   getDiaryListByUser(userId: number): Observable<TravelDiary[]> {
-    return this.http.get<TravelDiary[]>(`${this.baseUrl}/users/${userId}`).pipe(
-      map((travels) => {
-        return travels;
-      })
-    );
+    return this.http.get<TravelDiary[]>(`${this.baseUrl}/travel-diaries/users/${userId}`);
   }
 
   /**
@@ -44,10 +35,7 @@ export class StepService {
    * @param newStep Payload describing the step to create.
    */
   addStepToTravel(_travelId: number, newStep: CreateStepDto): Observable<Step> {
-    // Backend expects POST /steps with travelDiaryId in body and returns the created Step
-    return this.http
-      .post<Step>(`${this.baseUrl}/steps`, this.normalisePayload(newStep))
-      .pipe(map((step) => this.normaliseStepResponse(step)));
+    return this.http.post<Step>(`${this.baseUrl}/steps`, this.cleanStepPayload(newStep));
   }
 
   /**
@@ -56,9 +44,7 @@ export class StepService {
    * @param payload New values to persist.
    */
   updateStep(stepId: number, payload: CreateStepDto): Observable<Step> {
-    return this.http
-      .put<Step>(`${this.baseUrl}/steps/${stepId}`, this.normalisePayload(payload))
-      .pipe(map((step) => this.normaliseStepResponse(step)));
+    return this.http.put<Step>(`${this.baseUrl}/steps/${stepId}`, this.cleanStepPayload(payload));
   }
 
   /**
@@ -67,15 +53,13 @@ export class StepService {
    * @param increment True to like, false to unlike the step.
    */
   updateStepLikes(stepId: number, increment: boolean): Observable<Step> {
-    return this.http
-      .patch<Step>(
-        `${this.baseUrl}/steps/${stepId}/likes`,
-        this.buildLikePayload(increment),
-        {
-          withCredentials: environment.useCredentials,
-        }
-      )
-      .pipe(map((step) => this.normaliseStepResponse(step)));
+    return this.http.patch<Step>(
+      `${this.baseUrl}/steps/${stepId}/likes`,
+      { increment },
+      {
+        withCredentials: environment.useCredentials,
+      }
+    );
   }
 
   /**
@@ -83,9 +67,7 @@ export class StepService {
    * @param stepId Identifier of the step to remove.
    */
   deleteStep(stepId: number): Observable<void> {
-    return this.http
-      .delete(`${this.baseUrl}/steps/${stepId}`, { responseType: 'text' })
-      .pipe(map(() => void 0));
+    return this.http.delete<void>(`${this.baseUrl}/steps/${stepId}`);
   }
 
   /** Fetches every diary available on the public endpoint. */
@@ -115,48 +97,24 @@ export class StepService {
    * @param diaryId Identifier of the diary to delete.
    */
   deleteDiary(diaryId: number): Observable<void> {
-    return this.http
-      .delete(`${this.baseUrl}/travel-diaries/${diaryId}`, { responseType: 'text' })
-      .pipe(map(() => void 0));
+    return this.http.delete<void>(`${this.baseUrl}/travel-diaries/${diaryId}`);
   }
 
   /**
-   * Ensures the outgoing step payload respects the backend constraints.
-   * @param payload Raw payload coming from the UI.
+   * Deduplicates theme ids and strips null/undefined values to satisfy backend validation.
    */
-  private normalisePayload(payload: CreateStepDto): CreateStepDto {
+  private cleanStepPayload(payload: CreateStepDto): CreateStepDto {
+    const themeIds = Array.isArray(payload.themeIds)
+      ? Array.from(
+          new Set(
+            payload.themeIds.filter((id): id is number => typeof id === 'number' && Number.isInteger(id) && id > 0)
+          )
+        )
+      : [];
+
     return {
       ...payload,
-      themeIds: normalizeThemeIds(null, payload.themeIds),
-    };
-  }
-
-  /** Harmonises differing API representations (likesCount vs likes). */
-  private normaliseStepResponse(step: Step): Step {
-    const likesCount = this.resolveLikeCounter(step);
-
-    return {
-      ...step,
-      likes: likesCount,
-      likesCount,
-    };
-  }
-
-  private resolveLikeCounter(step: Partial<Step> | null | undefined): number {
-    const raw = step?.likesCount ?? step?.likes ?? 0;
-    const parsed = Number(raw);
-    if (!Number.isFinite(parsed)) {
-      return 0;
-    }
-
-    return Math.max(0, Math.round(parsed));
-  }
-
-  private buildLikePayload(increment: boolean): { increment: boolean; delta: number } {
-    return {
-      increment,
-      /** Maintains compatibility with legacy endpoints still expecting a numeric delta. */
-      delta: increment ? 1 : -1,
+      themeIds,
     };
   }
 }

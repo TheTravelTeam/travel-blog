@@ -36,11 +36,7 @@ export class AuthService {
    * Typé en void si on ne se sert pas de la réponse.
    */
   register(email: string, password: string, pseudo: string): Observable<void> {
-    return this.http.post<void>(
-      `${this.apiUrl}/register`,
-      { email, password, pseudo },
-      { withCredentials: environment.useCredentials }
-    );
+    return this.http.post<void>(`${this.apiUrl}/register`, { email, password, pseudo });
   }
 
   /**

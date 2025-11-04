@@ -8,7 +8,7 @@ import { catchError, map } from 'rxjs/operators';
  * Guard minimaliste : laisse passer si un utilisateur est présent dans l'état d'authentification,
  * sinon redirige vers /login et bloque l'accès.
  */
-export const authGuard: CanActivateFn = (route, state): boolean | UrlTree | Observable<boolean | UrlTree> => {
+export const authGuard: CanActivateFn = (): boolean | UrlTree | Observable<boolean | UrlTree> => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
@@ -16,16 +16,10 @@ export const authGuard: CanActivateFn = (route, state): boolean | UrlTree | Obse
     return true;
   }
 
-  const redirectExtras = state?.url ? { queryParams: { redirectTo: state.url } } : {};
+  const loginTree = router.createUrlTree(['/login']);
 
   return authService.loadCurrentUser().pipe(
-    map((user) => {
-      if (user) {
-        return true;
-      }
-
-      return router.createUrlTree(['/login'], redirectExtras);
-    }),
-    catchError(() => of(router.createUrlTree(['/login'], redirectExtras)))
+    map((user) => (user ? true : loginTree)),
+    catchError(() => of(loginTree))
   );
 };
